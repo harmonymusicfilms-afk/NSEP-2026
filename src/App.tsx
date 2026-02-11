@@ -1,0 +1,88 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
+import { LanguageProvider } from '@/contexts/LanguageContext';
+
+// Pages
+import { HomePage } from '@/pages/HomePage';
+import { RegisterPage } from '@/pages/RegisterPage';
+import { LoginPage } from '@/pages/LoginPage';
+import { StudentDashboard } from '@/pages/StudentDashboard';
+import { StudentResultsPage } from '@/pages/StudentResultsPage';
+import { StudentWalletPage } from '@/pages/StudentWalletPage';
+import { StudentCertificatesPage } from '@/pages/StudentCertificatesPage';
+import { ExamPage } from '@/pages/ExamPage';
+import { AdminLoginPage } from '@/pages/AdminLoginPage';
+import { AdminDashboard } from '@/pages/AdminDashboard';
+import { AdminStudentsPage } from '@/pages/AdminStudentsPage';
+import { AdminScholarshipsPage } from '@/pages/AdminScholarshipsPage';
+import { AdminSettingsPage } from '@/pages/AdminSettingsPage';
+import { AdminPaymentsPage } from '@/pages/AdminPaymentsPage';
+import { AdminCertificatesPage } from '@/pages/AdminCertificatesPage';
+import { AdminEmailsPage } from '@/pages/AdminEmailsPage';
+import { VerifyPage } from '@/pages/VerifyPage';
+import { AboutPage } from '@/pages/AboutPage';
+import { TermsPage } from '@/pages/TermsPage';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+import { ContactPage } from '@/pages/ContactPage';
+import { GalleryPage } from '@/pages/GalleryPage';
+
+import { AdminReferralsPage } from '@/pages/AdminReferralsPage';
+import { CenterRegistrationPage } from '@/pages/CenterRegistrationPage';
+import { AdminCentersPage } from '@/pages/AdminCentersPage';
+
+// Layouts
+import { PublicLayout, StudentLayout, AdminLayout } from '@/components/layout';
+
+function App() {
+  return (
+    <LanguageProvider>
+    <BrowserRouter>
+      <Routes>
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/verify" element={<VerifyPage />} />
+          <Route path="/verify/:certificateId" element={<VerifyPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/center-registration" element={<CenterRegistrationPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+        </Route>
+
+        {/* Student Routes */}
+        <Route element={<StudentLayout />}>
+          <Route path="/dashboard" element={<StudentDashboard />} />
+          <Route path="/dashboard/exam" element={<ExamPage />} />
+          <Route path="/dashboard/results" element={<StudentResultsPage />} />
+          <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
+          <Route path="/dashboard/wallet" element={<StudentWalletPage />} />
+        </Route>
+
+        {/* Admin Routes */}
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/students" element={<AdminStudentsPage />} />
+          <Route path="/admin/scholarships" element={<AdminScholarshipsPage />} />
+          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+          <Route path="/admin/referrals" element={<AdminReferralsPage />} />
+          <Route path="/admin/centers" element={<AdminCentersPage />} />
+          <Route path="/admin/certificates" element={<AdminCertificatesPage />} />
+          <Route path="/admin/emails" element={<AdminEmailsPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster />
+    </BrowserRouter>
+    </LanguageProvider>
+  );
+}
+
+export default App;

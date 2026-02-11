@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&family=Merriweather:wght@700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Government/Institutional Color Palette */
+    --color-primary: 217 71% 28%;
+    --color-primary-light: 217 71% 38%;
+    --color-primary-dark: 217 71% 20%;
+    
+    --color-accent: 142 52% 36%;
+    --color-accent-light: 142 52% 46%;
+    --color-accent-dark: 142 52% 28%;
+    
+    --color-warning: 38 92% 50%;
+    --color-error: 0 72% 51%;
+    --color-info: 199 89% 48%;
+    
+    /* Backgrounds */
+    --background: 210 20% 98%;
+    --foreground: 217 32% 17%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 217 32% 17%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 217 32% 17%;
+    
+    --primary: 217 71% 28%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 217 32% 17%;
+    
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 16% 47%;
+    
+    --accent: 142 52% 36%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 214 20% 85%;
+    --input: 214 20% 85%;
+    --ring: 217 71% 28%;
+    
+    --radius: 0.5rem;
+    
+    /* Custom tokens */
+    --header-height: 64px;
+    --sidebar-width: 260px;
+    
+    /* Status Colors */
+    --status-active: 142 52% 36%;
+    --status-pending: 38 92% 50%;
+    --status-blocked: 0 72% 51%;
+    --status-approved: 142 52% 36%;
+    --status-rejected: 0 72% 51%;
+  }
+
+  .dark {
+    --background: 217 32% 12%;
+    --foreground: 210 20% 98%;
+    
+    --card: 217 32% 15%;
+    --card-foreground: 210 20% 98%;
+    
+    --popover: 217 32% 15%;
+    --popover-foreground: 210 20% 98%;
+    
+    --primary: 217 71% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 217 20% 22%;
+    --secondary-foreground: 210 20% 98%;
+    
+    --muted: 217 20% 22%;
+    --muted-foreground: 215 16% 65%;
+    
+    --accent: 142 52% 45%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 217 20% 25%;
+    --input: 217 20% 25%;
+    --ring: 217 71% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Merriweather', Georgia, serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  .institutional-gradient {
+    background: linear-gradient(135deg, hsl(var(--color-primary)) 0%, hsl(var(--color-primary-dark)) 100%);
+  }
+  
+  .success-gradient {
+    background: linear-gradient(135deg, hsl(var(--color-accent)) 0%, hsl(var(--color-accent-dark)) 100%);
+  }
+  
+  .gold-gradient {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  }
+  
+  .silver-gradient {
+    background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+  }
+  
+  .bronze-gradient {
+    background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);
+  }
+  
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+  
+  .status-active {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .status-pending {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-blocked {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .status-approved {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .status-rejected {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .exam-timer {
+    @apply font-mono text-2xl font-bold tabular-nums;
+  }
+  
+  .certificate-border {
+    border: 8px double hsl(var(--color-primary));
+    box-shadow: inset 0 0 0 2px hsl(var(--color-primary) / 0.2);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Print styles for certificates */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
