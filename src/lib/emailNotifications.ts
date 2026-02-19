@@ -1,8 +1,9 @@
 import { APP_CONFIG } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 // Email notification types
-export type EmailNotificationType = 
+export type EmailNotificationType =
   | 'REGISTRATION_CONFIRMATION'
   | 'PAYMENT_RECEIPT'
   | 'EXAM_REMINDER'
@@ -379,36 +380,69 @@ ${APP_CONFIG.organization}
 export function generateEmail(
   type: EmailNotificationType,
   data: EmailTemplateData,
-  language: 'en' | 'hi' = 'en'
+  language: 'en' | 'hi' = 'en',
+  customSubject?: string,
+  customBodyHtml?: string
 ): GeneratedEmail {
-  const template = emailTemplates[type][language];
-  
-  let subject = template.subject;
-  let body = template.body;
-  
-  // Replace placeholders
-  Object.entries(data).forEach(([key, value]) => {
+  const defaultTemplate = emailTemplates[type][language];
+
+  let subject = customSubject || defaultTemplate.subject;
+  let body = defaultTemplate.body; // Default text body
+
+  // Replace placeholders in subject
+  Object.keys(data).forEach(key => {
     const placeholder = new RegExp(`{{${key}}}`, 'g');
+    const value = data[key];
     let displayValue = value;
-    
-    // Format specific values
     if (key === 'amount' || key === 'scholarshipAmount') {
       displayValue = formatCurrency(value as number);
     } else if (key === 'date') {
       displayValue = formatDate(value as string);
     }
-    
     subject = subject.replace(placeholder, String(displayValue));
-    body = body.replace(placeholder, String(displayValue));
   });
-  
-  // Handle conditional blocks
-  body = body.replace(/{{#(\w+)}}([\s\S]*?){{\/\1}}/g, (match, key, content) => {
-    return data[key] ? content : '';
-  });
-  
-  // Create HTML version
-  const bodyHtml = `
+
+  // If custom HTML provided, use it directly (after replacement)
+  let bodyHtml = '';
+  if (customBodyHtml) {
+    bodyHtml = customBodyHtml;
+    // Replace placeholders in HTML
+    Object.keys(data).forEach(key => {
+      const placeholder = new RegExp(`{{${key}}}`, 'g');
+      const value = data[key];
+      let displayValue = value;
+      if (key === 'amount' || key === 'scholarshipAmount') {
+        displayValue = formatCurrency(value as number);
+      } else if (key === 'date') {
+        displayValue = formatDate(value as string);
+      }
+      bodyHtml = bodyHtml.replace(placeholder, String(displayValue));
+    });
+
+    // Simple text extraction for bodyText
+    body = bodyHtml.replace(/<[^>]*>?/gm, '');
+  } else {
+    // Use default text template and wrap in standard HTML
+    Object.entries(data).forEach(([key, value]) => {
+      const placeholder = new RegExp(`{{${key}}}`, 'g');
+      let displayValue = value;
+
+      if (key === 'amount' || key === 'scholarshipAmount') {
+        displayValue = formatCurrency(value as number);
+      } else if (key === 'date') {
+        displayValue = formatDate(value as string);
+      }
+
+      body = body.replace(placeholder, String(displayValue));
+    });
+
+    // Handle conditional blocks
+    body = body.replace(/{{#(\w+)}}([\s\S]*?){{\/\1}}/g, (match, key, content) => {
+      return data[key] ? content : '';
+    });
+
+    // Create Standard HTML version
+    bodyHtml = `
     <!DOCTYPE html>
     <html>
     <head>
@@ -434,7 +468,7 @@ export function generateEmail(
           <p>${APP_CONFIG.fullName}</p>
         </div>
         <div class="content">
-          <pre>${body.trim()}</pre>
+          ${customBodyHtml ? bodyHtml : `<pre>${body.trim()}</pre>`}
         </div>
         <div class="footer">
           <p>${APP_CONFIG.organization}</p>
@@ -445,7 +479,8 @@ export function generateEmail(
     </body>
     </html>
   `;
-  
+  }
+
   return {
     subject,
     bodyHtml,
@@ -454,38 +489,77 @@ export function generateEmail(
 }
 
 // Send email notification (simulated)
-export function sendEmailNotification(
+export async function sendEmailNotification(
   type: EmailNotificationType,
   recipientEmail: string,
   data: EmailTemplateData,
   language: 'en' | 'hi' = 'en'
-): { success: boolean; emailId: string } {
-  const email = generateEmail(type, data, language);
-  
-  // Log to localStorage for demo
-  const emailLogs = JSON.parse(localStorage.getItem('gphdm_email_notifications') || '[]');
-  const emailId = `EMAIL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
-  const emailLog = {
-    id: emailId,
-    type,
-    recipientEmail,
-    subject: email.subject,
-    status: Math.random() > 0.1 ? 'SENT' : 'FAILED', // 90% success rate
-    sentAt: new Date().toISOString(),
-    language,
-  };
-  
-  emailLogs.push(emailLog);
-  localStorage.setItem('gphdm_email_notifications', JSON.stringify(emailLogs));
-  
-  console.log(`[Email Notification] ${type} sent to ${recipientEmail}`);
-  console.log(`Subject: ${email.subject}`);
-  
-  return {
-    success: emailLog.status === 'SENT',
-    emailId
-  };
+): Promise<{ success: boolean; emailId: string }> {
+  // Try to fetch custom template from Supabase
+  let customSubject: string | undefined;
+  let customBodyHtml: string | undefined;
+
+  try {
+    const { data: templates } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('name', type)
+      .limit(1);
+
+    if (templates && templates.length > 0) {
+      customSubject = templates[0].subject;
+      customBodyHtml = templates[0].body_html;
+      console.log(`Using custom template for ${type}`);
+    }
+  } catch (err) {
+    console.warn('Failed to fetch custom template:', err);
+  }
+
+  const email = generateEmail(type, data, language, customSubject, customBodyHtml);
+
+  // Log to Supabase (primary)
+  try {
+    const { data: delivery, error } = await supabase
+      .from('email_deliveries')
+      .insert([{
+        recipient_email: recipientEmail,
+        subject: email.subject,
+        status: 'SENT', // Simulated success
+        sent_at: new Date().toISOString(),
+        student_id: data.studentId || null, // Assuming data might have studentId
+        template_id: null, // Hard to link to template if using default
+        retry_count: 0
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(`[Email Notification] ${type} sent to ${recipientEmail} (Logged to DB)`);
+    return { success: true, emailId: delivery.id };
+
+  } catch (dbError) {
+    console.error('Failed to log email to Supabase, falling back to localStorage:', dbError);
+
+    // Fallback to localStorage
+    const emailLogs = JSON.parse(localStorage.getItem('gphdm_email_notifications') || '[]');
+    const emailId = `EMAIL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    const emailLog = {
+      id: emailId,
+      type,
+      recipientEmail,
+      subject: email.subject,
+      status: 'SENT',
+      sentAt: new Date().toISOString(),
+      language,
+    };
+
+    emailLogs.push(emailLog);
+    localStorage.setItem('gphdm_email_notifications', JSON.stringify(emailLogs));
+
+    return { success: true, emailId };
+  }
 }
 
 // Get email notification history

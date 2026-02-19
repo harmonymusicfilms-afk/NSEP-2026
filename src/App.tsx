@@ -25,10 +25,16 @@ import { TermsPage } from '@/pages/TermsPage';
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 import { ContactPage } from '@/pages/ContactPage';
 import { GalleryPage } from '@/pages/GalleryPage';
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
+import { UpdatePasswordPage } from '@/pages/UpdatePasswordPage';
+import { CreateMockResultPage } from '@/pages/CreateMockResultPage';
+import { AdminGalleryPage } from '@/pages/AdminGalleryPage';
+
 
 import { AdminReferralsPage } from '@/pages/AdminReferralsPage';
 import { CenterRegistrationPage } from '@/pages/CenterRegistrationPage';
 import { AdminCentersPage } from '@/pages/AdminCentersPage';
+import { AdminQuestionsPage } from '@/pages/AdminQuestionsPage';
 
 // Layouts
 import { PublicLayout, StudentLayout, AdminLayout } from '@/components/layout';
@@ -36,51 +42,56 @@ import { PublicLayout, StudentLayout, AdminLayout } from '@/components/layout';
 function App() {
   return (
     <LanguageProvider>
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/verify" element={<VerifyPage />} />
-          <Route path="/verify/:certificateId" element={<VerifyPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/center-registration" element={<CenterRegistrationPage />} />
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-        </Route>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/update-password" element={<UpdatePasswordPage />} />
+            <Route path="/verify" element={<VerifyPage />} />
+            <Route path="/verify/:certificateId" element={<VerifyPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/center-registration" element={<CenterRegistrationPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+          </Route>
 
-        {/* Student Routes */}
-        <Route element={<StudentLayout />}>
-          <Route path="/dashboard" element={<StudentDashboard />} />
-          <Route path="/dashboard/exam" element={<ExamPage />} />
-          <Route path="/dashboard/results" element={<StudentResultsPage />} />
-          <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
-          <Route path="/dashboard/wallet" element={<StudentWalletPage />} />
-        </Route>
+          {/* Student Routes */}
+          <Route element={<StudentLayout />}>
+            <Route path="/dashboard" element={<StudentDashboard />} />
+            <Route path="/dashboard/exam" element={<ExamPage />} />
+            <Route path="/dashboard/results" element={<StudentResultsPage />} />
+            <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
+            <Route path="/dashboard/wallet" element={<StudentWalletPage />} />
+            <Route path="/dashboard/create-mock-result" element={<CreateMockResultPage />} />
+          </Route>
 
-        {/* Admin Routes */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/students" element={<AdminStudentsPage />} />
-          <Route path="/admin/scholarships" element={<AdminScholarshipsPage />} />
-          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
-          <Route path="/admin/referrals" element={<AdminReferralsPage />} />
-          <Route path="/admin/centers" element={<AdminCentersPage />} />
-          <Route path="/admin/certificates" element={<AdminCertificatesPage />} />
-          <Route path="/admin/emails" element={<AdminEmailsPage />} />
-          <Route path="/admin/settings" element={<AdminSettingsPage />} />
-        </Route>
+          {/* Admin Routes */}
+          <Route element={<AdminLayout />}>
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/students" element={<AdminStudentsPage />} />
+            <Route path="/admin/scholarships" element={<AdminScholarshipsPage />} />
+            <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+            <Route path="/admin/referrals" element={<AdminReferralsPage />} />
+            <Route path="/admin/centers" element={<AdminCentersPage />} />
+            <Route path="/admin/certificates" element={<AdminCertificatesPage />} />
+            <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+            <Route path="/admin/emails" element={<AdminEmailsPage />} />
+            <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            <Route path="/admin/questions" element={<AdminQuestionsPage />} />
+          </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Toaster />
-    </BrowserRouter>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        <Toaster />
+      </BrowserRouter>
     </LanguageProvider>
   );
 }

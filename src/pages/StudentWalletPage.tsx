@@ -10,7 +10,7 @@ import { formatCurrency, formatDateTime } from '@/lib/utils';
 export function StudentWalletPage() {
   const navigate = useNavigate();
   const { currentStudent, isStudentLoggedIn } = useAuthStore();
-  const { wallets, transactions, loadWallets } = useWalletStore();
+  const { wallets, transactions, loadWallets, loadTransactions, isLoading } = useWalletStore();
   const [filterType, setFilterType] = useState<string>('all');
 
   useEffect(() => {
@@ -19,15 +19,22 @@ export function StudentWalletPage() {
       return;
     }
     loadWallets();
-  }, [isStudentLoggedIn, currentStudent, navigate, loadWallets]);
+    loadTransactions();
+  }, [isStudentLoggedIn, currentStudent, navigate, loadWallets, loadTransactions]);
 
-  if (!currentStudent) return null;
+  if (isLoading || !currentStudent) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const wallet = wallets.find((w) => w.studentId === currentStudent.id);
   const walletTransactions = wallet
     ? transactions
-        .filter((t) => t.walletId === wallet.id)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .filter((t) => t.walletId === wallet.id)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [];
 
   const filteredTransactions =
@@ -139,11 +146,10 @@ export function StudentWalletPage() {
                   >
                     <div className="flex items-center gap-4">
                       <div
-                        className={`size-10 rounded-full flex items-center justify-center ${
-                          transaction.type === 'WITHDRAWAL'
+                        className={`size-10 rounded-full flex items-center justify-center ${transaction.type === 'WITHDRAWAL'
                             ? 'bg-red-100'
                             : 'bg-green-100'
-                        }`}
+                          }`}
                       >
                         {transaction.type === 'WITHDRAWAL' ? (
                           <ArrowUpCircle className="size-5 text-red-600" />
@@ -163,11 +169,10 @@ export function StudentWalletPage() {
                     </div>
                     <div className="text-right">
                       <p
-                        className={`text-lg font-bold ${
-                          transaction.type === 'WITHDRAWAL'
+                        className={`text-lg font-bold ${transaction.type === 'WITHDRAWAL'
                             ? 'text-red-600'
                             : 'text-green-600'
-                        }`}
+                          }`}
                       >
                         {transaction.type === 'WITHDRAWAL' ? '-' : '+'}
                         {formatCurrency(transaction.amount)}

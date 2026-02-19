@@ -1,12 +1,14 @@
 // Application Configuration
 export const APP_CONFIG = {
-  name: 'GPHDM Scholarship Examination',
+  name: 'S.V. MEDIA FILMS PRODUCTION',
   shortName: 'GPHDM',
   fullName: 'Gram Panchayat Help Desk Mission Scholarship Examination',
   year: 2026,
   organization: 'Gram Panchayat Help Desk Mission',
   supportEmail: 'grampanchayat023@gmail.com',
   supportPhone: '+91 9120057559',
+  notificationGroupUrl: 'https://whatsapp.com/channel/0029ValXkYtK5cDDTyK3Mh0c',
+  masterReferralCode: 'NSEP2026',
 } as const;
 
 // Class-wise Exam Fees (Admin Configurable)
@@ -97,6 +99,8 @@ export const DEFAULT_CERTIFICATE_SETTINGS = {
       template: 'CLASSIC' as const,
       primaryColor: '#1e3a8a',
       accentColor: '#d97706',
+      sealUrl: '',
+      signatureUrl: '',
       sealText: 'GPHDM',
       institutionName: 'Gram Panchayat Help Desk Mission',
       tagline: 'Excellence in Education',
@@ -105,6 +109,8 @@ export const DEFAULT_CERTIFICATE_SETTINGS = {
       template: 'MODERN' as const,
       primaryColor: '#0f172a',
       accentColor: '#3b82f6',
+      sealUrl: '',
+      signatureUrl: '',
       sealText: 'GPHDM',
       institutionName: 'Gram Panchayat Help Desk Mission',
       tagline: 'Empowering Future Leaders',
@@ -113,9 +119,21 @@ export const DEFAULT_CERTIFICATE_SETTINGS = {
       template: 'PRESTIGIOUS' as const,
       primaryColor: '#7c2d12',
       accentColor: '#b45309',
+      sealUrl: '',
+      signatureUrl: '',
       sealText: 'GPHDM',
       institutionName: 'Gram Panchayat Help Desk Mission',
       tagline: 'Celebrating Academic Excellence',
+    },
+    gphdm: {
+      template: 'GPHDM' as const,
+      primaryColor: '#1e3a8a',
+      accentColor: '#d97706',
+      sealUrl: '',
+      signatureUrl: '',
+      sealText: 'GPHDM',
+      institutionName: 'Gram Panchayat Help Desk Mission',
+      tagline: 'Empowering Rural Education',
     },
   },
 };
@@ -151,8 +169,10 @@ export const STORAGE_KEYS = {
 export const REFERRAL_CONFIG = {
   adminCenterReward: 25, // ₹25 per referral for Admin
   centerCodeReward: 50, // ₹50 per referral for Centers
+  studentReferralReward: 25, // ₹25 per referral for students
   adminCodePrefix: 'ADM',
   centerCodePrefix: 'CC',
+  studentCodePrefix: 'STU',
 } as const;
 
 // Policy Versions
@@ -162,3 +182,10 @@ export const POLICY_CONFIG = {
   referralPolicyVersion: '1.0.0',
   lastUpdated: '2026-01-15',
 } as const;
+
+// Razorpay Configuration
+export const RAZORPAY_CONFIG = {
+  key_id: 'rzp_test_RwZZrz8X7LH619',
+  merchant_id: 'RuznqQuqyWvdel',
+} as const;
+

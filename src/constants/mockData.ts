@@ -473,6 +473,8 @@ export const mockWallets: Wallet[] = mockStudents.map((student) => ({
   id: uuidv4(),
   studentId: student.id,
   balance: Math.floor(Math.random() * 5) * 50,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 }));
 
 // Mock Wallet Transactions
@@ -609,7 +611,7 @@ export const mockAdminLogs: AdminLog[] = [
     id: uuidv4(),
     adminId: 'admin-001',
     action: 'FEE_UPDATED',
-    details: 'Updated exam fees for class 9-12',
+    details: 'Updated exam donations for class 9-12',
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
@@ -636,7 +638,7 @@ for (let classLevel = 1; classLevel <= 12; classLevel++) {
   for (let i = 0; i < 60; i++) {
     const template = questionTemplates[i % questionTemplates.length];
     const subject = subjects[i % subjects.length];
-    
+
     if (template.type === 'math') {
       const a = Math.floor(Math.random() * 50) + 1;
       const b = Math.floor(Math.random() * 50) + 1;
@@ -647,10 +649,10 @@ for (let classLevel = 1; classLevel <= 12; classLevel++) {
         (correctAnswer - Math.floor(Math.random() * 10) - 1).toString(),
         (correctAnswer + Math.floor(Math.random() * 20) + 5).toString(),
       ].sort(() => Math.random() - 0.5);
-      
+
       mockExamQuestions.push({
         id: `q-${classLevel}-${i}`,
-        classLevel,
+        class: classLevel,
         questionText: template.q.replace('{a}', a.toString()).replace('{b}', b.toString()),
         options,
         correctOptionIndex: options.indexOf(correctAnswer.toString()),
@@ -659,7 +661,7 @@ for (let classLevel = 1; classLevel <= 12; classLevel++) {
     } else {
       mockExamQuestions.push({
         id: `q-${classLevel}-${i}`,
-        classLevel,
+        class: classLevel,
         questionText: template.q,
         options: template.options || [],
         correctOptionIndex: template.correct || 0,

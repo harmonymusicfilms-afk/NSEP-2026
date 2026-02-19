@@ -40,25 +40,38 @@ export function AdminSettingsPage() {
   const { scholarships, loadScholarships } = useScholarshipStore();
   const { addLog } = useAdminLogStore();
 
-  const [timePerQuestion, setTimePerQuestion] = useState<5 | 7>(config.timePerQuestion);
+  const [timePerQuestion, setTimePerQuestion] = useState<number>(config.timePerQuestion);
   const [demoQuestionCount, setDemoQuestionCount] = useState(config.demoQuestionCount);
+  const [gapBetweenQuestions, setGapBetweenQuestions] = useState(config.gapBetweenQuestions);
   const [fees, setFees] = useState(config.fees);
   const [marksPerCorrect, setMarksPerCorrect] = useState(config.marksPerCorrect);
   const [marksPerWrong, setMarksPerWrong] = useState(config.marksPerWrong);
-  
+
   const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate>(settings.defaultTemplate);
   const [templateColors, setTemplateColors] = useState({
     classic: {
       primary: settings.templates.classic.primaryColor,
       accent: settings.templates.classic.accentColor,
+      seal: settings.templates.classic.sealUrl || '',
+      signature: settings.templates.classic.signatureUrl || '',
     },
     modern: {
       primary: settings.templates.modern.primaryColor,
       accent: settings.templates.modern.accentColor,
+      seal: settings.templates.modern.sealUrl || '',
+      signature: settings.templates.modern.signatureUrl || '',
     },
     prestigious: {
       primary: settings.templates.prestigious.primaryColor,
       accent: settings.templates.prestigious.accentColor,
+      seal: settings.templates.prestigious.sealUrl || '',
+      signature: settings.templates.prestigious.signatureUrl || '',
+    },
+    gphdm: {
+      primary: settings.templates.gphdm.primaryColor,
+      accent: settings.templates.gphdm.accentColor,
+      seal: settings.templates.gphdm.sealUrl || '',
+      signature: settings.templates.gphdm.signatureUrl || '',
     },
   });
 
@@ -75,10 +88,13 @@ export function AdminSettingsPage() {
     loadScholarships();
   }, [isAdminLoggedIn, currentAdmin, navigate, loadExamData, loadSettings, loadStudents, loadScholarships]);
 
+  const isSuperAdmin = currentAdmin?.role === 'SUPER_ADMIN';
+
   const handleSaveExamSettings = () => {
     updateConfig({
-      timePerQuestion,
+      timePerQuestion: timePerQuestion as 5 | 7,
       demoQuestionCount,
+      gapBetweenQuestions,
       marksPerCorrect,
       marksPerWrong,
     });
@@ -88,7 +104,7 @@ export function AdminSettingsPage() {
         currentAdmin.id,
         'UPDATE_EXAM_CONFIG',
         undefined,
-        `Time: ${timePerQuestion}s, Questions: ${demoQuestionCount}, Marks: +${marksPerCorrect}/${marksPerWrong}`
+        `Time: ${timePerQuestion}s, Questions: ${demoQuestionCount}, Gap: ${gapBetweenQuestions}s, Marks: +${marksPerCorrect}/${marksPerWrong}`
       );
     }
 
@@ -111,8 +127,8 @@ export function AdminSettingsPage() {
     }
 
     toast({
-      title: 'Fees Updated',
-      description: 'Examination fees have been saved successfully.',
+      title: 'Donations Updated',
+      description: 'Examination donations have been saved successfully.',
     });
   };
 
@@ -196,7 +212,7 @@ export function AdminSettingsPage() {
         isValid: true,
       };
 
-      const templateKey = selectedTemplate.toLowerCase() as 'classic' | 'modern' | 'prestigious';
+      const templateKey = selectedTemplate.toLowerCase() as 'classic' | 'modern' | 'prestigious' | 'gphdm';
       const templateConfig = {
         ...settings.templates[templateKey],
         primaryColor: templateColors[templateKey].primary,
@@ -240,7 +256,7 @@ export function AdminSettingsPage() {
           <Settings className="size-6" />
           System Settings
         </h1>
-        <p className="text-muted-foreground">Configure examination parameters, fees, and certificate templates</p>
+        <p className="text-muted-foreground">Configure examination parameters, donations, and certificate templates</p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -259,6 +275,7 @@ export function AdminSettingsPage() {
               <Select
                 value={timePerQuestion.toString()}
                 onValueChange={(val) => setTimePerQuestion(Number(val) as 5 | 7)}
+                disabled={!isSuperAdmin}
               >
                 <SelectTrigger id="timePerQuestion">
                   <SelectValue />
@@ -266,12 +283,17 @@ export function AdminSettingsPage() {
                 <SelectContent>
                   <SelectItem value="5">5 seconds</SelectItem>
                   <SelectItem value="7">7 seconds</SelectItem>
+                  <SelectItem value="10">10 seconds</SelectItem>
+                  <SelectItem value="15">15 seconds</SelectItem>
+                  <SelectItem value="20">20 seconds</SelectItem>
+                  <SelectItem value="30">30 seconds</SelectItem>
+                  <SelectItem value="60">60 seconds</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="demoQuestionCount">Demo Question Count</Label>
+              <Label htmlFor="demoQuestionCount">Total Questions</Label>
               <Input
                 id="demoQuestionCount"
                 type="number"
@@ -279,9 +301,26 @@ export function AdminSettingsPage() {
                 max="60"
                 value={demoQuestionCount}
                 onChange={(e) => setDemoQuestionCount(Number(e.target.value))}
+                disabled={!isSuperAdmin}
               />
               <p className="text-xs text-muted-foreground">
-                Number of questions in demo mode (10-60)
+                Number of questions in the exam (10-60)
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gapBetweenQuestions">Gap Between Questions (Seconds)</Label>
+              <Input
+                id="gapBetweenQuestions"
+                type="number"
+                min="0"
+                max="300"
+                value={gapBetweenQuestions}
+                onChange={(e) => setGapBetweenQuestions(Number(e.target.value))}
+                disabled={!isSuperAdmin}
+              />
+              <p className="text-xs text-muted-foreground">
+                Wait time between questions (e.g., 60s)
               </p>
             </div>
 
@@ -295,6 +334,7 @@ export function AdminSettingsPage() {
                   max="10"
                   value={marksPerCorrect}
                   onChange={(e) => setMarksPerCorrect(Number(e.target.value))}
+                  disabled={!isSuperAdmin}
                 />
               </div>
 
@@ -307,11 +347,16 @@ export function AdminSettingsPage() {
                   max="0"
                   value={marksPerWrong}
                   onChange={(e) => setMarksPerWrong(Number(e.target.value))}
+                  disabled={!isSuperAdmin}
                 />
               </div>
             </div>
 
-            <Button onClick={handleSaveExamSettings} className="w-full institutional-gradient gap-2">
+            <Button
+              onClick={handleSaveExamSettings}
+              className="w-full institutional-gradient gap-2"
+              disabled={!isSuperAdmin}
+            >
               <Save className="size-4" />
               Save Exam Settings
             </Button>
@@ -323,9 +368,9 @@ export function AdminSettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="size-5" />
-              Fee Structure
+              Donation Structure
             </CardTitle>
-            <CardDescription>Manage examination fees by class range</CardDescription>
+            <CardDescription>Manage examination donations by class range</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -339,6 +384,7 @@ export function AdminSettingsPage() {
                   value={fees['1-5']}
                   onChange={(e) => setFees({ ...fees, '1-5': Number(e.target.value) })}
                   className="pl-8"
+                  disabled={!isSuperAdmin}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
@@ -357,6 +403,7 @@ export function AdminSettingsPage() {
                   value={fees['6-8']}
                   onChange={(e) => setFees({ ...fees, '6-8': Number(e.target.value) })}
                   className="pl-8"
+                  disabled={!isSuperAdmin}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
@@ -375,6 +422,7 @@ export function AdminSettingsPage() {
                   value={fees['9-12']}
                   onChange={(e) => setFees({ ...fees, '9-12': Number(e.target.value) })}
                   className="pl-8"
+                  disabled={!isSuperAdmin}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
@@ -382,9 +430,13 @@ export function AdminSettingsPage() {
               </p>
             </div>
 
-            <Button onClick={handleSaveFees} className="w-full institutional-gradient gap-2">
+            <Button
+              onClick={handleSaveFees}
+              className="w-full institutional-gradient gap-2"
+              disabled={!isSuperAdmin}
+            >
               <Save className="size-4" />
-              Save Fee Structure
+              Save Donation Structure
             </Button>
           </CardContent>
         </Card>
@@ -405,7 +457,7 @@ export function AdminSettingsPage() {
           {/* Template Selection */}
           <div>
             <Label className="mb-3 block">Select Default Template</Label>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <CertificateTemplatePreview
                 template="CLASSIC"
                 config={{
@@ -436,243 +488,446 @@ export function AdminSettingsPage() {
                 selected={selectedTemplate === 'PRESTIGIOUS'}
                 onSelect={() => setSelectedTemplate('PRESTIGIOUS')}
               />
+              <CertificateTemplatePreview
+                template="GPHDM"
+                config={{
+                  ...settings.templates.gphdm,
+                  primaryColor: templateColors.gphdm.primary,
+                  accentColor: templateColors.gphdm.accent,
+                }}
+                selected={selectedTemplate === 'GPHDM'}
+                onSelect={() => setSelectedTemplate('GPHDM')}
+              />
             </div>
           </div>
 
           {/* Color Customization */}
-          <div className="space-y-4 pt-4 border-t">
-            <div className="flex items-center gap-2 mb-2">
-              <Palette className="size-4" />
-              <Label>Template Colors Customization</Label>
-            </div>
-
-            {/* Classic Colors */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="classic-primary" className="text-sm">Classic - Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="classic-primary"
-                    type="color"
-                    value={templateColors.classic.primary}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        classic: { ...templateColors.classic, primary: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-4 border-t">
+            {/* Classic Template Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="size-4" />
+                Classic Colors
+              </h3>
+              <div className="grid gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Primary Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.classic.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          classic: { ...templateColors.classic, primary: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.classic.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          classic: { ...templateColors.classic, primary: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Accent Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.classic.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          classic: { ...templateColors.classic, accent: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.classic.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          classic: { ...templateColors.classic, accent: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                {/* Classic Seal & Signature */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Seal URL</Label>
                   <Input
                     type="text"
-                    value={templateColors.classic.primary}
+                    placeholder="https://..."
+                    value={templateColors.classic.seal || ''}
                     onChange={(e) =>
                       setTemplateColors({
                         ...templateColors,
-                        classic: { ...templateColors.classic, primary: e.target.value },
+                        classic: { ...templateColors.classic, seal: e.target.value },
                       })
                     }
-                    className="flex-1 font-mono text-sm"
+                    className="text-xs"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="classic-accent" className="text-sm">Classic - Accent Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="classic-accent"
-                    type="color"
-                    value={templateColors.classic.accent}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        classic: { ...templateColors.classic, accent: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Signature URL</Label>
                   <Input
                     type="text"
-                    value={templateColors.classic.accent}
+                    placeholder="https://..."
+                    value={templateColors.classic.signature || ''}
                     onChange={(e) =>
                       setTemplateColors({
                         ...templateColors,
-                        classic: { ...templateColors.classic, accent: e.target.value },
+                        classic: { ...templateColors.classic, signature: e.target.value },
                       })
                     }
-                    className="flex-1 font-mono text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Modern Colors */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="modern-primary" className="text-sm">Modern - Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="modern-primary"
-                    type="color"
-                    value={templateColors.modern.primary}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        modern: { ...templateColors.modern, primary: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
-                  <Input
-                    type="text"
-                    value={templateColors.modern.primary}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        modern: { ...templateColors.modern, primary: e.target.value },
-                      })
-                    }
-                    className="flex-1 font-mono text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="modern-accent" className="text-sm">Modern - Accent Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="modern-accent"
-                    type="color"
-                    value={templateColors.modern.accent}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        modern: { ...templateColors.modern, accent: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
-                  <Input
-                    type="text"
-                    value={templateColors.modern.accent}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        modern: { ...templateColors.modern, accent: e.target.value },
-                      })
-                    }
-                    className="flex-1 font-mono text-sm"
+                    className="text-xs"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Prestigious Colors */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="prestigious-primary" className="text-sm">Prestigious - Primary Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="prestigious-primary"
-                    type="color"
-                    value={templateColors.prestigious.primary}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        prestigious: { ...templateColors.prestigious, primary: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
+            {/* Modern Template Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="size-4" />
+                Modern Colors
+              </h3>
+              <div className="grid gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Primary Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.modern.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          modern: { ...templateColors.modern, primary: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.modern.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          modern: { ...templateColors.modern, primary: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Accent Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.modern.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          modern: { ...templateColors.modern, accent: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.modern.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          modern: { ...templateColors.modern, accent: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                {/* Modern Seal & Signature */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Seal URL</Label>
                   <Input
                     type="text"
-                    value={templateColors.prestigious.primary}
+                    placeholder="https://..."
+                    value={templateColors.modern.seal || ''}
                     onChange={(e) =>
                       setTemplateColors({
                         ...templateColors,
-                        prestigious: { ...templateColors.prestigious, primary: e.target.value },
+                        modern: { ...templateColors.modern, seal: e.target.value },
                       })
                     }
-                    className="flex-1 font-mono text-sm"
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Signature URL</Label>
+                  <Input
+                    type="text"
+                    placeholder="https://..."
+                    value={templateColors.modern.signature || ''}
+                    onChange={(e) =>
+                      setTemplateColors({
+                        ...templateColors,
+                        modern: { ...templateColors.modern, signature: e.target.value },
+                      })
+                    }
+                    className="text-xs"
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="prestigious-accent" className="text-sm">Prestigious - Accent Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="prestigious-accent"
-                    type="color"
-                    value={templateColors.prestigious.accent}
-                    onChange={(e) =>
-                      setTemplateColors({
-                        ...templateColors,
-                        prestigious: { ...templateColors.prestigious, accent: e.target.value },
-                      })
-                    }
-                    className="w-16 h-10 p-1"
-                  />
+            {/* Prestigious Template Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="size-4" />
+                Prestigious Colors
+              </h3>
+              <div className="grid gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Primary Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.prestigious.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          prestigious: { ...templateColors.prestigious, primary: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.prestigious.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          prestigious: { ...templateColors.prestigious, primary: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Accent Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.prestigious.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          prestigious: { ...templateColors.prestigious, accent: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.prestigious.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          prestigious: { ...templateColors.prestigious, accent: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                {/* Prestigious Seal & Signature */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Seal URL</Label>
                   <Input
                     type="text"
-                    value={templateColors.prestigious.accent}
+                    placeholder="https://..."
+                    value={templateColors.prestigious.seal || ''}
                     onChange={(e) =>
                       setTemplateColors({
                         ...templateColors,
-                        prestigious: { ...templateColors.prestigious, accent: e.target.value },
+                        prestigious: { ...templateColors.prestigious, seal: e.target.value },
                       })
                     }
-                    className="flex-1 font-mono text-sm"
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Signature URL</Label>
+                  <Input
+                    type="text"
+                    placeholder="https://..."
+                    value={templateColors.prestigious.signature || ''}
+                    onChange={(e) =>
+                      setTemplateColors({
+                        ...templateColors,
+                        prestigious: { ...templateColors.prestigious, signature: e.target.value },
+                      })
+                    }
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* GPHDM Template Colors */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Palette className="size-4" />
+                GPHDM Colors
+              </h3>
+              <div className="grid gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Primary Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.gphdm.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          gphdm: { ...templateColors.gphdm, primary: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.gphdm.primary}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          gphdm: { ...templateColors.gphdm, primary: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Accent Color</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="color"
+                      value={templateColors.gphdm.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          gphdm: { ...templateColors.gphdm, accent: e.target.value },
+                        })
+                      }
+                      className="w-16 h-10 p-1"
+                    />
+                    <Input
+                      type="text"
+                      value={templateColors.gphdm.accent}
+                      onChange={(e) =>
+                        setTemplateColors({
+                          ...templateColors,
+                          gphdm: { ...templateColors.gphdm, accent: e.target.value },
+                        })
+                      }
+                      className="flex-1 font-mono text-sm"
+                    />
+                  </div>
+                </div>
+                {/* GPHDM Seal & Signature */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Seal URL</Label>
+                  <Input
+                    type="text"
+                    placeholder="https://..."
+                    value={templateColors.gphdm.seal || ''}
+                    onChange={(e) =>
+                      setTemplateColors({
+                        ...templateColors,
+                        gphdm: { ...templateColors.gphdm, seal: e.target.value },
+                      })
+                    }
+                    className="text-xs"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Signature URL</Label>
+                  <Input
+                    type="text"
+                    placeholder="https://..."
+                    value={templateColors.gphdm.signature || ''}
+                    onChange={(e) =>
+                      setTemplateColors({
+                        ...templateColors,
+                        gphdm: { ...templateColors.gphdm, signature: e.target.value },
+                      })
+                    }
+                    className="text-xs"
                   />
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={handlePreviewTemplate}
-              disabled={isPreviewingTemplate}
-              variant="outline"
-              className="flex-1 gap-2"
-            >
-              {isPreviewingTemplate ? (
-                <>
-                  <Eye className="size-4 animate-pulse" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Eye className="size-4" />
-                  Preview {selectedTemplate.charAt(0) + selectedTemplate.slice(1).toLowerCase()} Template
-                </>
-              )}
-            </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            onClick={handlePreviewTemplate}
+            disabled={isPreviewingTemplate}
+            variant="outline"
+            className="flex-1 gap-2"
+          >
+            {isPreviewingTemplate ? (
+              <>
+                <Eye className="size-4 animate-pulse" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Eye className="size-4" />
+                Preview {selectedTemplate.charAt(0) + selectedTemplate.slice(1).toLowerCase()} Template
+              </>
+            )}
+          </Button>
 
-            <Button onClick={handleSaveCertificateSettings} className="flex-1 institutional-gradient gap-2">
-              <Save className="size-4" />
-              Save Certificate Settings
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          <Button onClick={handleSaveCertificateSettings} className="flex-1 institutional-gradient gap-2">
+            <Save className="size-4" />
+            Save Certificate Settings
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
 
-      {/* Info Banner */}
-      <Card className="bg-yellow-50 border-yellow-200">
-        <CardContent className="p-4 flex items-start gap-3">
-          <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
-          <div>
-            <p className="font-semibold text-yellow-900">Important Notice</p>
-            <p className="text-sm text-yellow-700 mt-1">
-              Changes to exam configuration will only affect new exam sessions. Ongoing or completed
-              exams will retain their original settings. Fee changes apply immediately to all new registrations.
-              Certificate template changes will apply to all newly generated certificates.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+      {/* Info Banner */ }
+  <Card className="bg-yellow-50 border-yellow-200">
+    <CardContent className="p-4 flex items-start gap-3">
+      <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
+      <div>
+        <p className="font-semibold text-yellow-900">Important Notice</p>
+        <p className="text-sm text-yellow-700 mt-1">
+          Changes to exam configuration will only affect new exam sessions. Ongoing or completed
+          exams will retain their original settings. Donation changes apply immediately to all new registrations.
+          Certificate template changes will apply to all newly generated certificates.
+        </p>
+      </div>
+    </CardContent>
+  </Card>
+    </div >
   );
 }

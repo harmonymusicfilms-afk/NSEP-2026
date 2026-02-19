@@ -43,35 +43,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useAuthStore } from '@/stores';
+import { useAuthStore, useAdminLogStore } from '@/stores';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate, generateId } from '@/lib/utils';
 import { REFERRAL_CONFIG, STORAGE_KEYS } from '@/constants/config';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 
-interface Center {
-  id: string;
-  name: string;
-  ownerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  state: string;
-  district: string;
-  centerCode: string;
-  status: 'PENDING' | 'APPROVED' | 'BLOCKED';
-  approvedBy?: string;
-  approvedAt?: string;
-  totalStudents: number;
-  totalEarnings: number;
-  createdAt: string;
-}
+import { Center } from '@/types';
 
 export function AdminCentersPage() {
   const navigate = useNavigate();
   const { currentAdmin, isAdminLoggedIn } = useAuthStore();
+  const { addLog } = useAdminLogStore();
   const { toast } = useToast();
-  
+
   const [centers, setCenters] = useState<Center[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -147,7 +132,9 @@ export function AdminCentersPage() {
     saveCenters(updatedCenters);
     setIsApproveDialogOpen(false);
     setSelectedCenter(null);
-    
+
+    addLog(currentAdmin.id, 'APPROVE_CENTER', selectedCenter.id, `Approved center ${selectedCenter.name} (${selectedCenter.centerCode})`);
+
     toast({
       title: 'Center Approved',
       description: `${selectedCenter.name} has been approved successfully.`,
@@ -173,7 +160,9 @@ export function AdminCentersPage() {
     setIsRejectDialogOpen(false);
     setSelectedCenter(null);
     setRejectionReason('');
-    
+
+    addLog(currentAdmin.id, 'REJECT_CENTER', selectedCenter.id, `Rejected center ${selectedCenter.name}. Reason: ${rejectionReason}`);
+
     toast({
       title: 'Center Rejected',
       description: `${selectedCenter.name} has been rejected.`,
@@ -182,14 +171,14 @@ export function AdminCentersPage() {
   };
 
   const filteredCenters = centers.filter(center => {
-    const matchesSearch = 
+    const matchesSearch =
       center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       center.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       center.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       center.centerCode.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || center.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -345,7 +334,7 @@ export function AdminCentersPage() {
                       <TableCell>
                         <Badge variant={
                           center.status === 'APPROVED' ? 'default' :
-                          center.status === 'PENDING' ? 'secondary' : 'destructive'
+                            center.status === 'PENDING' ? 'secondary' : 'destructive'
                         }>
                           {center.status}
                         </Badge>
@@ -369,28 +358,32 @@ export function AdminCentersPage() {
                           </Button>
                           {center.status === 'PENDING' && (
                             <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                                onClick={() => {
-                                  setSelectedCenter(center);
-                                  setIsApproveDialogOpen(true);
-                                }}
-                              >
-                                <CheckCircle className="size-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => {
-                                  setSelectedCenter(center);
-                                  setIsRejectDialogOpen(true);
-                                }}
-                              >
-                                <XCircle className="size-4" />
-                              </Button>
+                              {(currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                                  onClick={() => {
+                                    setSelectedCenter(center);
+                                    setIsApproveDialogOpen(true);
+                                  }}
+                                >
+                                  <CheckCircle className="size-4" />
+                                </Button>
+                              )}
+                              {(currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={() => {
+                                    setSelectedCenter(center);
+                                    setIsRejectDialogOpen(true);
+                                  }}
+                                >
+                                  <XCircle className="size-4" />
+                                </Button>
+                              )}
                             </>
                           )}
                         </div>
@@ -418,41 +411,111 @@ export function AdminCentersPage() {
                   <p className="font-medium">{selectedCenter.name}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Center Type</p>
+                  <p className="font-medium capitalize">{selectedCenter.centerType.replace('_', ' ')}</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Center Code</p>
                   <code className="text-sm bg-muted px-2 py-1 rounded">{selectedCenter.centerCode}</code>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <Badge variant={
+                    selectedCenter.status === 'APPROVED' ? 'default' :
+                      selectedCenter.status === 'PENDING' ? 'secondary' : 'destructive'
+                  }>
+                    {selectedCenter.status}
+                  </Badge>
+                </div>
+
+                <div className="col-span-2 border-t pt-2 mt-2">
+                  <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Owner Details</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Owner Name</p>
                   <p className="font-medium">{selectedCenter.ownerName}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <Badge variant={
-                    selectedCenter.status === 'APPROVED' ? 'default' :
-                    selectedCenter.status === 'PENDING' ? 'secondary' : 'destructive'
-                  }>
-                    {selectedCenter.status}
-                  </Badge>
+                  <p className="text-sm text-muted-foreground">Aadhaar Number</p>
+                  <p className="font-medium">{selectedCenter.ownerAadhaar}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="text-sm">{selectedCenter.email}</p>
+                  <p className="text-sm">{selectedCenter.ownerEmail}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="text-sm">{selectedCenter.phone}</p>
+                  <p className="text-sm">{selectedCenter.ownerPhone}</p>
+                </div>
+
+                <div className="col-span-2 border-t pt-2 mt-2">
+                  <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Location Information</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-sm text-muted-foreground">Address</p>
+                  <p className="text-sm text-muted-foreground">Full Address</p>
                   <p className="text-sm">{selectedCenter.address}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-muted-foreground">Village/Town</p>
+                  <p className="text-sm">{selectedCenter.village}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Block/Tehsil</p>
+                  <p className="text-sm">{selectedCenter.block}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">District</p>
+                  <p className="text-sm">{selectedCenter.district}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">State</p>
+                  <p className="text-sm">{selectedCenter.state}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pincode</p>
+                  <p className="text-sm">{selectedCenter.pincode}</p>
+                </div>
+
+                <div className="col-span-2 border-t pt-2 mt-2">
+                  <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Documents</p>
+                  <div className="grid grid-cols-3 gap-4 mt-2">
+                    {selectedCenter.idProofUrl && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground">ID Proof</p>
+                        <a href={selectedCenter.idProofUrl} target="_blank" rel="noreferrer" className="block w-full aspect-square border rounded overflow-hidden hover:opacity-80 transition-opacity">
+                          <img src={selectedCenter.idProofUrl} alt="ID Proof" className="w-full h-full object-cover" />
+                        </a>
+                      </div>
+                    )}
+                    {selectedCenter.addressProofUrl && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground">Address Proof</p>
+                        <a href={selectedCenter.addressProofUrl} target="_blank" rel="noreferrer" className="block w-full aspect-square border rounded overflow-hidden hover:opacity-80 transition-opacity">
+                          <img src={selectedCenter.addressProofUrl} alt="Address Proof" className="w-full h-full object-cover" />
+                        </a>
+                      </div>
+                    )}
+                    {selectedCenter.centerPhotoUrl && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] text-muted-foreground">Center Photo</p>
+                        <a href={selectedCenter.centerPhotoUrl} target="_blank" rel="noreferrer" className="block w-full aspect-square border rounded overflow-hidden hover:opacity-80 transition-opacity">
+                          <img src={selectedCenter.centerPhotoUrl} alt="Center Photo" className="w-full h-full object-cover" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="col-span-2 border-t pt-2 mt-2">
+                  <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Statistics & Dates</p>
+                </div>
+                <div>
                   <p className="text-sm text-muted-foreground">Total Students</p>
-                  <p className="font-medium">{selectedCenter.totalStudents}</p>
+                  <p className="font-medium">{selectedCenter.totalStudents || 0}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total Earnings</p>
-                  <p className="font-medium">₹{selectedCenter.totalEarnings}</p>
+                  <p className="font-medium">₹{selectedCenter.totalEarnings || 0}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Applied On</p>
@@ -476,7 +539,7 @@ export function AdminCentersPage() {
           <DialogHeader>
             <DialogTitle>Approve Center</DialogTitle>
             <DialogDescription>
-              Are you sure you want to approve "{selectedCenter?.name}"? 
+              Are you sure you want to approve "{selectedCenter?.name}"?
               This will activate their center code and allow them to earn referral rewards.
             </DialogDescription>
           </DialogHeader>

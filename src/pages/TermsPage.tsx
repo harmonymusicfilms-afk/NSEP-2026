@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  BookOpen, 
-  AlertTriangle, 
-  Scale, 
-  RefreshCw, 
-  Shield, 
+import {
+  FileText,
+  BookOpen,
+  AlertTriangle,
+  Scale,
+  RefreshCw,
+  Shield,
   CheckCircle,
   ArrowLeft
 } from 'lucide-react';
@@ -49,12 +49,12 @@ export function TermsPage() {
         <Card className="mb-6">
           <CardContent className="p-6">
             <p className="text-muted-foreground leading-relaxed">
-              Welcome to {APP_CONFIG.fullName} ({APP_CONFIG.shortName}). By accessing or using our platform, 
-              you agree to be bound by these Terms of Service. Please read them carefully before registering 
+              Welcome to {APP_CONFIG.fullName} ({APP_CONFIG.shortName}). By accessing or using our platform,
+              you agree to be bound by these Terms of Service. Please read them carefully before registering
               for the examination or using any of our services.
             </p>
             <p className="text-muted-foreground leading-relaxed mt-4">
-              {APP_CONFIG.organization} की वेबसाइट और सेवाओं का उपयोग करने से पहले कृपया इन नियमों और शर्तों को 
+              {APP_CONFIG.organization} की वेबसाइट और सेवाओं का उपयोग करने से पहले कृपया इन नियमों और शर्तों को
               ध्यान से पढ़ें। पंजीकरण करके, आप इन सभी शर्तों से सहमत होते हैं।
             </p>
           </CardContent>
@@ -116,7 +116,7 @@ export function TermsPage() {
               <h3 className="font-semibold mb-3">1.5 Re-evaluation Rules (पुनर्मूल्यांकन नियम)</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 <li>Re-evaluation requests must be submitted within 7 days of result declaration.</li>
-                <li>A non-refundable fee of ₹100 is applicable for re-evaluation.</li>
+                <li>A non-refundable donation of ₹100 is applicable for re-evaluation.</li>
                 <li>Re-evaluation will only cover technical or system errors.</li>
                 <li>The decision of the evaluation committee is final.</li>
                 <li>No re-examination or second attempt is permitted under any circumstances.</li>
@@ -140,7 +140,7 @@ export function TermsPage() {
                 <div>
                   <h4 className="font-semibold text-yellow-800">Important Notice</h4>
                   <p className="text-sm text-yellow-700">
-                    Registration fees are generally non-refundable. Please read the conditions below carefully 
+                    Registration donations are generally non-refundable. Please read the conditions below carefully
                     before making payment.
                   </p>
                 </div>
@@ -150,7 +150,7 @@ export function TermsPage() {
             <div>
               <h3 className="font-semibold mb-3">2.1 Non-Refundable Conditions (अप्रतिदेय स्थितियां)</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                <li>Once registration fee is paid successfully, it is non-refundable.</li>
+                <li>Once registration donation is paid successfully, it is non-refundable.</li>
                 <li>No refund after examination attempt (partial or complete).</li>
                 <li>No refund for change of mind or duplicate registration.</li>
                 <li>No refund for incorrect information provided during registration.</li>
@@ -265,7 +265,7 @@ export function TermsPage() {
               <h3 className="font-semibold mb-3">4.2 Authority Rights (प्राधिकरण के अधिकार)</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 <li>{APP_CONFIG.organization} reserves all rights to modify terms without prior notice.</li>
-                <li>The organization may update examination fees, scholarship amounts, and policies.</li>
+                <li>The organization may update examination donations, scholarship amounts, and policies.</li>
                 <li>User accounts may be suspended or terminated for policy violations.</li>
                 <li>Content and intellectual property rights belong to {APP_CONFIG.shortName}.</li>
               </ul>
@@ -289,11 +289,11 @@ export function TermsPage() {
                   <CheckCircle className="size-5 text-purple-600 mt-0.5" />
                   <div>
                     <p className="text-purple-800 font-medium">
-                      The decision of the Super Admin of {APP_CONFIG.shortName} is final and binding 
+                      The decision of the Super Admin of {APP_CONFIG.shortName} is final and binding
                       in all matters related to the examination, scholarships, refunds, and disputes.
                     </p>
                     <p className="text-purple-700 text-sm mt-2">
-                      सुपर एडमिन का निर्णय परीक्षा, छात्रवृत्ति, धन वापसी और विवादों से संबंधित 
+                      सुपर एडमिन का निर्णय परीक्षा, छात्रवृत्ति, धन वापसी और विवादों से संबंधित
                       सभी मामलों में अंतिम और बाध्यकारी है।
                     </p>
                   </div>
@@ -306,7 +306,7 @@ export function TermsPage() {
               <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                 <li>{APP_CONFIG.shortName} shall not be liable for indirect, incidental, or consequential damages.</li>
                 <li>No liability for technical failures beyond reasonable control.</li>
-                <li>Maximum liability limited to the registration fee paid.</li>
+                <li>Maximum liability limited to the registration donation paid.</li>
                 <li>No warranty on scholarship amounts or result outcomes.</li>
               </ul>
             </div>
@@ -352,7 +352,7 @@ export function TermsPage() {
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pb-8">
           <p>
-            By registering on {APP_CONFIG.shortName}, you acknowledge that you have read, understood, 
+            By registering on {APP_CONFIG.shortName}, you acknowledge that you have read, understood,
             and agree to be bound by these Terms of Service.
           </p>
           <p className="mt-2">

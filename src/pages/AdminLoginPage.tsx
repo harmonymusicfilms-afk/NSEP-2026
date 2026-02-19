@@ -49,25 +49,26 @@ export function AdminLoginPage() {
     if (!validate()) return;
 
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const admin = loginAdmin(email.toLowerCase().trim(), password);
+    try {
+      const admin = await loginAdmin(email.toLowerCase().trim(), password);
 
-    if (admin) {
-      toast({
-        title: 'Login Successful',
-        description: `Welcome, ${admin.name}!`,
-      });
-      navigate('/admin/dashboard');
-    } else {
+      if (admin) {
+        toast({
+          title: 'Login Successful',
+          description: `Welcome, ${admin.name}!`,
+        });
+        navigate('/admin/dashboard');
+      }
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid credentials. Please check and try again.',
+        description: error.message || 'Invalid credentials. Please check and try again.',
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -144,17 +145,6 @@ export function AdminLoginPage() {
             <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
               ← Back to main site
             </Link>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-100">
-            <p className="text-xs text-red-600 text-center mb-2 font-medium">
-              Demo Admin Credentials
-            </p>
-            <div className="text-xs space-y-1 text-red-800">
-              <p><strong>Email:</strong> admin@gphdm.edu.in</p>
-              <p><strong>Password:</strong> admin123</p>
-            </div>
           </div>
         </CardContent>
       </Card>

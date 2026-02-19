@@ -21,14 +21,14 @@ import { EXAM_CONFIG } from '@/constants/config';
 export function StudentResultsPage() {
   const navigate = useNavigate();
   const { currentStudent, isStudentLoggedIn } = useAuthStore();
-  const { results, loadExamData, config } = useExamStore();
-  const { scholarships, loadScholarships } = useScholarshipStore();
-  const { certificates, loadCertificates } = useCertificateStore();
-  const { students, loadStudents } = useStudentStore();
+  const { results, loadExamData, config, isLoading: examsLoading } = useExamStore();
+  const { scholarships, loadScholarships, isLoading: scholarshipsLoading } = useScholarshipStore();
+  const { certificates, loadCertificates, isLoading: certsLoading } = useCertificateStore();
+  const { loadStudents, isLoading: studentsLoading } = useStudentStore();
 
   useEffect(() => {
     if (!isStudentLoggedIn || !currentStudent) {
-      navigate('/login');
+      if (!isStudentLoggedIn) navigate('/login');
       return;
     }
     loadExamData();
@@ -37,7 +37,15 @@ export function StudentResultsPage() {
     loadStudents();
   }, [isStudentLoggedIn, currentStudent, navigate, loadExamData, loadScholarships, loadCertificates, loadStudents]);
 
-  if (!currentStudent) return null;
+  const isLoading = examsLoading || scholarshipsLoading || certsLoading || studentsLoading;
+
+  if (isLoading || !currentStudent) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   const studentResult = results.find((r) => r.studentId === currentStudent.id);
   const studentScholarship = scholarships.find((s) => s.studentId === currentStudent.id);
@@ -130,11 +138,10 @@ export function StudentResultsPage() {
           <Card className={isTopRank ? 'ring-2 ring-yellow-400' : ''}>
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
-                <div className={`size-12 rounded-full flex items-center justify-center ${
-                  studentResult.rank === 1 ? 'gold-gradient' :
-                  studentResult.rank === 2 ? 'silver-gradient' :
-                  studentResult.rank === 3 ? 'bronze-gradient' : 'bg-primary/10'
-                }`}>
+                <div className={`size-12 rounded-full flex items-center justify-center ${studentResult.rank === 1 ? 'gold-gradient' :
+                    studentResult.rank === 2 ? 'silver-gradient' :
+                      studentResult.rank === 3 ? 'bronze-gradient' : 'bg-primary/10'
+                  }`}>
                   <Trophy className={`size-6 ${studentResult.rank && studentResult.rank <= 3 ? 'text-white' : 'text-primary'}`} />
                 </div>
                 <div>
@@ -306,19 +313,17 @@ export function StudentResultsPage() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`size-16 rounded-full flex items-center justify-center ${
-                    studentScholarship.approvalStatus === 'APPROVED' ? 'bg-green-100' :
-                    studentScholarship.approvalStatus === 'PENDING' ? 'bg-yellow-100' : 'bg-red-100'
-                  }`}>
-                    <Award className={`size-8 ${
-                      studentScholarship.approvalStatus === 'APPROVED' ? 'text-green-600' :
-                      studentScholarship.approvalStatus === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
-                    }`} />
+                  <div className={`size-16 rounded-full flex items-center justify-center ${studentScholarship.approvalStatus === 'APPROVED' ? 'bg-green-100' :
+                      studentScholarship.approvalStatus === 'PENDING' ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                    <Award className={`size-8 ${studentScholarship.approvalStatus === 'APPROVED' ? 'text-green-600' :
+                        studentScholarship.approvalStatus === 'PENDING' ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
                   </div>
                   <div>
                     <p className="font-semibold text-lg">
                       {studentScholarship.approvalStatus === 'APPROVED' ? '✅ Scholarship Approved' :
-                       studentScholarship.approvalStatus === 'PENDING' ? '⏳ Under Review' : '❌ Not Approved'}
+                        studentScholarship.approvalStatus === 'PENDING' ? '⏳ Under Review' : '❌ Not Approved'}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Rank {studentScholarship.rank} • Class {studentScholarship.class}

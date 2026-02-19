@@ -57,6 +57,18 @@ export function generateCenterCode(): string {
   return code;
 }
 
+// Generate student referral code based on user ID
+export function generateStudentReferralCode(userId: string): string {
+  // Use first 8 characters of user ID (or generate random if needed)
+  const shortId = userId.substring(0, 8).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `STU${shortId}${suffix}`;
+}
+
 // Generate certificate ID
 export function generateCertificateId(): string {
   const year = new Date().getFullYear();
@@ -111,6 +123,15 @@ export function getOrdinal(n: number): string {
 export function calculatePercentage(value: number, total: number): number {
   if (total === 0) return 0;
   return Math.round((value / total) * 100);
+}
+
+// Get Division based on percentage
+export function getDivision(percentage: number): string {
+  if (percentage >= 75) return 'Distinction';
+  if (percentage >= 60) return 'I Division';
+  if (percentage >= 45) return 'II Division';
+  if (percentage >= 33) return 'III Division';
+  return 'Passed';
 }
 
 // Deep clone object

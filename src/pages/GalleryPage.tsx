@@ -14,153 +14,12 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { APP_CONFIG } from '@/constants/config';
+import { GalleryItem } from '@/types';
+import { useGalleryStore } from '@/stores';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface GalleryItem {
-  id: string;
-  title: string;
-  description?: string;
-  imageUrl: string;
-  category: 'CEREMONY' | 'TOPPERS' | 'EVENTS' | 'OTHER';
-  year?: number;
-  featured: boolean;
-}
-
-// Mock gallery data with placeholder images
-const mockGalleryItems: GalleryItem[] = [
-  // Certificate Distribution Ceremonies
-  {
-    id: '1',
-    title: 'Annual Certificate Distribution 2025',
-    description: 'Chief Guest distributing certificates to top performers',
-    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&h=600&fit=crop',
-    category: 'CEREMONY',
-    year: 2025,
-    featured: true,
-  },
-  {
-    id: '2',
-    title: 'Scholarship Award Ceremony',
-    description: 'Winners receiving scholarship cheques',
-    imageUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&h=600&fit=crop',
-    category: 'CEREMONY',
-    year: 2025,
-    featured: false,
-  },
-  {
-    id: '3',
-    title: 'State Level Felicitation',
-    description: 'State toppers being honored',
-    imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&h=600&fit=crop',
-    category: 'CEREMONY',
-    year: 2024,
-    featured: false,
-  },
-  {
-    id: '4',
-    title: 'Regional Award Function',
-    description: 'District-wise topper recognition',
-    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&h=600&fit=crop',
-    category: 'CEREMONY',
-    year: 2024,
-    featured: false,
-  },
-  // Toppers
-  {
-    id: '5',
-    title: 'Class 12 Topper - Rahul Sharma',
-    description: 'All India Rank 1 with 98.5% marks',
-    imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&h=600&fit=crop',
-    category: 'TOPPERS',
-    year: 2025,
-    featured: true,
-  },
-  {
-    id: '6',
-    title: 'Class 10 Topper - Priya Verma',
-    description: 'State Rank 1 in GPHDM Scholarship Exam',
-    imageUrl: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=800&h=600&fit=crop',
-    category: 'TOPPERS',
-    year: 2025,
-    featured: false,
-  },
-  {
-    id: '7',
-    title: 'Junior Category Winners',
-    description: 'Class 1-5 top performers',
-    imageUrl: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=800&h=600&fit=crop',
-    category: 'TOPPERS',
-    year: 2024,
-    featured: false,
-  },
-  {
-    id: '8',
-    title: 'Middle School Champions',
-    description: 'Class 6-8 scholarship winners',
-    imageUrl: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=800&h=600&fit=crop',
-    category: 'TOPPERS',
-    year: 2024,
-    featured: false,
-  },
-  // Events
-  {
-    id: '9',
-    title: 'Examination Day 2025',
-    description: 'Students appearing for GPHDM examination',
-    imageUrl: 'https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=800&h=600&fit=crop',
-    category: 'EVENTS',
-    year: 2025,
-    featured: true,
-  },
-  {
-    id: '10',
-    title: 'Center Coordinator Meeting',
-    description: 'Annual meeting of registered centers',
-    imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=800&h=600&fit=crop',
-    category: 'EVENTS',
-    year: 2025,
-    featured: false,
-  },
-  {
-    id: '11',
-    title: 'Awareness Campaign',
-    description: 'Rural outreach program for scholarship awareness',
-    imageUrl: 'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800&h=600&fit=crop',
-    category: 'EVENTS',
-    year: 2024,
-    featured: false,
-  },
-  {
-    id: '12',
-    title: 'Teacher Training Workshop',
-    description: 'Capacity building for examination coordinators',
-    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=600&fit=crop',
-    category: 'EVENTS',
-    year: 2024,
-    featured: false,
-  },
-  // Other
-  {
-    id: '13',
-    title: 'GPHDM Team',
-    description: 'Our dedicated team working for student success',
-    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=600&fit=crop',
-    category: 'OTHER',
-    year: 2025,
-    featured: false,
-  },
-  {
-    id: '14',
-    title: 'Certificate Design',
-    description: 'Sample scholarship certificate',
-    imageUrl: 'https://images.unsplash.com/photo-1568792923760-d70635a89fdc?w=800&h=600&fit=crop',
-    category: 'OTHER',
-    year: 2025,
-    featured: false,
-  },
-];
-
-const categoryConfig = {
+// Categories for filtering
+const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
   CEREMONY: { label: 'Ceremonies', icon: Award, color: 'text-yellow-600 bg-yellow-100' },
   TOPPERS: { label: 'Toppers', icon: Sparkles, color: 'text-purple-600 bg-purple-100' },
   EVENTS: { label: 'Events', icon: Calendar, color: 'text-blue-600 bg-blue-100' },
@@ -168,16 +27,22 @@ const categoryConfig = {
 };
 
 export function GalleryPage() {
+  const { items, isLoading, fetchGallery } = useGalleryStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [lightboxImage, setLightboxImage] = useState<GalleryItem | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
 
-  const filteredItems = selectedCategory === 'all'
-    ? mockGalleryItems
-    : mockGalleryItems.filter(item => item.category === selectedCategory);
+  useEffect(() => {
+    fetchGallery();
+  }, [fetchGallery]);
 
-  const featuredItems = mockGalleryItems.filter(item => item.featured);
+  const filteredItems = selectedCategory === 'all'
+    ? items
+    : items.filter(item => item.category === selectedCategory);
+
+  const featuredItems = items.filter(item => (item as any).featured); // featured isn't in DB yet, but let's keep it for UI
+
 
   const openLightbox = (item: GalleryItem) => {
     setLightboxImage(item);
@@ -236,7 +101,7 @@ export function GalleryPage() {
             </div>
           </div>
           <p className="text-xl text-white/80 max-w-2xl">
-            Celebrating academic excellence through memorable moments from our scholarship programs, 
+            Celebrating academic excellence through memorable moments from our scholarship programs,
             certificate distribution ceremonies, and events.
           </p>
         </div>
@@ -252,8 +117,8 @@ export function GalleryPage() {
             </h2>
             <div className="grid md:grid-cols-3 gap-4">
               {featuredItems.map((item) => (
-                <Card 
-                  key={item.id} 
+                <Card
+                  key={item.id}
                   className="overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
                   onClick={() => openLightbox(item)}
                 >
@@ -264,9 +129,8 @@ export function GalleryPage() {
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${
-                        imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
-                      }`}
+                      className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
+                        }`}
                       loading="lazy"
                       onLoad={() => handleImageLoad(item.id)}
                     />
@@ -298,10 +162,10 @@ export function GalleryPage() {
             variant={selectedCategory === 'all' ? 'default' : 'outline'}
             onClick={() => setSelectedCategory('all')}
           >
-            All Photos ({mockGalleryItems.length})
+            All Photos ({items.length})
           </Button>
           {Object.entries(categoryConfig).map(([key, config]) => {
-            const count = mockGalleryItems.filter(i => i.category === key).length;
+            const count = items.filter(i => i.category === key).length;
             const IconComponent = config.icon;
             return (
               <Button
@@ -335,9 +199,8 @@ export function GalleryPage() {
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
-                      imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
-                    }`}
+                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
+                      }`}
                     loading="lazy"
                     onLoad={() => handleImageLoad(item.id)}
                   />
@@ -379,12 +242,12 @@ export function GalleryPage() {
 
       {/* Lightbox Modal */}
       {lightboxImage && (
-        <div 
+        <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           onClick={closeLightbox}
         >
           {/* Close Button */}
-          <button 
+          <button
             className="absolute top-4 right-4 text-white/80 hover:text-white z-10"
             onClick={closeLightbox}
           >
@@ -392,13 +255,13 @@ export function GalleryPage() {
           </button>
 
           {/* Navigation Buttons */}
-          <button 
+          <button
             className="absolute left-4 text-white/80 hover:text-white z-10 p-2"
             onClick={(e) => { e.stopPropagation(); prevImage(); }}
           >
             <ChevronLeft className="size-10" />
           </button>
-          <button 
+          <button
             className="absolute right-4 text-white/80 hover:text-white z-10 p-2"
             onClick={(e) => { e.stopPropagation(); nextImage(); }}
           >
@@ -406,7 +269,7 @@ export function GalleryPage() {
           </button>
 
           {/* Image */}
-          <div 
+          <div
             className="max-w-5xl max-h-[85vh] mx-4"
             onClick={(e) => e.stopPropagation()}
           >

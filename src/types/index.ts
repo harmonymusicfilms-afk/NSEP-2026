@@ -16,8 +16,10 @@ export interface Student {
   addressState: string;
   photoUrl?: string;
   centerCode: string;
-  referredByCenterCode?: string;
-  status: 'ACTIVE' | 'BLOCKED';
+  referralCode?: string; // Personal referral code for student-to-student referrals
+  referredByCenter?: string;
+  referredByStudent?: string; // If referred by another student
+  status: 'ACTIVE' | 'BLOCKED' | 'PENDING';
   createdAt: string;
   mobileVerified: boolean;
   emailVerified: boolean;
@@ -49,6 +51,8 @@ export interface Wallet {
   id: string;
   studentId: string;
   balance: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface WalletTransaction {
@@ -63,22 +67,25 @@ export interface WalletTransaction {
 
 export interface ExamQuestion {
   id: string;
-  classLevel: number;
+  class: number;
   questionText: string;
   options: string[];
   correctOptionIndex: number;
   subject?: string;
+  questionFileUrl?: string; // Support for PDF/Image attachments
 }
 
 export interface ExamSession {
   id: string;
   studentId: string;
-  classLevel: number;
+  class: number;
   startedAt: string;
   currentQuestionIndex: number;
   answers: ExamAnswer[];
   status: 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
   totalTimeSpent: number;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface ExamAnswer {
@@ -150,6 +157,7 @@ export interface AdminLog {
 export interface ExamConfigSettings {
   timePerQuestion: 5 | 7;
   demoQuestionCount: number;
+  gapBetweenQuestions: number;
   fees: Record<string, number>;
   marksPerCorrect: number;
   marksPerWrong: number;
@@ -170,7 +178,7 @@ export interface RegistrationFormData {
   addressDistrict: string;
   addressState: string;
   photoUrl?: string;
-  referredByCenterCode?: string;
+  referredByCenter?: string;
 }
 
 // Stats Types
@@ -195,13 +203,15 @@ export interface ClassWiseStats {
 }
 
 // Certificate Template Types
-export type CertificateTemplate = 'CLASSIC' | 'MODERN' | 'PRESTIGIOUS';
+export type CertificateTemplate = 'CLASSIC' | 'MODERN' | 'PRESTIGIOUS' | 'GPHDM';
 
 export interface CertificateTemplateConfig {
   template: CertificateTemplate;
   primaryColor: string;
   accentColor: string;
   logoUrl?: string;
+  sealUrl?: string;
+  signatureUrl?: string;
   sealText: string;
   institutionName: string;
   tagline: string;
@@ -213,6 +223,7 @@ export interface CertificateSettings {
     classic: CertificateTemplateConfig;
     modern: CertificateTemplateConfig;
     prestigious: CertificateTemplateConfig;
+    gphdm: CertificateTemplateConfig;
   };
 }
 
@@ -289,22 +300,46 @@ export interface ReferralLog {
   createdAt: string;
 }
 
+
+
 // Center (Approved Centers that can have referral codes)
 export interface Center {
   id: string;
   name: string;
+  centerType: string;
   ownerName: string;
-  email: string;
-  phone: string;
+  ownerPhone: string;
+  ownerEmail: string;
+  ownerAadhaar: string;
   address: string;
+  village: string;
+  block: string;
   state: string;
   district: string;
+  pincode: string;
   centerCode: string; // Unique center referral code
   status: 'PENDING' | 'APPROVED' | 'BLOCKED';
+  idProofUrl?: string;
+  addressProofUrl?: string;
+  centerPhotoUrl?: string;
   approvedBy?: string;
   approvedAt?: string;
+  rejectionReason?: string;
   totalStudents: number;
   totalEarnings: number;
+  createdAt: string;
+}
+
+export interface CenterMember {
+  id: string;
+  centerId: string;
+  name: string;
+  role: 'OWNER' | 'STAFF' | 'COORDINATOR' | 'VOLUNTEER';
+  phone?: string;
+  email?: string;
+  aadhaarNumber?: string;
+  photoUrl?: string;
+  isActive: boolean;
   createdAt: string;
 }
 
@@ -335,7 +370,7 @@ export interface ContactSubmission {
   createdAt: string;
 }
 
-// Gallery Item
+// Photo Gallery
 export interface GalleryItem {
   id: string;
   title: string;
@@ -344,5 +379,6 @@ export interface GalleryItem {
   category: 'CEREMONY' | 'TOPPERS' | 'EVENTS' | 'OTHER';
   year?: number;
   featured: boolean;
+  isPublished: boolean;
   createdAt: string;
 }

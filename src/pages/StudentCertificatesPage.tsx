@@ -1,273 +1,136 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Award, 
-  Download, 
-  Eye, 
-  FileCheck, 
-  QrCode,
+import {
+  Award,
   Calendar,
   Shield,
-  Trophy,
-  ExternalLink
+  Loader2,
+  FileCheck,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import {
-  useAuthStore,
-  useCertificateStore,
-  useExamStore,
-  useScholarshipStore,
-  useStudentStore,
-} from '@/stores';
-import { formatDateTime, getOrdinal } from '@/lib/utils';
-import { CertificateDownloader } from '@/components/features';
+import { useAuthStore, useCertificateStore, useExamStore, useScholarshipStore } from '@/stores';
+import { formatDateTime } from '@/lib/utils';
+import { CertificateDownloader } from '@/components/features/CertificateDownloader';
 
 export function StudentCertificatesPage() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { currentStudent, isStudentLoggedIn } = useAuthStore();
-  const { certificates, loadCertificates, settings, loadSettings } = useCertificateStore();
-  const { results, loadExamData } = useExamStore();
-  const { scholarships, loadScholarships } = useScholarshipStore();
-  const { students, loadStudents } = useStudentStore();
-
-  const [selectedCertificate, setSelectedCertificate] = useState<string | null>(null);
+  const { certificates, loadCertificates, isLoading: certsLoading } = useCertificateStore();
+  const { results, loadExamData, isLoading: examsLoading } = useExamStore();
+  const { scholarships, loadScholarships, isLoading: scholarshipsLoading } = useScholarshipStore();
 
   useEffect(() => {
-    if (!isStudentLoggedIn || !currentStudent) {
+    if (!isStudentLoggedIn) {
       navigate('/login');
       return;
     }
-    loadCertificates();
-    loadSettings();
-    loadExamData();
-    loadScholarships();
-    loadStudents();
-  }, [isStudentLoggedIn, currentStudent, navigate, loadCertificates, loadSettings, loadExamData, loadScholarships, loadStudents]);
+    if (currentStudent) {
+      // Load all necessary data
+      loadCertificates();
+      loadExamData();
+      loadScholarships();
+    }
+  }, [isStudentLoggedIn, currentStudent, navigate, loadCertificates, loadExamData, loadScholarships]);
 
-  if (!currentStudent) return null;
+  const isLoading = certsLoading || examsLoading || scholarshipsLoading;
 
-  // Get student's certificates
-  const myCertificates = certificates.filter((c) => c.studentId === currentStudent.id);
+  if (isLoading || !currentStudent) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="size-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-  // Get exam result and scholarship for each certificate
-  const certificatesWithDetails = myCertificates.map((cert) => {
-    const examResult = results.find((r) => r.id === cert.examResultId);
-    const scholarship = scholarships.find((s) => s.studentId === cert.studentId);
-    return { cert, examResult, scholarship };
-  });
+  // Filter certificates for current student
+  const myCertificates = certificates.filter(c => c.studentId === currentStudent.id);
 
-  const handleCopyVerificationLink = (certificateId: string) => {
-    const verificationUrl = `${window.location.origin}/verify?id=${certificateId}`;
-    navigator.clipboard.writeText(verificationUrl);
-    toast({
-      title: 'Link Copied',
-      description: 'Verification link copied to clipboard',
-    });
+  // Helper to get total students for a class (for rank generation if needed in cert)
+  const getClassTotalStudents = (className: number) => {
+    return results.filter(r => r.class === className && r.resultStatus === 'PUBLISHED').length;
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div>
         <h1 className="font-serif text-2xl font-bold text-foreground flex items-center gap-2">
           <Award className="size-6 text-primary" />
           My Certificates
         </h1>
         <p className="text-muted-foreground">
-          View, download, and verify your achievement certificates
+          View and download your earned certificates
         </p>
       </div>
 
-      {/* Empty State */}
-      {myCertificates.length === 0 && (
-        <Card className="border-dashed">
-          <CardContent className="py-12 text-center">
-            <div className="inline-flex items-center justify-center size-16 rounded-full bg-muted mb-4">
-              <FileCheck className="size-8 text-muted-foreground" />
+      {myCertificates.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Shield className="size-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">No Certificates Yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Certificates will appear here after you complete the exam and receive scholarship approval from the admin.
+            <h3 className="text-lg font-semibold mb-2">No Certificates Yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
+              You haven't earned any certificates yet. Complete the exam and achieve a qualifying score to earn certificates.
             </p>
-            <Button onClick={() => navigate('/dashboard/exam')} className="institutional-gradient">
-              Take Exam
-            </Button>
           </CardContent>
         </Card>
-      )}
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {myCertificates.map((cert) => {
+            const result = results.find(r => r.id === cert.examResultId);
+            const scholarship = scholarships.find(s => s.studentId === cert.studentId);
+            const totalStudents = result ? getClassTotalStudents(result.class) : 0;
 
-      {/* Certificates Grid */}
-      {myCertificates.length > 0 && (
-        <div className="grid lg:grid-cols-2 gap-6">
-          {certificatesWithDetails.map(({ cert, examResult, scholarship }) => (
-            <Card key={cert.id} className="hover:shadow-elevated transition-shadow">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Trophy className="size-5 text-primary" />
-                      <CardTitle className="text-lg">
-                        {cert.certificateType === 'SCHOLARSHIP' 
-                          ? 'Scholarship Certificate' 
-                          : cert.certificateType === 'MERIT'
-                          ? 'Merit Certificate'
-                          : 'Achievement Certificate'}
-                      </CardTitle>
-                    </div>
-                    <CardDescription>
-                      Class {examResult?.class || currentStudent.class} • {formatDateTime(cert.issuedAt).split(',')[0]}
-                    </CardDescription>
+            if (!result) return null;
+
+            return (
+              <Card key={cert.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                <div className="aspect-[1.414/1] bg-muted relative border-b p-4 flex items-center justify-center">
+                  <div className="text-center p-6 bg-white border shadow-sm w-full h-full flex flex-col items-center justify-center">
+                    <Award className="size-12 text-primary mb-2" />
+                    <div className="font-serif font-bold text-lg text-primary">Certificate</div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4">OF ACHIEVEMENT</div>
+                    <div className="text-sm font-medium">{currentStudent.name}</div>
                   </div>
-                  <Badge 
-                    variant={cert.isValid ? 'default' : 'destructive'}
-                    className="gap-1"
-                  >
-                    {cert.isValid ? (
-                      <>
-                        <Shield className="size-3" />
-                        Verified
-                      </>
-                    ) : (
-                      'Invalid'
-                    )}
-                  </Badge>
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
-                {/* Certificate Details */}
-                <div className="bg-muted rounded-lg p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Certificate ID</p>
-                      <p className="font-mono font-semibold text-xs break-all">
-                        {cert.certificateId}
-                      </p>
+                  <div className="absolute top-2 right-2">
+                    <Badge variant={cert.certificateType === 'SCHOLARSHIP' ? 'default' : 'secondary'}>
+                      {cert.certificateType}
+                    </Badge>
+                  </div>
+                </div>
+
+                <CardContent className="p-4 space-y-4">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between py-1 border-b">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <FileCheck className="size-3" /> Cert ID
+                      </span>
+                      <span className="font-mono text-xs">{cert.certificateId}</span>
                     </div>
-                    <div>
-                      <p className="text-muted-foreground">Issue Date</p>
-                      <p className="font-medium">
-                        {formatDateTime(cert.issuedAt).split(',')[0]}
-                      </p>
+                    <div className="flex justify-between py-1 border-b">
+                      <span className="text-muted-foreground flex items-center gap-1">
+                        <Calendar className="size-3" /> Issued
+                      </span>
+                      <span>{formatDateTime(cert.issuedAt).split(',')[0]}</span>
                     </div>
                   </div>
 
-                  {examResult && (
-                    <div className="pt-3 border-t border-border grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Rank</p>
-                        <p className="text-lg font-bold text-primary">
-                          {examResult.rank ? getOrdinal(examResult.rank) : '—'}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Score</p>
-                        <p className="text-lg font-bold text-primary">
-                          {examResult.totalScore}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Correct</p>
-                        <p className="text-lg font-bold text-primary">
-                          {examResult.correctCount}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {scholarship && scholarship.amount && (
-                    <div className="pt-3 border-t border-border">
-                      <div className="flex items-center justify-between bg-green-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2">
-                          <Award className="size-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-700">
-                            Scholarship Awarded
-                          </span>
-                        </div>
-                        <span className="text-lg font-bold text-green-700">
-                          ₹{scholarship.amount.toLocaleString('en-IN')}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="grid grid-cols-2 gap-2">
                   <CertificateDownloader
-                    studentId={cert.studentId}
-                    examResultId={cert.examResultId}
-                    certificateId={cert.certificateId}
-                    certificateType={cert.certificateType}
-                    trigger={
-                      <Button variant="outline" className="w-full gap-2">
-                        <Download className="size-4" />
-                        Download PDF
-                      </Button>
-                    }
+                    student={currentStudent}
+                    result={result}
+                    certificate={cert}
+                    scholarship={scholarship}
+                    totalStudents={totalStudents}
+                    className="w-full institutional-gradient"
+                    label="Download / Preview"
                   />
-                  
-                  <Button
-                    variant="outline"
-                    className="gap-2"
-                    onClick={() => handleCopyVerificationLink(cert.certificateId)}
-                  >
-                    <QrCode className="size-4" />
-                    Copy Verify Link
-                  </Button>
-                </div>
-
-                {/* Verification Link */}
-                <div className="pt-3 border-t border-border">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Public Verification:</span>
-                    <a
-                      href={`/verify?id=${cert.certificateId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-1"
-                    >
-                      Verify Online
-                      <ExternalLink className="size-3" />
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
-      )}
-
-      {/* Info Card */}
-      {myCertificates.length > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg shrink-0">
-                <FileCheck className="size-5 text-blue-600" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold text-blue-900">Certificate Verification</h3>
-                <p className="text-sm text-blue-700">
-                  All certificates include a unique QR code and certificate ID for public verification. 
-                  Anyone can verify the authenticity of your certificate by scanning the QR code or 
-                  visiting our verification page with the certificate ID.
-                </p>
-                <Button
-                  variant="link"
-                  className="text-blue-700 hover:text-blue-900 p-0 h-auto"
-                  onClick={() => navigate('/verify')}
-                >
-                  Go to Verification Page →
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       )}
     </div>
   );

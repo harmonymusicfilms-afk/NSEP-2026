@@ -31,15 +31,19 @@ export function CertificateTemplatePreview({
       description: 'Elegant ornate design with decorative elements and gold accents',
       preview: 'Premium • Ornate • Distinguished',
     },
+    GPHDM: {
+      name: 'GPHDM Official',
+      description: 'Official premium design with government-style borders and layout',
+      preview: 'Official • Premium • Professional',
+    },
   };
 
   const info = templateInfo[template];
 
   return (
     <Card
-      className={`cursor-pointer transition-all hover:shadow-lg ${
-        selected ? 'ring-2 ring-primary shadow-lg' : ''
-      }`}
+      className={`cursor-pointer transition-all hover:shadow-lg ${selected ? 'ring-2 ring-primary shadow-lg' : ''
+        }`}
       onClick={onSelect}
     >
       <CardContent className="p-4">
@@ -147,6 +151,42 @@ export function CertificateTemplatePreview({
                   className="w-16 h-0.5 mx-auto mt-0.5"
                   style={{ backgroundColor: config.accentColor }}
                 />
+              </div>
+            </div>
+          )}
+
+          {template === 'GPHDM' && (
+            <div className="absolute inset-0 p-2 border-box">
+              <div
+                className="absolute inset-1 border-2 rounded"
+                style={{ borderColor: config.accentColor }}
+              />
+              <div
+                className="absolute inset-2 border"
+                style={{ borderColor: config.primaryColor }}
+              />
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center border bg-white shadow-sm"
+                  style={{ borderColor: config.primaryColor }}
+                >
+                  <span className="text-[8px] font-bold" style={{ color: config.primaryColor }}>
+                    GPHDM
+                  </span>
+                </div>
+              </div>
+              <div className="absolute top-14 left-1/2 -translate-x-1/2 text-center w-full px-2">
+                <div className="text-[6px] font-bold text-gray-500 uppercase tracking-wide mb-1">Gram Panchayat Help Mission</div>
+                <div className="text-[10px] font-bold" style={{ color: config.primaryColor }}>
+                  CERTIFICATE
+                </div>
+                <div className="text-[5px] tracking-[0.2em] font-medium text-gray-400 mt-0.5">
+                  OF ACHIEVEMENT
+                </div>
+              </div>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 border-t pt-1 w-24 flex justify-between">
+                <div className="w-8 h-0.5 bg-gray-300"></div>
+                <div className="w-8 h-0.5 bg-gray-300"></div>
               </div>
             </div>
           )}

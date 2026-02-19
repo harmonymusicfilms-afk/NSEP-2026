@@ -7,7 +7,7 @@ import logoImg from '@/assets/gphdm-logo.png';
 
 export function Footer() {
   const { t } = useLanguage();
-  
+
   return (
     <footer className="bg-foreground text-white mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -18,12 +18,13 @@ export function Footer() {
               <img src={logoImg} alt="GPHDM Logo" className="h-10 w-auto" />
               <div>
                 <h3 className="font-serif text-lg font-bold">{APP_CONFIG.name}</h3>
+                <p className="text-sm font-medium text-orange-400 mt-1 mb-2">{t('home.hero.missionLine')}</p>
                 <p className="text-sm text-white/60">{APP_CONFIG.year}</p>
               </div>
             </div>
             <p className="text-white/70 text-sm max-w-md">
-              Empowering students across India through merit-based scholarships. 
-              Our mission is to recognize and reward academic excellence while 
+              Empowering students across India through merit-based scholarships.
+              Our mission is to recognize and reward academic excellence while
               providing equal opportunities for all.
             </p>
           </div>
@@ -71,7 +72,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <Mail className="size-4 text-white/60 mt-0.5 shrink-0" />
-                <a 
+                <a
                   href={`mailto:${APP_CONFIG.supportEmail}`}
                   className="text-white/70 hover:text-white transition-colors"
                 >
@@ -80,7 +81,7 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="size-4 text-white/60 mt-0.5 shrink-0" />
-                <a 
+                <a
                   href={`tel:${APP_CONFIG.supportPhone}`}
                   className="text-white/70 hover:text-white transition-colors"
                 >

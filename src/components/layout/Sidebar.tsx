@@ -15,6 +15,7 @@ import {
   FileText,
   Share2,
   Mail,
+  Image,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores';
@@ -30,7 +31,9 @@ const adminNavItems = [
   { href: '/admin/scholarships', label: 'Scholarships', icon: Award },
   { href: '/admin/referrals', label: 'CenterCode', icon: Share2 },
   { href: '/admin/centers', label: 'Centers', icon: GraduationCap },
+  { href: '/admin/questions', label: 'Questions', icon: ClipboardList },
   { href: '/admin/certificates', label: 'Certificates', icon: FileText },
+  { href: '/admin/gallery', label: 'Gallery', icon: Image },
   { href: '/admin/emails', label: 'Emails', icon: Mail },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];

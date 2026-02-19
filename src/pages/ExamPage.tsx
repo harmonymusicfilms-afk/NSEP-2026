@@ -8,6 +8,9 @@ import {
   CreditCard,
   Play,
   Loader2,
+  Award,
+  FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -32,9 +35,8 @@ import {
 } from '@/stores';
 import { getExamFee, EXAM_CONFIG } from '@/constants/config';
 import { formatCurrency, formatTime, generatePaymentId } from '@/lib/utils';
-import { mockExamQuestions } from '@/constants/mockData';
 
-type ExamPhase = 'payment' | 'ready' | 'exam' | 'gap' | 'completed';
+type ExamPhase = 'approval' | 'payment' | 'ready' | 'exam' | 'gap' | 'completed';
 
 export function ExamPage() {
   const [phase, setPhase] = useState<ExamPhase>('payment');
@@ -51,9 +53,9 @@ export function ExamPage() {
 
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentStudent } = useAuthStore();
+  const { currentStudent, isStudentLoggedIn } = useAuthStore();
   const { hasSuccessfulPayment, createPayment, verifyPayment, loadPayments } = usePaymentStore();
-  const { config, hasCompletedExam, completeExam, startExam, loadExamData, sessions } = useExamStore();
+  const { config, isLoading, hasCompletedExam, completeExam, startExam, loadExamData, loadQuestions, questions: storeQuestions, sessions } = useExamStore();
   const { createReward } = useCenterRewardStore();
   const { getStudentByCenterCode, loadStudents } = useStudentStore();
 
@@ -64,7 +66,22 @@ export function ExamPage() {
   }, [loadPayments, loadExamData, loadStudents]);
 
   useEffect(() => {
+    if (currentStudent?.class) {
+      loadQuestions(currentStudent.class);
+    }
+  }, [currentStudent?.id, loadQuestions]);
+
+  useEffect(() => {
     if (!currentStudent) return;
+
+    // If student is PENDING, they must complete registration flow first
+    if (currentStudent.status === 'PENDING') {
+      navigate('/register');
+      return;
+    }
+
+    // Validate current phase to prevent overwriting active exam state
+    if (phase === 'exam' || phase === 'gap') return;
 
     if (hasCompletedExam(currentStudent.id)) {
       setPhase('completed');
@@ -73,11 +90,9 @@ export function ExamPage() {
     } else {
       setPhase('payment');
     }
-  }, [currentStudent, hasSuccessfulPayment, hasCompletedExam]);
+  }, [currentStudent, hasSuccessfulPayment, hasCompletedExam, phase]);
 
-  const questions = currentStudent
-    ? mockExamQuestions.filter((q) => q.classLevel === currentStudent.class).slice(0, config.demoQuestionCount)
-    : [];
+  const questions = storeQuestions.slice(0, config.demoQuestionCount);
 
   const currentQuestion = questions[currentQuestionIndex];
 
@@ -115,57 +130,121 @@ export function ExamPage() {
     return () => clearInterval(timer);
   }, [phase]);
 
+  /* Helper to get IP */
+  const getPublicIP = async (): Promise<string> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const response = await fetch('https://api.ipify.org?format=json', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await response.json();
+      return data.ip;
+    } catch {
+      return 'Unknown (Client-side)';
+    }
+  };
+
   const handlePayment = async () => {
     if (!currentStudent) return;
 
     setIsProcessingPayment(true);
     const examFee = getExamFee(currentStudent.class);
 
-    // Create payment record
-    const payment = createPayment(currentStudent.id, examFee);
+    try {
+      // 1. Create Payment Order in Backend
+      // (Ideally create order via Edge Function for Razorpay Order ID, but using store for now)
+      const payment = await createPayment(currentStudent.id, examFee);
 
-    // Simulate Razorpay checkout
-    toast({
-      title: 'Processing Payment...',
-      description: 'Simulating Razorpay checkout',
-    });
+      if (!payment) throw new Error('Failed to initiate payment.');
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+      // 2. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_YourKeyHere', // Replace with real key
+        amount: examFee * 100, // Amount in paise
+        currency: 'INR',
+        name: 'National Scholarship Exam',
+        description: `Exam Donation for Class ${currentStudent.class}`,
+        image: '/favicon.ico', // Update with actual logo path
+        order_id: payment.razorpayOrderId, // Generated in store
+        handler: async function (response: any) {
+          try {
+            // 3. Verify Payment
+            const verifiedPayment = await verifyPayment(
+              payment.id,
+              response.razorpay_payment_id,
+              response.razorpay_signature
+            );
 
-    // Simulate successful payment
-    const razorpayPaymentId = generatePaymentId();
-    const verifiedPayment = verifyPayment(payment.id, razorpayPaymentId, 'mock_signature');
+            if (verifiedPayment) {
+              // Determine if referral reward applies
+              if (currentStudent.referredByCenter) {
+                const referrer = await getStudentByCenterCode(currentStudent.referredByCenter);
+                if (referrer && referrer.id !== currentStudent.id) {
+                  await createReward(referrer.id, currentStudent.id, payment.id);
+                }
+              }
 
-    if (verifiedPayment) {
-      // Process center reward if applicable
-      if (currentStudent.referredByCenterCode) {
-        const referrer = getStudentByCenterCode(currentStudent.referredByCenterCode);
-        if (referrer && referrer.id !== currentStudent.id) {
-          createReward(referrer.id, currentStudent.id, payment.id);
+              toast({
+                title: 'Payment Successful! ✅',
+                description: 'Exam unlocked. Good luck!',
+              });
+              setPhase('ready');
+            } else {
+              throw new Error('Verification failed.');
+            }
+          } catch (err) {
+            console.error('Payment Verification Error:', err);
+            toast({ variant: 'destructive', title: 'Payment Verification Failed' });
+          }
+        },
+        prefill: {
+          name: currentStudent.name,
+          email: currentStudent.email,
+          contact: currentStudent.mobile,
+        },
+        theme: {
+          color: '#0F172A',
+        },
+        modal: {
+          ondismiss: function () {
+            setIsProcessingPayment(false);
+          }
         }
-      }
+      };
 
-      toast({
-        title: 'Payment Successful!',
-        description: 'Your exam is now unlocked. You can start whenever ready.',
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        console.error('Payment Failed:', response.error);
+        toast({
+          variant: 'destructive',
+          title: 'Payment Failed',
+          description: response.error.description
+        });
+        setIsProcessingPayment(false);
       });
 
-      setPhase('ready');
-    } else {
+      rzp.open();
+
+    } catch (error: any) {
+      console.error('Payment Error:', error);
       toast({
         variant: 'destructive',
-        title: 'Payment Failed',
-        description: 'Please try again.',
+        title: 'Error',
+        description: error.message || 'Payment initiation failed.',
       });
+      setIsProcessingPayment(false);
     }
-
-    setIsProcessingPayment(false);
   };
 
-  const startExamHandler = () => {
+  const startExamHandler = async () => {
     if (!currentStudent) return;
 
-    startExam(currentStudent.id, currentStudent.class);
+    const ip = await getPublicIP();
+    const ua = navigator.userAgent;
+
+    await startExam(currentStudent.id, currentStudent.class, ip, ua);
     setCurrentQuestionIndex(0);
     setScore(0);
     setCorrectCount(0);
@@ -176,11 +255,16 @@ export function ExamPage() {
     setShowConfirmStart(false);
   };
 
-  const handleAnswerSubmit = useCallback((answerIndex: number | null) => {
-    if (!currentQuestion) return;
+  const handleAnswerSubmit = useCallback(async (answerIndex: number | null) => {
+    if (!currentQuestion || !currentStudent) return;
 
     const timeTaken = config.timePerQuestion - timeLeft;
     const isCorrect = answerIndex === currentQuestion.correctOptionIndex;
+
+    const session = sessions.find((s) => s.studentId === currentStudent.id && s.status === 'IN_PROGRESS');
+    if (session) {
+      await useExamStore.getState().submitAnswer(session.id, currentQuestion.id, answerIndex ?? -1, timeTaken);
+    }
 
     // Update scores
     if (answerIndex !== null) {
@@ -203,13 +287,13 @@ export function ExamPage() {
 
     // Check if this was the last question
     if (currentQuestionIndex >= questions.length - 1) {
-      finishExam();
+      await finishExam();
     } else {
       // Start gap timer
-      setGapTimeLeft(EXAM_CONFIG.gapBetweenQuestions);
+      setGapTimeLeft(config.gapBetweenQuestions);
       setPhase('gap');
     }
-  }, [currentQuestion, timeLeft, config, currentQuestionIndex, questions.length]);
+  }, [currentQuestion, timeLeft, config, currentQuestionIndex, questions.length, currentStudent, sessions]);
 
   const moveToNextQuestion = () => {
     setCurrentQuestionIndex((prev) => prev + 1);
@@ -218,28 +302,70 @@ export function ExamPage() {
     setPhase('exam');
   };
 
-  const finishExam = () => {
+  const finishExam = async () => {
     if (!currentStudent) return;
 
-    const session = sessions.find((s) => s.studentId === currentStudent.id);
+    const session = sessions.find((s) => s.studentId === currentStudent.id && s.status === 'IN_PROGRESS');
     if (session) {
-      completeExam(session.id);
+      await completeExam(session.id);
     }
 
     setPhase('completed');
     toast({
-      title: 'Exam Completed!',
-      description: 'Your responses have been recorded. View results in the Results section.',
+      title: 'Exam Completed! 🎉',
+      description: 'Your certificate has been generated. Check the Certificates section to download it.',
     });
   };
 
-  if (!currentStudent) return null;
+  // Authentication check
+  useEffect(() => {
+    if (!isStudentLoggedIn) {
+      navigate('/login');
+    }
+  }, [isStudentLoggedIn, navigate]);
+
+  if (!currentStudent || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="size-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">{isLoading ? 'Loading exam questions...' : 'Verifying student account...'}</p>
+        </div>
+      </div>
+    );
+  }
 
   const examFee = getExamFee(currentStudent.class);
 
   return (
     <div className="p-6">
       <div className="max-w-4xl mx-auto">
+        {/* Approval Phase */}
+        {phase === 'approval' && (
+          <Card className="max-w-lg mx-auto border-yellow-200 bg-yellow-50/30">
+            <CardHeader className="text-center">
+              <div className="mx-auto size-16 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
+                <Loader2 className="size-8 text-yellow-600 animate-spin" />
+              </div>
+              <CardTitle className="font-serif text-2xl text-yellow-800">Registration Pending</CardTitle>
+              <CardDescription className="text-yellow-700">
+                Your registration is currently under review by our administrator.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-center">
+              <p className="text-sm text-yellow-600">
+                Once your profile is approved, you will be able to pay the exam donation and access the examination.
+                Please check back in 24-48 hours.
+              </p>
+              <div className="pt-4">
+                <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full">
+                  Return to Dashboard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Payment Phase */}
         {phase === 'payment' && (
           <Card className="max-w-lg mx-auto">
@@ -247,7 +373,7 @@ export function ExamPage() {
               <div className="mx-auto size-16 rounded-full bg-yellow-100 flex items-center justify-center mb-4">
                 <CreditCard className="size-8 text-yellow-600" />
               </div>
-              <CardTitle className="font-serif text-2xl">Pay Exam Fee</CardTitle>
+              <CardTitle className="font-serif text-2xl">Pay Exam Donation</CardTitle>
               <CardDescription>
                 Complete payment to unlock your examination
               </CardDescription>
@@ -263,7 +389,7 @@ export function ExamPage() {
                   <span className="font-medium">Class {currentStudent.class}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Exam Fee</span>
+                  <span className="text-muted-foreground">Exam Donation</span>
                   <span className="font-bold text-primary text-lg">{formatCurrency(examFee)}</span>
                 </div>
               </div>
@@ -281,14 +407,14 @@ export function ExamPage() {
                   </>
                 ) : (
                   <>
-                    <CreditCard className="size-5 mr-2" />
-                    Pay {formatCurrency(examFee)} via Razorpay
+                    <CheckCircle className="size-5 mr-2" />
+                    Confirm & Start Exam
                   </>
                 )}
               </Button>
 
               <p className="text-xs text-center text-muted-foreground">
-                Secure payment powered by Razorpay. Supports UPI, Cards, Net Banking.
+                Donation: {formatCurrency(examFee)} • Auto-approved for testing
               </p>
             </CardContent>
           </Card>
@@ -345,8 +471,32 @@ export function ExamPage() {
           </Card>
         )}
 
-        {/* Exam Phase */}
-        {phase === 'exam' && currentQuestion && (
+        {/* Exam Phase - Error (No Questions) */}
+        {phase === 'exam' && (questions.length === 0 || !currentQuestion || !currentQuestion.options) && (
+          <Card className="max-w-lg mx-auto border-red-200 bg-red-50/30">
+            <CardHeader className="text-center">
+              <div className="mx-auto size-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                <AlertTriangle className="size-8 text-red-600" />
+              </div>
+              <CardTitle className="font-serif text-2xl text-red-800">Exam Error</CardTitle>
+              <CardDescription className="text-red-700">
+                {questions.length === 0
+                  ? `We could not find any exam questions for Class ${currentStudent.class}.`
+                  : 'An error occurred while loading the question.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-sm text-red-600 mb-4">
+                Please try refreshing the page or contact support.
+              </p>
+              <Button variant="outline" onClick={() => navigate('/dashboard')} className="w-full">
+                Return to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {phase === 'exam' && questions.length > 0 && currentQuestion && currentQuestion.options && (
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -382,16 +532,37 @@ export function ExamPage() {
             {/* Question */}
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-medium mb-6">{currentQuestion.questionText}</h2>
+                <h2 className="text-xl font-medium mb-4">{currentQuestion.questionText}</h2>
+
+                {currentQuestion.questionFileUrl && (
+                  <div className="mb-6">
+                    {currentQuestion.questionFileUrl.startsWith('data:image') || /\.(jpeg|jpg|gif|png)(\?.*)?$/i.test(currentQuestion.questionFileUrl) ? (
+                      <img
+                        src={currentQuestion.questionFileUrl}
+                        alt="Question Attachment"
+                        className="max-w-full h-auto max-h-[300px] rounded-md border mx-auto"
+                      />
+                    ) : (
+                      <a
+                        href={currentQuestion.questionFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 text-primary hover:underline bg-primary/5 p-3 rounded-md w-full border border-dashed border-primary/20"
+                      >
+                        <FileText className="size-5" />
+                        View Attached Document (PDF)
+                      </a>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid gap-3">
                   {currentQuestion.options.map((option, index) => (
                     <Button
                       key={index}
                       variant={selectedAnswer === index ? 'default' : 'outline'}
-                      className={`justify-start text-left h-auto py-4 px-4 ${
-                        selectedAnswer === index ? 'institutional-gradient' : ''
-                      }`}
+                      className={`justify-start text-left h-auto py-4 px-4 ${selectedAnswer === index ? 'institutional-gradient' : ''
+                        }`}
                       onClick={() => handleAnswerSubmit(index)}
                       disabled={selectedAnswer !== null}
                     >
@@ -446,16 +617,16 @@ export function ExamPage() {
               </div>
 
               <h2 className="text-2xl font-bold mb-2">
-                {selectedAnswer === currentQuestion?.correctOptionIndex ? 'Correct!' : 
-                 selectedAnswer === null ? 'Time Up!' : 'Incorrect'}
+                {selectedAnswer === currentQuestion?.correctOptionIndex ? 'Correct!' :
+                  selectedAnswer === null ? 'Time Up!' : 'Incorrect'}
               </h2>
 
               <p className="text-muted-foreground mb-6">
                 {selectedAnswer === currentQuestion?.correctOptionIndex
                   ? `+${config.marksPerCorrect} marks`
                   : selectedAnswer === null
-                  ? 'No marks'
-                  : `${config.marksPerWrong} marks`}
+                    ? 'No marks'
+                    : `${config.marksPerWrong} marks`}
               </p>
 
               <div className="bg-muted rounded-lg p-4">
@@ -498,6 +669,15 @@ export function ExamPage() {
               >
                 View Detailed Results
               </Button>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate('/dashboard/certificates')}
+              >
+                <Award className="size-4 mr-2" />
+                Download Certificate
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -520,6 +700,27 @@ export function ExamPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        {/* ... existing code ... */}
+
+        {/* Fallback for Unknown Phase */}
+        {!['approval', 'payment', 'ready', 'exam', 'gap', 'completed'].includes(phase) && (
+          <div className="p-4 bg-red-100 text-red-800 rounded">
+            Error: Unknown Exam Phase "{phase}"
+          </div>
+        )}
+
+        {/* Debug Info (Remove in production) */}
+        <div className="mt-8 p-4 bg-slate-100 rounded text-xs font-mono text-muted-foreground">
+          <p>Debug Info:</p>
+          <p>Phase: {phase}</p>
+          <p>Student ID: {currentStudent.id}</p>
+          <p>Class: {currentStudent.class} ({typeof currentStudent.class})</p>
+          <p>Questions Available: {questions.length}</p>
+          <p>Current Question Index: {currentQuestionIndex}</p>
+          <p>Current Question: {currentQuestion ? 'Loaded' : 'Null'}</p>
+          <p>Config Loaded: {config ? 'Yes' : 'No'}</p>
+          <p>Config DemoCount: {config?.demoQuestionCount}</p>
+        </div>
       </div>
     </div>
   );

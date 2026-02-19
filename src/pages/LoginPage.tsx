@@ -10,16 +10,18 @@ import { useAuthStore, useStudentStore } from '@/stores';
 import { APP_CONFIG } from '@/constants/config';
 import { isValidEmail, isValidMobile } from '@/lib/utils';
 
+import { supabase } from '@/lib/supabase';
+
 export function LoginPage() {
   const [email, setEmail] = useState('');
-  const [mobile, setMobile] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; mobile?: string }>({});
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
   const { loginStudent, isStudentLoggedIn } = useAuthStore();
-  const { loadStudents } = useStudentStore();
+  const { loadStudents, addStudent } = useStudentStore();
 
   useEffect(() => {
     loadStudents();
@@ -29,7 +31,7 @@ export function LoginPage() {
   }, [isStudentLoggedIn, navigate, loadStudents]);
 
   const validate = (): boolean => {
-    const newErrors: { email?: string; mobile?: string } = {};
+    const newErrors: { email?: string; password?: string } = {};
 
     if (!email.trim()) {
       newErrors.email = 'Email is required';
@@ -37,10 +39,8 @@ export function LoginPage() {
       newErrors.email = 'Invalid email format';
     }
 
-    if (!mobile.trim()) {
-      newErrors.mobile = 'Mobile number is required';
-    } else if (!isValidMobile(mobile)) {
-      newErrors.mobile = 'Invalid mobile number';
+    if (!password.trim()) {
+      newErrors.password = 'Password is required';
     }
 
     setErrors(newErrors);
@@ -54,26 +54,70 @@ export function LoginPage() {
 
     setIsLoading(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const student = loginStudent(email.toLowerCase().trim(), mobile.trim());
-
-    if (student) {
-      toast({
-        title: 'Login Successful',
-        description: `Welcome back, ${student.name}!`,
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
       });
-      navigate('/dashboard');
-    } else {
+
+      if (error) throw error;
+      if (!data.user) throw new Error('No user found');
+
+      // Fetch student details to sync with local store (Legacy)
+      const { data: studentData, error: studentError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (studentData) {
+        // Attempt to login to local store
+        let loggedIn = loginStudent(email.toLowerCase().trim(), studentData.mobile);
+
+        if (!loggedIn) {
+          // Hydrate local store from Supabase data
+          addStudent({
+            name: studentData.name,
+            fatherName: studentData.father_name,
+            class: studentData.class || studentData.class_level,
+            mobile: studentData.mobile,
+            email: studentData.email,
+            schoolName: studentData.school_name,
+            schoolContact: studentData.school_contact,
+            addressVillage: studentData.address_village,
+            addressBlock: studentData.address_block,
+            addressTahsil: studentData.address_tahsil,
+            addressDistrict: studentData.address_district,
+            addressState: studentData.address_state,
+            referredByCenter: studentData.referred_by_center || undefined
+          });
+
+          // Try login again
+          loggedIn = loginStudent(studentData.email, studentData.mobile);
+        }
+
+        if (!loggedIn) {
+          console.warn('Student not found in local store even after hydration.');
+        }
+
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back, ${studentData.name}!`,
+        });
+        navigate('/dashboard');
+      } else {
+        throw new Error('Student profile not found');
+      }
+
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid credentials or account blocked. Please check and try again.',
+        description: error.message || 'Invalid credentials.',
       });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
@@ -111,21 +155,29 @@ export function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="mobile">Mobile Number</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                to="/forgot-password"
+                className="text-xs text-primary hover:underline font-medium"
+              >
+                Forgot Password?
+              </Link>
+            </div>
             <Input
-              id="mobile"
-              value={mobile}
+              id="password"
+              type="password"
+              value={password}
               onChange={(e) => {
-                setMobile(e.target.value.replace(/\D/g, ''));
-                if (errors.mobile) setErrors((prev) => ({ ...prev, mobile: undefined }));
+                setPassword(e.target.value);
+                if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
               }}
-              placeholder="10-digit mobile number"
-              maxLength={10}
-              className={errors.mobile ? 'border-destructive' : ''}
+              placeholder="Enter your password"
+              className={errors.password ? 'border-destructive' : ''}
             />
-            {errors.mobile && (
+            {errors.password && (
               <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="size-3" /> {errors.mobile}
+                <AlertCircle className="size-3" /> {errors.password}
               </p>
             )}
           </div>
@@ -154,16 +206,6 @@ export function LoginPage() {
           </p>
         </div>
 
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-muted rounded-lg">
-          <p className="text-xs text-muted-foreground text-center mb-2">
-            Demo credentials (for testing):
-          </p>
-          <div className="text-xs space-y-1">
-            <p><strong>Email:</strong> aarav.sharma@email.com</p>
-            <p><strong>Mobile:</strong> 9876543210</p>
-          </div>
-        </div>
       </CardContent>
     </Card>
   );

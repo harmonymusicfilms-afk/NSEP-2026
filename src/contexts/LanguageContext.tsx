@@ -11,10 +11,10 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Common
-    'app.name': 'GPHDM Scholarship Examination',
+    'app.name': 'S.V. MEDIA FILMS PRODUCTION',
     'app.shortName': 'GPHDM',
     'app.tagline': 'Empowering Students Across India',
-    
+
     // Navigation
     'nav.home': 'Home',
     'nav.about': 'About',
@@ -26,24 +26,25 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.logout': 'Logout',
     'nav.verify': 'Verify Certificate',
     'nav.admin': 'Admin',
-    
+
     // Home Page
-    'home.hero.title': 'Gram Panchayat Help Desk Mission Scholarship Examination',
+    'home.hero.title': 'S.V. MEDIA FILMS PRODUCTION',
+    'home.hero.missionLine': 'Through Gram Panchayat Help Mission',
     'home.hero.subtitle': 'Empowering students across India through merit-based scholarships. Register now for Class 1-12 examinations.',
     'home.hero.registerBtn': 'Register Now',
     'home.hero.learnMore': 'Learn More',
     'home.registration.open': 'Registration Open for',
     'home.features.title': 'Why Choose GPHDM?',
     'home.features.subtitle': 'Our examination portal provides a fair, transparent, and rewarding platform.',
-    'home.fees.title': 'Examination Fees',
-    'home.fees.subtitle': 'Affordable fee structure for all students.',
+    'home.fees.title': 'Examination Donation',
+    'home.fees.subtitle': 'Affordable donation structure for all students.',
     'home.fees.primary': 'Primary',
     'home.fees.middle': 'Middle',
     'home.fees.senior': 'Senior',
     'home.howItWorks.title': 'How It Works',
     'home.howItWorks.subtitle': 'Simple 4-step process from registration to scholarship.',
     'home.howItWorks.step1': 'Register',
-    'home.howItWorks.step1Desc': 'Create your account with required details',
+    'home.howItWorks.step1Desc': 'Create your account using a Center Referral Code',
     'home.howItWorks.step2': 'Pay Fee',
     'home.howItWorks.step2Desc': 'Complete secure payment via Razorpay',
     'home.howItWorks.step3': 'Take Exam',
@@ -56,7 +57,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.scholarship.subtitle': 'Top performers in each class receive attractive scholarships.',
     'home.cta.title': 'Ready to Begin Your Journey?',
     'home.cta.subtitle': 'Join thousands of students across India.',
-    
+
     // Registration Page
     'register.title': 'Student Registration',
     'register.subtitle': 'Create your account to access the scholarship examination',
@@ -77,7 +78,9 @@ const translations: Record<Language, Record<string, string>> = {
     'register.field.schoolContact': 'School Contact',
     'register.field.mobile': 'Mobile Number',
     'register.field.email': 'Email Address',
-    'register.field.referralCode': 'Referral Code (Optional)',
+    'register.field.referralCode': 'Referral Code',
+    'register.referral.noCode': "Don't have a code? Use Master Code:",
+    'register.referral.masterCodeHint': 'Enter code to proceed',
     'register.field.village': 'Village / Locality',
     'register.field.block': 'Block',
     'register.field.tahsil': 'Tahsil',
@@ -94,8 +97,8 @@ const translations: Record<Language, Record<string, string>> = {
     'register.btn.submitting': 'Registering...',
     'register.alreadyRegistered': 'Already registered?',
     'register.loginHere': 'Login here',
-    'register.examFee': 'Examination Fee',
-    
+    'register.examFee': 'Examination Donation',
+
     // Login Page
     'login.title': 'Student Login',
     'login.subtitle': 'Access your scholarship examination dashboard',
@@ -105,7 +108,7 @@ const translations: Record<Language, Record<string, string>> = {
     'login.btn.loggingIn': 'Logging in...',
     'login.noAccount': "Don't have an account?",
     'login.registerNow': 'Register Now',
-    
+
     // Dashboard
     'dashboard.welcome': 'Welcome',
     'dashboard.overview': 'Overview',
@@ -119,7 +122,7 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.examCompleted': 'Exam Completed',
     'dashboard.viewResults': 'View Results',
     'dashboard.downloadCertificate': 'Download Certificate',
-    
+
     // Admin
     'admin.dashboard': 'Admin Dashboard',
     'admin.students': 'Students',
@@ -138,7 +141,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.revenueTrends': 'Revenue Trends',
     'admin.classWiseDistribution': 'Class-wise Distribution',
     'admin.referralStats': 'Referral Statistics',
-    
+
     // Center Registration
     'center.register.title': 'Center Registration',
     'center.register.subtitle': 'Apply to become an approved examination center',
@@ -160,14 +163,14 @@ const translations: Record<Language, Record<string, string>> = {
     'center.submit': 'Submit Application',
     'center.submitting': 'Submitting...',
     'center.terms': 'I agree to the Center Partnership Terms and Conditions',
-    
+
     // Email
     'email.registration.subject': 'Registration Successful - GPHDM Scholarship Examination',
     'email.payment.subject': 'Payment Confirmation - GPHDM',
     'email.examReminder.subject': 'Exam Reminder - GPHDM Scholarship Examination',
     'email.result.subject': 'Your Results are Available - GPHDM',
     'email.certificate.subject': 'Certificate Issued - GPHDM Scholarship Examination',
-    
+
     // Common Actions
     'action.save': 'Save',
     'action.cancel': 'Cancel',
@@ -183,7 +186,7 @@ const translations: Record<Language, Record<string, string>> = {
     'action.filter': 'Filter',
     'action.export': 'Export',
     'action.import': 'Import',
-    
+
     // Status
     'status.pending': 'Pending',
     'status.approved': 'Approved',
@@ -194,7 +197,7 @@ const translations: Record<Language, Record<string, string>> = {
     'status.failed': 'Failed',
     'status.sent': 'Sent',
     'status.delivered': 'Delivered',
-    
+
     // Contact
     'contact.title': 'Contact Us',
     'contact.subtitle': 'Get in touch with our team',
@@ -206,7 +209,7 @@ const translations: Record<Language, Record<string, string>> = {
     'contact.office': 'Office Address',
     'contact.hours': 'Working Hours',
     'contact.faq': 'Frequently Asked Questions',
-    
+
     // Verification
     'verify.title': 'Certificate Verification',
     'verify.subtitle': 'Verify the authenticity of GPHDM certificates',
@@ -214,7 +217,7 @@ const translations: Record<Language, Record<string, string>> = {
     'verify.btn': 'Verify',
     'verify.valid': 'Valid Certificate',
     'verify.invalid': 'Invalid Certificate',
-    
+
     // Footer
     'footer.quickLinks': 'Quick Links',
     'footer.contactUs': 'Contact Us',
@@ -224,10 +227,10 @@ const translations: Record<Language, Record<string, string>> = {
   },
   hi: {
     // Common
-    'app.name': 'जीपीएचडीएम छात्रवृत्ति परीक्षा',
+    'app.name': 'S.V. MEDIA FILMS PRODUCTION',
     'app.shortName': 'जीपीएचडीएम',
     'app.tagline': 'भारत भर के छात्रों को सशक्त बनाना',
-    
+
     // Navigation
     'nav.home': 'होम',
     'nav.about': 'हमारे बारे में',
@@ -239,24 +242,25 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.logout': 'लॉगआउट',
     'nav.verify': 'प्रमाणपत्र सत्यापन',
     'nav.admin': 'एडमिन',
-    
+
     // Home Page
-    'home.hero.title': 'ग्राम पंचायत हेल्प डेस्क मिशन छात्रवृत्ति परीक्षा',
+    'home.hero.title': 'S.V. MEDIA FILMS PRODUCTION',
+    'home.hero.missionLine': 'ग्राम पंचायत हेल्प मिशन के माध्यम से',
     'home.hero.subtitle': 'योग्यता-आधारित छात्रवृत्ति के माध्यम से भारत भर के छात्रों को सशक्त बनाना। कक्षा 1-12 परीक्षाओं के लिए अभी पंजीकरण करें।',
     'home.hero.registerBtn': 'अभी पंजीकरण करें',
     'home.hero.learnMore': 'और जानें',
     'home.registration.open': 'पंजीकरण खुला है',
     'home.features.title': 'जीपीएचडीएम क्यों चुनें?',
     'home.features.subtitle': 'हमारा परीक्षा पोर्टल एक निष्पक्ष, पारदर्शी और पुरस्कृत मंच प्रदान करता है।',
-    'home.fees.title': 'परीक्षा शुल्क',
-    'home.fees.subtitle': 'सभी छात्रों के लिए किफायती शुल्क संरचना।',
+    'home.fees.title': 'परीक्षा सहयोग राशि',
+    'home.fees.subtitle': 'सभी छात्रों के लिए किफायती सहयोग राशि संरचना।',
     'home.fees.primary': 'प्राथमिक',
     'home.fees.middle': 'माध्यमिक',
     'home.fees.senior': 'उच्च माध्यमिक',
     'home.howItWorks.title': 'यह कैसे काम करता है',
     'home.howItWorks.subtitle': 'पंजीकरण से छात्रवृत्ति तक सरल 4-चरणीय प्रक्रिया।',
     'home.howItWorks.step1': 'पंजीकरण',
-    'home.howItWorks.step1Desc': 'आवश्यक विवरण के साथ खाता बनाएं',
+    'home.howItWorks.step1Desc': 'सेंटर रेफरल कोड का उपयोग करके अपना खाता बनाएं',
     'home.howItWorks.step2': 'शुल्क भुगतान',
     'home.howItWorks.step2Desc': 'रेजरपे के माध्यम से सुरक्षित भुगतान करें',
     'home.howItWorks.step3': 'परीक्षा दें',
@@ -269,7 +273,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.scholarship.subtitle': 'प्रत्येक कक्षा में शीर्ष प्रदर्शनकर्ताओं को आकर्षक छात्रवृत्ति मिलती है।',
     'home.cta.title': 'अपनी यात्रा शुरू करने के लिए तैयार हैं?',
     'home.cta.subtitle': 'भारत भर के हजारों छात्रों से जुड़ें।',
-    
+
     // Registration Page
     'register.title': 'छात्र पंजीकरण',
     'register.subtitle': 'छात्रवृत्ति परीक्षा तक पहुंचने के लिए अपना खाता बनाएं',
@@ -290,7 +294,9 @@ const translations: Record<Language, Record<string, string>> = {
     'register.field.schoolContact': 'स्कूल संपर्क',
     'register.field.mobile': 'मोबाइल नंबर',
     'register.field.email': 'ईमेल पता',
-    'register.field.referralCode': 'रेफरल कोड (वैकल्पिक)',
+    'register.field.referralCode': 'रेफरल कोड',
+    'register.referral.noCode': "कोड नहीं है? मास्टर कोड का उपयोग करें:",
+    'register.referral.masterCodeHint': 'आगे बढ़ने के लिए कोड दर्ज करें',
     'register.field.village': 'गांव / इलाका',
     'register.field.block': 'ब्लॉक',
     'register.field.tahsil': 'तहसील',
@@ -307,8 +313,8 @@ const translations: Record<Language, Record<string, string>> = {
     'register.btn.submitting': 'पंजीकरण हो रहा है...',
     'register.alreadyRegistered': 'पहले से पंजीकृत हैं?',
     'register.loginHere': 'यहां लॉगिन करें',
-    'register.examFee': 'परीक्षा शुल्क',
-    
+    'register.examFee': 'परीक्षा सहयोग राशि',
+
     // Login Page
     'login.title': 'छात्र लॉगिन',
     'login.subtitle': 'अपने छात्रवृत्ति परीक्षा डैशबोर्ड तक पहुंचें',
@@ -318,7 +324,7 @@ const translations: Record<Language, Record<string, string>> = {
     'login.btn.loggingIn': 'लॉगिन हो रहा है...',
     'login.noAccount': 'खाता नहीं है?',
     'login.registerNow': 'अभी पंजीकरण करें',
-    
+
     // Dashboard
     'dashboard.welcome': 'स्वागत है',
     'dashboard.overview': 'अवलोकन',
@@ -332,7 +338,7 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.examCompleted': 'परीक्षा पूर्ण',
     'dashboard.viewResults': 'परिणाम देखें',
     'dashboard.downloadCertificate': 'प्रमाणपत्र डाउनलोड करें',
-    
+
     // Admin
     'admin.dashboard': 'एडमिन डैशबोर्ड',
     'admin.students': 'छात्र',
@@ -351,7 +357,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.revenueTrends': 'राजस्व रुझान',
     'admin.classWiseDistribution': 'कक्षावार वितरण',
     'admin.referralStats': 'रेफरल आंकड़े',
-    
+
     // Center Registration
     'center.register.title': 'केंद्र पंजीकरण',
     'center.register.subtitle': 'अनुमोदित परीक्षा केंद्र बनने के लिए आवेदन करें',
@@ -373,14 +379,14 @@ const translations: Record<Language, Record<string, string>> = {
     'center.submit': 'आवेदन जमा करें',
     'center.submitting': 'जमा हो रहा है...',
     'center.terms': 'मैं केंद्र साझेदारी नियम और शर्तों से सहमत हूं',
-    
+
     // Email
     'email.registration.subject': 'पंजीकरण सफल - जीपीएचडीएम छात्रवृत्ति परीक्षा',
     'email.payment.subject': 'भुगतान पुष्टि - जीपीएचडीएम',
     'email.examReminder.subject': 'परीक्षा अनुस्मारक - जीपीएचडीएम छात्रवृत्ति परीक्षा',
     'email.result.subject': 'आपके परिणाम उपलब्ध हैं - जीपीएचडीएम',
     'email.certificate.subject': 'प्रमाणपत्र जारी - जीपीएचडीएम छात्रवृत्ति परीक्षा',
-    
+
     // Common Actions
     'action.save': 'सहेजें',
     'action.cancel': 'रद्द करें',
@@ -396,7 +402,7 @@ const translations: Record<Language, Record<string, string>> = {
     'action.filter': 'फ़िल्टर',
     'action.export': 'निर्यात',
     'action.import': 'आयात',
-    
+
     // Status
     'status.pending': 'लंबित',
     'status.approved': 'स्वीकृत',
@@ -407,7 +413,7 @@ const translations: Record<Language, Record<string, string>> = {
     'status.failed': 'विफल',
     'status.sent': 'भेजा गया',
     'status.delivered': 'वितरित',
-    
+
     // Contact
     'contact.title': 'संपर्क करें',
     'contact.subtitle': 'हमारी टीम से संपर्क करें',
@@ -419,7 +425,7 @@ const translations: Record<Language, Record<string, string>> = {
     'contact.office': 'कार्यालय का पता',
     'contact.hours': 'कार्य समय',
     'contact.faq': 'अक्सर पूछे जाने वाले प्रश्न',
-    
+
     // Verification
     'verify.title': 'प्रमाणपत्र सत्यापन',
     'verify.subtitle': 'जीपीएचडीएम प्रमाणपत्रों की प्रामाणिकता सत्यापित करें',
@@ -427,7 +433,7 @@ const translations: Record<Language, Record<string, string>> = {
     'verify.btn': 'सत्यापित करें',
     'verify.valid': 'वैध प्रमाणपत्र',
     'verify.invalid': 'अमान्य प्रमाणपत्र',
-    
+
     // Footer
     'footer.quickLinks': 'त्वरित लिंक',
     'footer.contactUs': 'संपर्क करें',

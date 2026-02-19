@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Search, CheckCircle, XCircle, Award, User, Calendar, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,32 +10,53 @@ import { APP_CONFIG } from '@/constants/config';
 import { formatDate, getOrdinal } from '@/lib/utils';
 
 export function VerifyPage() {
-  const [certificateId, setCertificateId] = useState('');
+  const { certificateId: urlCertificateId } = useParams();
+  const [certificateId, setCertificateId] = useState(urlCertificateId || '');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<{
     found: boolean;
     certificate?: ReturnType<typeof useCertificateStore.getState>['certificates'][0];
-    student?: { name: string; fatherName: string; class: number };
+    student?: { name: string; fatherName: string; class: number; centerCode?: string };
     examResult?: { totalScore: number; rank: number };
   } | null>(null);
 
   const { verifyCertificate, loadCertificates } = useCertificateStore();
   const { results, loadExamData } = useExamStore();
 
-  const handleSearch = async () => {
-    if (!certificateId.trim()) return;
+  useEffect(() => {
+    if (urlCertificateId) {
+      handleSearch(urlCertificateId);
+    }
+  }, [urlCertificateId]);
+
+  const handleSearch = async (term: string = certificateId) => {
+    if (!term.trim()) return;
 
     setIsSearching(true);
-    loadCertificates();
-    loadExamData();
+    // ... rest of logic uses 'term' instead of 'certificateId' state directly or updates it
+    // But since verifyCertificate is async, we should just use the passed term.
+
+    // Ensure data is loaded
+    await Promise.all([loadCertificates(), loadExamData()]);
 
     // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
-    const result = verifyCertificate(certificateId.trim().toUpperCase());
+    const searchTerm = term.trim().toUpperCase();
+    let result = await verifyCertificate(searchTerm);
+
+    // If not found by Certificate ID, try searching by Student ID
+    if (!result.isValid) {
+      const certStore = useCertificateStore.getState();
+      const certificate = certStore.getCertificateByStudent(searchTerm);
+
+      if (certificate) {
+        result = await verifyCertificate(certificate.certificateId);
+      }
+    }
 
     if (result.isValid && result.certificate && result.student) {
-      const examResult = results.find((r) => r.id === result.certificate?.examResultId);
+      const examResult = useExamStore.getState().results.find((r) => r.id === result.certificate?.examResultId);
       setSearchResult({
         found: true,
         certificate: result.certificate,
@@ -42,6 +64,7 @@ export function VerifyPage() {
           name: result.student.name,
           fatherName: result.student.fatherName,
           class: result.student.class,
+          centerCode: result.student.centerCode,
         },
         examResult: examResult ? { totalScore: examResult.totalScore, rank: examResult.rank || 0 } : undefined,
       });
@@ -64,7 +87,7 @@ export function VerifyPage() {
             Certificate Verification
           </h1>
           <p className="text-muted-foreground">
-            Enter the Certificate ID to verify its authenticity
+            Enter the Certificate ID or Student ID to verify details
           </p>
         </div>
 
@@ -73,7 +96,7 @@ export function VerifyPage() {
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="certificateId">Certificate ID</Label>
+                <Label htmlFor="certificateId">Certificate ID or Student ID</Label>
                 <div className="flex gap-2">
                   <Input
                     id="certificateId"
@@ -82,7 +105,7 @@ export function VerifyPage() {
                       setCertificateId(e.target.value.toUpperCase());
                       setSearchResult(null);
                     }}
-                    placeholder="e.g., GPHDM2025ABCD1234"
+                    placeholder="Enter Certificate ID or Student ID"
                     className="font-mono uppercase"
                   />
                   <Button onClick={handleSearch} disabled={isSearching || !certificateId.trim()}>
@@ -94,7 +117,7 @@ export function VerifyPage() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  The Certificate ID can be found on the bottom of your certificate or scan the QR code
+                  You can find these details on your certificate or dashboard
                 </p>
               </div>
             </div>
@@ -159,6 +182,8 @@ export function VerifyPage() {
                     <span>{searchResult.student.fatherName}</span>
                     <span className="text-muted-foreground">Class:</span>
                     <span>Class {searchResult.student.class}</span>
+                    <span className="text-muted-foreground">Center Code:</span>
+                    <span className="font-mono">{searchResult.student.centerCode || 'N/A'}</span>
                   </div>
                 </div>
 

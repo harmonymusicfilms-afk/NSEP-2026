@@ -40,75 +40,46 @@ import {
 } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useAuthStore } from '@/stores';
+import { useAuthStore, useReferralStore } from '@/stores';
 import { REFERRAL_CONFIG, STORAGE_KEYS, APP_CONFIG } from '@/constants/config';
 import { generateId, formatCurrency, formatDateTime } from '@/lib/utils';
 import type { ReferralCode, ReferralLog, Center } from '@/types';
-
-// Helper functions
-const getStoredData = <T,>(key: string, defaultValue: T): T => {
-  const stored = localStorage.getItem(key);
-  return stored ? JSON.parse(stored) : defaultValue;
-};
-
-const setStoredData = <T,>(key: string, data: T): void => {
-  localStorage.setItem(key, JSON.stringify(data));
-};
-
-const generateAdminCode = (): string => {
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `${REFERRAL_CONFIG.adminCodePrefix}${random}`;
-};
-
-const generateCenterCode = (): string => {
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `${REFERRAL_CONFIG.centerCodePrefix}${random}`;
-};
 
 export function AdminReferralsPage() {
   const navigate = useNavigate();
   const { currentAdmin, isAdminLoggedIn } = useAuthStore();
   const { toast } = useToast();
 
-  const [referralCodes, setReferralCodes] = useState<ReferralCode[]>([]);
-  const [referralLogs, setReferralLogs] = useState<ReferralLog[]>([]);
-  const [centers, setCenters] = useState<Center[]>([]);
+  const {
+    referralCodes,
+    referralLogs,
+    centers,
+    isLoading,
+    loadReferralData,
+    createReferralCode,
+    approveCenter,
+    toggleCodeStatus,
+  } = useReferralStore();
+
   const [activeTab, setActiveTab] = useState<'codes' | 'centers' | 'logs'>('codes');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
 
   // Dialog states
   const [showCreateAdminCode, setShowCreateAdminCode] = useState(false);
-  const [showCreateCenter, setShowCreateCenter] = useState(false);
   const [showViewLogs, setShowViewLogs] = useState(false);
   const [selectedCodeId, setSelectedCodeId] = useState<string | null>(null);
 
   // Form states
   const [adminCodeForm, setAdminCodeForm] = useState({ adminName: '' });
-  const [centerForm, setCenterForm] = useState({
-    name: '',
-    ownerName: '',
-    email: '',
-    phone: '',
-    address: '',
-    state: '',
-    district: '',
-  });
 
   useEffect(() => {
     if (!isAdminLoggedIn) {
       navigate('/admin/login');
       return;
     }
-
-    loadData();
-  }, [isAdminLoggedIn, navigate]);
-
-  const loadData = () => {
-    setReferralCodes(getStoredData<ReferralCode[]>(STORAGE_KEYS.referralCodes, []));
-    setReferralLogs(getStoredData<ReferralLog[]>(STORAGE_KEYS.referralLogs, []));
-    setCenters(getStoredData<Center[]>(STORAGE_KEYS.centers, []));
-  };
+    loadReferralData();
+  }, [isAdminLoggedIn, navigate, loadReferralData]);
 
   // Stats calculations
   const stats = {
@@ -123,7 +94,7 @@ export function AdminReferralsPage() {
   };
 
   // Create Admin Referral Code (Super Admin Only)
-  const handleCreateAdminCode = () => {
+  const handleCreateAdminCode = async () => {
     if (currentAdmin?.role !== 'SUPER_ADMIN') {
       toast({
         title: 'Permission Denied',
@@ -142,35 +113,25 @@ export function AdminReferralsPage() {
       return;
     }
 
-    const newCode: ReferralCode = {
-      id: generateId(),
-      code: generateAdminCode(),
-      type: 'ADMIN_CENTER',
-      ownerId: currentAdmin.id,
-      ownerName: adminCodeForm.adminName.trim(),
-      rewardAmount: REFERRAL_CONFIG.adminCenterReward,
-      isActive: true,
-      totalReferrals: 0,
-      totalEarnings: 0,
-      createdAt: new Date().toISOString(),
-      createdBy: currentAdmin.id,
-    };
+    const code = await createReferralCode(
+      adminCodeForm.adminName.trim(),
+      'ADMIN_CENTER',
+      currentAdmin.id,
+      REFERRAL_CONFIG.adminCenterReward
+    );
 
-    const updatedCodes = [...referralCodes, newCode];
-    setReferralCodes(updatedCodes);
-    setStoredData(STORAGE_KEYS.referralCodes, updatedCodes);
-
-    setShowCreateAdminCode(false);
-    setAdminCodeForm({ adminName: '' });
-
-    toast({
-      title: 'Admin Code Created',
-      description: `Code ${newCode.code} created successfully.`,
-    });
+    if (code) {
+      setShowCreateAdminCode(false);
+      setAdminCodeForm({ adminName: '' });
+      toast({
+        title: 'Admin Code Created',
+        description: `Code ${code.code} created successfully.`,
+      });
+    }
   };
 
   // Approve Center and Generate Center Code
-  const handleApproveCenter = (centerId: string) => {
+  const handleApproveCenter = async (centerId: string) => {
     if (currentAdmin?.role !== 'SUPER_ADMIN') {
       toast({
         title: 'Permission Denied',
@@ -180,60 +141,17 @@ export function AdminReferralsPage() {
       return;
     }
 
-    const center = centers.find(c => c.id === centerId);
-    if (!center) return;
-
-    // Generate center code
-    const centerCode = generateCenterCode();
-
-    // Update center
-    const updatedCenters = centers.map(c =>
-      c.id === centerId
-        ? {
-            ...c,
-            status: 'APPROVED' as const,
-            centerCode,
-            approvedBy: currentAdmin.id,
-            approvedAt: new Date().toISOString(),
-          }
-        : c
-    );
-    setCenters(updatedCenters);
-    setStoredData(STORAGE_KEYS.centers, updatedCenters);
-
-    // Create referral code entry
-    const newReferralCode: ReferralCode = {
-      id: generateId(),
-      code: centerCode,
-      type: 'CENTER_CODE',
-      ownerId: centerId,
-      ownerName: center.name,
-      rewardAmount: REFERRAL_CONFIG.centerCodeReward,
-      isActive: true,
-      totalReferrals: 0,
-      totalEarnings: 0,
-      createdAt: new Date().toISOString(),
-      createdBy: currentAdmin.id,
-    };
-
-    const updatedCodes = [...referralCodes, newReferralCode];
-    setReferralCodes(updatedCodes);
-    setStoredData(STORAGE_KEYS.referralCodes, updatedCodes);
+    await approveCenter(centerId, currentAdmin.id);
 
     toast({
       title: 'Center Approved',
-      description: `Center "${center.name}" approved with code ${centerCode}.`,
+      description: 'Center has been approved and referral code generated.',
     });
   };
 
   // Toggle code status
-  const handleToggleCodeStatus = (codeId: string) => {
-    const updatedCodes = referralCodes.map(c =>
-      c.id === codeId ? { ...c, isActive: !c.isActive } : c
-    );
-    setReferralCodes(updatedCodes);
-    setStoredData(STORAGE_KEYS.referralCodes, updatedCodes);
-
+  const handleToggleCodeStatus = async (codeId: string) => {
+    await toggleCodeStatus(codeId);
     toast({
       title: 'Status Updated',
       description: 'Referral code status has been updated.',
@@ -257,7 +175,7 @@ export function AdminReferralsPage() {
 
   // Filter data
   const filteredCodes = referralCodes.filter(code => {
-    const matchesSearch = 
+    const matchesSearch =
       code.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
       code.ownerName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || code.type === filterType;
@@ -272,6 +190,14 @@ export function AdminReferralsPage() {
   const selectedCodeLogs = selectedCodeId
     ? referralLogs.filter(log => log.referralCodeId === selectedCodeId)
     : [];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -534,8 +460,8 @@ export function AdminReferralsPage() {
                             center.status === 'APPROVED'
                               ? 'default'
                               : center.status === 'PENDING'
-                              ? 'secondary'
-                              : 'destructive'
+                                ? 'secondary'
+                                : 'destructive'
                           }
                         >
                           {center.status}
@@ -591,7 +517,7 @@ export function AdminReferralsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{log.referrerRole}</Badge>
-                        <span className="ml-2">{log.referrerId}</span>
+                        <span className="ml-2 text-xs text-muted-foreground">{log.referrerId}</span>
                       </TableCell>
                       <TableCell>{log.newUserName}</TableCell>
                       <TableCell>{formatCurrency(log.amount)}</TableCell>
@@ -601,8 +527,8 @@ export function AdminReferralsPage() {
                             log.status === 'CREDITED'
                               ? 'default'
                               : log.status === 'PENDING'
-                              ? 'secondary'
-                              : 'destructive'
+                                ? 'secondary'
+                                : 'destructive'
                           }
                         >
                           {log.status}

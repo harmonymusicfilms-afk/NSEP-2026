@@ -31,6 +31,10 @@ import {
   Legend,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { APP_CONFIG, CLASSES } from '@/constants/config';
+import { formatCurrency } from '@/lib/utils';
 import {
   useAuthStore,
   useStudentStore,
@@ -38,20 +42,27 @@ import {
   useExamStore,
   useScholarshipStore,
   useCertificateStore,
+  useCenterRewardStore,
+  useAdminStore,
+  useReferralStore,
 } from '@/stores';
-import { formatCurrency } from '@/lib/utils';
-import { CLASSES } from '@/constants/config';
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#14b8a6', '#a855f7'];
 
 export function AdminDashboard() {
+  const { toast } = useToast();
   const navigate = useNavigate();
   const { currentAdmin, isAdminLoggedIn } = useAuthStore();
-  const { students, loadStudents } = useStudentStore();
+
+  // Stores
+  const { loadStudents } = useStudentStore();
   const { payments, loadPayments } = usePaymentStore();
-  const { results, loadExamData } = useExamStore();
-  const { scholarships, loadScholarships } = useScholarshipStore();
-  const { certificates, loadCertificates } = useCertificateStore();
+  const { loadExamData } = useExamStore();
+  const { loadScholarships } = useScholarshipStore();
+  const { loadCertificates } = useCertificateStore();
+  const { loadRewards } = useCenterRewardStore();
+  const { centers, loadReferralData } = useReferralStore();
+  const { stats: adminStats, classStats, fetchDashboardStats, fetchClassWiseStats, isLoading: statsLoading } = useAdminStore();
 
   useEffect(() => {
     if (!isAdminLoggedIn || !currentAdmin) {
@@ -63,36 +74,32 @@ export function AdminDashboard() {
     loadExamData();
     loadScholarships();
     loadCertificates();
-  }, [isAdminLoggedIn, currentAdmin, navigate, loadStudents, loadPayments, loadExamData, loadScholarships, loadCertificates]);
+    loadRewards();
+    loadReferralData();
+    fetchDashboardStats();
+    fetchClassWiseStats();
+  }, [isAdminLoggedIn, currentAdmin, navigate, loadStudents, loadPayments, loadExamData, loadScholarships, loadCertificates, loadRewards, loadReferralData, fetchDashboardStats, fetchClassWiseStats]);
 
-  const activeStudents = students.filter((s) => s.status === 'ACTIVE').length;
+  // Dashboard Stats from Backend RPC
+  const totalStudents = adminStats?.totalStudents || 0;
+  const activeStudentsCount = adminStats?.activeStudents || 0;
+  const totalRevenueAmount = adminStats?.totalRevenue || 0;
+  const successfulPaymentsCount = adminStats?.successfulPayments || 0;
+  const examsCompletedCount = adminStats?.examsCompleted || 0;
+  const certificatesIssuedCount = adminStats?.certificatesIssued || 0;
+  const pendingScholarshipsCount = adminStats?.pendingScholarships || 0;
+  const totalCenterRewardsAmount = adminStats?.totalCenterRewards || 0;
+
+  // Class-wise distribution from Backend RPC
+  const chartClassWiseData = useMemo(() => {
+    return classStats.map(cs => ({
+      name: `Class ${cs.class}`,
+      students: cs.studentCount,
+      exams: cs.examsTaken,
+    }));
+  }, [classStats]);
+
   const successfulPayments = payments.filter((p) => p.status === 'SUCCESS');
-  const totalRevenue = successfulPayments.reduce((sum, p) => sum + p.amount, 0);
-  const pendingScholarships = scholarships.filter((s) => s.approvalStatus === 'PENDING').length;
-  const publishedResults = results.filter((r) => r.resultStatus === 'PUBLISHED').length;
-
-  // Referral data
-  const referralCodes = JSON.parse(localStorage.getItem('gphdm_referral_codes') || '[]');
-  const referralLogs = JSON.parse(localStorage.getItem('gphdm_referral_logs') || '[]');
-  const totalReferralEarnings = referralLogs.filter((r: any) => r.status === 'CREDITED').reduce((sum: number, r: any) => sum + r.amount, 0);
-
-  // Registration trends (last 7 days)
-  const registrationTrends = useMemo(() => {
-    const days = 7;
-    const data = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayStudents = students.filter(s => s.createdAt.split('T')[0] === dateStr);
-      data.push({
-        date: date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
-        registrations: dayStudents.length,
-        revenue: dayStudents.length * 300, // Avg fee
-      });
-    }
-    return data;
-  }, [students]);
 
   // Revenue trends (last 7 days)
   const revenueTrends = useMemo(() => {
@@ -112,25 +119,48 @@ export function AdminDashboard() {
     return data;
   }, [successfulPayments]);
 
-  // Class-wise distribution
-  const classWiseData = useMemo(() => {
-    return CLASSES.map(cls => ({
-      name: `Class ${cls}`,
-      students: students.filter(s => s.class === cls).length,
-      exams: results.filter(r => r.class === cls).length,
-    })).filter(d => d.students > 0 || d.exams > 0);
-  }, [students, results]);
+  // Registration & Referral Trends (Last 14 Days)
+  const trendsData = useMemo(() => {
+    const days = 14;
+    const data = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+
+      // Filter for this day
+      const dayStart = new Date(dateStr).getTime();
+      const dayEnd = dayStart + 86400000;
+
+      const regCount = students.filter(s => {
+        const d = new Date(s.createdAt).getTime();
+        return d >= dayStart && d < dayEnd;
+      }).length;
+
+      const refCount = rewards.filter(r => {
+        const d = new Date(r.createdAt || new Date().toISOString()).getTime(); // Fallback date
+        return d >= dayStart && d < dayEnd;
+      }).length;
+
+      data.push({
+        date: date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+        registrations: regCount,
+        referrals: refCount,
+      });
+    }
+    return data;
+  }, [students, rewards]);
 
   // Referral stats
-  const referralStats = useMemo(() => {
-    const adminReferrals = referralLogs.filter((r: any) => r.referrerRole === 'ADMIN').length;
-    const centerReferrals = referralLogs.filter((r: any) => r.referrerRole === 'CENTER').length;
+  const referralStatsData = useMemo(() => {
+    // Since center_rewards are all from centers in our current schema, 
+    // we map them accordingly.
+    const centerReferrals = rewards.length;
     return [
-      { name: 'Admin Referrals', value: adminReferrals, color: '#3b82f6' },
       { name: 'Center Referrals', value: centerReferrals, color: '#10b981' },
-      { name: 'Direct', value: students.length - adminReferrals - centerReferrals, color: '#f59e0b' },
+      { name: 'Direct', value: Math.max(0, totalStudents - centerReferrals), color: '#f59e0b' },
     ].filter(d => d.value > 0);
-  }, [referralLogs, students]);
+  }, [rewards, totalStudents]);
 
   // Exam performance distribution
   const performanceData = useMemo(() => {
@@ -153,47 +183,47 @@ export function AdminDashboard() {
   const stats = [
     {
       title: 'Total Students',
-      value: students.length,
-      subtitle: `${activeStudents} active`,
+      value: totalStudents,
+      subtitle: `${activeStudentsCount} active`,
       icon: Users,
       color: 'text-blue-600',
       bg: 'bg-blue-100',
     },
     {
       title: 'Total Revenue',
-      value: formatCurrency(totalRevenue),
-      subtitle: `${successfulPayments.length} payments`,
+      value: formatCurrency(totalRevenueAmount),
+      subtitle: `${successfulPaymentsCount} payments`,
       icon: DollarSign,
       color: 'text-green-600',
       bg: 'bg-green-100',
     },
     {
       title: 'Exams Completed',
-      value: results.length,
-      subtitle: `${publishedResults} published`,
+      value: examsCompletedCount,
+      subtitle: `${results.filter(r => r.resultStatus === 'PUBLISHED').length} published`,
       icon: FileCheck,
       color: 'text-purple-600',
       bg: 'bg-purple-100',
     },
     {
       title: 'Pending Approvals',
-      value: pendingScholarships,
+      value: pendingScholarshipsCount,
       subtitle: 'scholarships',
       icon: Clock,
       color: 'text-yellow-600',
       bg: 'bg-yellow-100',
     },
     {
-      title: 'Referral Earnings',
-      value: formatCurrency(totalReferralEarnings),
-      subtitle: `${referralLogs.length} referrals`,
+      title: 'Referral Rewards',
+      value: formatCurrency(totalCenterRewardsAmount),
+      subtitle: `${rewards.length} referrals`,
       icon: Share2,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
     },
     {
       title: 'Certificates Issued',
-      value: certificates.length,
+      value: certificatesIssuedCount,
       subtitle: 'total',
       icon: Award,
       color: 'text-teal-600',
@@ -213,8 +243,42 @@ export function AdminDashboard() {
         <p className="text-muted-foreground">Overview of scholarship examination system</p>
       </div>
 
+      {/* Referral Quick Info */}
+      <Card className="border-blue-200 bg-blue-50/50">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <Share2 className="size-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-blue-900">Master Referral Code</p>
+              <p className="text-sm text-blue-700">Give this code to students who don't have a center referral.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <code className="px-3 py-1.5 bg-white border border-blue-200 rounded font-mono font-bold text-lg text-blue-600">
+              {APP_CONFIG.masterReferralCode}
+            </code>
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-white"
+              onClick={() => {
+                navigator.clipboard.writeText(APP_CONFIG.masterReferralCode);
+                toast({ title: "Copied!", description: "Master referral code copied to clipboard." });
+              }}
+            >
+              Copy
+            </Button>
+            <Button size="sm" onClick={() => navigate('/admin/referrals')}>
+              Manage Referrals
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="p-4">
@@ -235,44 +299,7 @@ export function AdminDashboard() {
 
       {/* Analytics Charts Row 1 */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Registration Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="size-5 text-blue-600" />
-              Registration Trends (Last 7 Days)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={registrationTrends}>
-                  <defs>
-                    <linearGradient id="colorReg" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" fontSize={12} tickLine={false} />
-                  <YAxis fontSize={12} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                    formatter={(value: number) => [value, 'Registrations']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="registrations"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorReg)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Revenue Trends */}
         <Card>
@@ -314,6 +341,57 @@ export function AdminDashboard() {
         </Card>
       </div>
 
+      {/* Registration & Referral Trends - New Charts */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="size-5 text-blue-600" />
+              Registration Trends (14 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendsData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" fontSize={12} tickLine={false} />
+                  <YAxis fontSize={12} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                  <Line type="monotone" dataKey="registrations" name="New Students" stroke="#3b82f6" strokeWidth={2} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Share2 className="size-5 text-green-600" />
+              Referral Activity (14 Days)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={trendsData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" fontSize={12} tickLine={false} />
+                  <YAxis fontSize={12} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  />
+                  <Bar dataKey="referrals" name="New Referrals" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Analytics Charts Row 2 */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Class-wise Distribution */}
@@ -327,7 +405,7 @@ export function AdminDashboard() {
           <CardContent>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={classWiseData} layout="vertical">
+                <BarChart data={chartClassWiseData} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis type="number" fontSize={12} tickLine={false} />
                   <YAxis dataKey="name" type="category" fontSize={11} tickLine={false} width={60} />
@@ -353,11 +431,11 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-64">
-              {referralStats.length > 0 ? (
+              {referralStatsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartPieChart>
                     <Pie
-                      data={referralStats}
+                      data={referralStatsData}
                       cx="50%"
                       cy="50%"
                       innerRadius={50}
@@ -367,7 +445,7 @@ export function AdminDashboard() {
                       label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                       labelLine={false}
                     >
-                      {referralStats.map((entry, index) => (
+                      {referralStatsData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -459,12 +537,12 @@ export function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {pendingScholarships > 0 && (
+            {pendingScholarshipsCount > 0 && (
               <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                 <Award className="size-8 text-yellow-600" />
                 <div>
                   <p className="font-medium text-sm">Scholarship Approvals</p>
-                  <p className="text-2xl font-bold text-yellow-700">{pendingScholarships}</p>
+                  <p className="text-2xl font-bold text-yellow-700">{pendingScholarshipsCount}</p>
                 </div>
               </div>
             )}
@@ -480,7 +558,7 @@ export function AdminDashboard() {
               </div>
             )}
             {(() => {
-              const pendingCenters = JSON.parse(localStorage.getItem('gphdm_centers') || '[]').filter((c: any) => c.status === 'PENDING').length;
+              const pendingCenters = centers.filter((c: any) => c.status === 'PENDING').length;
               return pendingCenters > 0 ? (
                 <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <Share2 className="size-8 text-orange-600" />
@@ -491,7 +569,7 @@ export function AdminDashboard() {
                 </div>
               ) : null;
             })()}
-            {pendingScholarships === 0 && results.filter((r) => r.resultStatus === 'PENDING').length === 0 && (
+            {pendingScholarshipsCount === 0 && results.filter((r) => r.resultStatus === 'PENDING').length === 0 && (
               <p className="text-muted-foreground text-sm col-span-full text-center py-4">No pending actions</p>
             )}
           </div>

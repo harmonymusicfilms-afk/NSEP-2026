@@ -27,6 +27,7 @@ import {
   useAuthStore,
   useCertificateStore,
   useEmailStore,
+  useAdminLogStore,
 } from '@/stores';
 import { SCHOLARSHIP_CONFIG } from '@/constants/config';
 import { formatCurrency, formatDate, getOrdinal, getStatusColorClass } from '@/lib/utils';
@@ -40,6 +41,7 @@ export function AdminScholarshipsPage() {
   const { scholarships, loadScholarships, approveScholarship, rejectScholarship } = useScholarshipStore();
   const { generateCertificate } = useCertificateStore();
   const { templates, loadEmailData, sendEmail } = useEmailStore();
+  const { addLog } = useAdminLogStore();
 
   useEffect(() => {
     if (!isAdminLoggedIn || !currentAdmin) {
@@ -59,10 +61,11 @@ export function AdminScholarshipsPage() {
     const examResult = results.find((r) => r.studentId === studentId);
 
     approveScholarship(scholarshipId, currentAdmin.id, 'BOTH', amount);
-    
+    addLog(currentAdmin.id, 'APPROVE_SCHOLARSHIP', scholarshipId, `Approved scholarship rank ${rank} for student ${studentId}`);
+
     if (examResult) {
       const certificate = generateCertificate(studentId, examResult.id, rank <= 3 ? 'SCHOLARSHIP' : 'MERIT');
-      
+
       // Auto-send email with default template
       const defaultTemplate = templates.find((t) => t.isDefault);
       if (defaultTemplate && certificate) {
@@ -91,6 +94,8 @@ export function AdminScholarshipsPage() {
   const handleReject = (scholarshipId: string) => {
     if (!currentAdmin) return;
     rejectScholarship(scholarshipId, currentAdmin.id, 'Does not meet criteria');
+    addLog(currentAdmin.id, 'REJECT_SCHOLARSHIP', scholarshipId, `Rejected scholarship for student`);
+
     toast({
       title: 'Scholarship Rejected',
       description: 'The scholarship application has been rejected.',
@@ -191,7 +196,7 @@ export function AdminScholarshipsPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      {scholarship.approvalStatus === 'PENDING' && (
+                      {scholarship.approvalStatus === 'PENDING' && (currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
                         <div className="flex gap-2">
                           <Button
                             size="sm"
