@@ -883,51 +883,50 @@ export function AdminSettingsPage() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            onClick={handlePreviewTemplate}
-            disabled={isPreviewingTemplate}
-            variant="outline"
-            className="flex-1 gap-2"
-          >
-            {isPreviewingTemplate ? (
-              <>
-                <Eye className="size-4 animate-pulse" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Eye className="size-4" />
-                Preview {selectedTemplate.charAt(0) + selectedTemplate.slice(1).toLowerCase()} Template
-              </>
-            )}
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handlePreviewTemplate}
+              disabled={isPreviewingTemplate}
+              variant="outline"
+              className="flex-1 gap-2"
+            >
+              {isPreviewingTemplate ? (
+                <>
+                  <Eye className="size-4 animate-pulse" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Eye className="size-4" />
+                  Preview {selectedTemplate.charAt(0) + selectedTemplate.slice(1).toLowerCase()} Template
+                </>
+              )}
+            </Button>
 
-          <Button onClick={handleSaveCertificateSettings} className="flex-1 institutional-gradient gap-2">
-            <Save className="size-4" />
-            Save Certificate Settings
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+            <Button onClick={handleSaveCertificateSettings} className="flex-1 institutional-gradient gap-2">
+              <Save className="size-4" />
+              Save Certificate Settings
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Info Banner */ }
-  <Card className="bg-yellow-50 border-yellow-200">
-    <CardContent className="p-4 flex items-start gap-3">
-      <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
-      <div>
-        <p className="font-semibold text-yellow-900">Important Notice</p>
-        <p className="text-sm text-yellow-700 mt-1">
-          Changes to exam configuration will only affect new exam sessions. Ongoing or completed
-          exams will retain their original settings. Donation changes apply immediately to all new registrations.
-          Certificate template changes will apply to all newly generated certificates.
-        </p>
-      </div>
-    </CardContent>
-  </Card>
-    </div >
+      {/* Info Banner */}
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardContent className="p-4 flex items-start gap-3">
+          <AlertCircle className="size-5 text-yellow-600 mt-0.5" />
+          <div>
+            <p className="font-semibold text-yellow-900">Important Notice</p>
+            <p className="text-sm text-yellow-700 mt-1">
+              Changes to exam configuration will only affect new exam sessions. Ongoing or completed
+              exams will retain their original settings. Donation changes apply immediately to all new registrations.
+              Certificate template changes will apply to all newly generated certificates.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
