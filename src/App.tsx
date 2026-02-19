@@ -35,6 +35,8 @@ import { AdminReferralsPage } from '@/pages/AdminReferralsPage';
 import { CenterRegistrationPage } from '@/pages/CenterRegistrationPage';
 import { AdminCentersPage } from '@/pages/AdminCentersPage';
 import { AdminQuestionsPage } from '@/pages/AdminQuestionsPage';
+import { AdminSyllabusPage } from '@/pages/AdminSyllabusPage';
+import { AdminAutomationPage } from '@/pages/AdminAutomationPage';
 
 // Layouts
 import { PublicLayout, StudentLayout, AdminLayout } from '@/components/layout';
@@ -85,6 +87,8 @@ function App() {
             <Route path="/admin/emails" element={<AdminEmailsPage />} />
             <Route path="/admin/settings" element={<AdminSettingsPage />} />
             <Route path="/admin/questions" element={<AdminQuestionsPage />} />
+            <Route path="/admin/syllabus" element={<AdminSyllabusPage />} />
+            <Route path="/admin/automation" element={<AdminAutomationPage />} />
           </Route>
 
           {/* Fallback */}

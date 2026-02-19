@@ -55,12 +55,12 @@ export function AdminDashboard() {
   const { currentAdmin, isAdminLoggedIn } = useAuthStore();
 
   // Stores
-  const { loadStudents } = useStudentStore();
+  const { students, loadStudents } = useStudentStore();
   const { payments, loadPayments } = usePaymentStore();
-  const { loadExamData } = useExamStore();
+  const { results, loadExamData } = useExamStore();
   const { loadScholarships } = useScholarshipStore();
   const { loadCertificates } = useCertificateStore();
-  const { loadRewards } = useCenterRewardStore();
+  const { rewards, loadRewards } = useCenterRewardStore();
   const { centers, loadReferralData } = useReferralStore();
   const { stats: adminStats, classStats, fetchDashboardStats, fetchClassWiseStats, isLoading: statsLoading } = useAdminStore();
 
@@ -81,25 +81,29 @@ export function AdminDashboard() {
   }, [isAdminLoggedIn, currentAdmin, navigate, loadStudents, loadPayments, loadExamData, loadScholarships, loadCertificates, loadRewards, loadReferralData, fetchDashboardStats, fetchClassWiseStats]);
 
   // Dashboard Stats from Backend RPC
-  const totalStudents = adminStats?.totalStudents || 0;
-  const activeStudentsCount = adminStats?.activeStudents || 0;
-  const totalRevenueAmount = adminStats?.totalRevenue || 0;
-  const successfulPaymentsCount = adminStats?.successfulPayments || 0;
-  const examsCompletedCount = adminStats?.examsCompleted || 0;
-  const certificatesIssuedCount = adminStats?.certificatesIssued || 0;
-  const pendingScholarshipsCount = adminStats?.pendingScholarships || 0;
-  const totalCenterRewardsAmount = adminStats?.totalCenterRewards || 0;
+  const totalStudents = Number(adminStats?.totalStudents || 0);
+  const activeStudentsCount = Number(adminStats?.activeStudents || 0);
+  const totalRevenueAmount = Number(adminStats?.totalRevenue || 0);
+  const successfulPaymentsCount = Number(adminStats?.successfulPayments || 0);
+  const examsCompletedCount = Number(adminStats?.examsCompleted || 0);
+  const certificatesIssuedCount = Number(adminStats?.certificatesIssued || 0);
+  const pendingScholarshipsCount = Number(adminStats?.pendingScholarships || 0);
+  const totalCenterRewardsAmount = Number(adminStats?.totalCenterRewards || 0);
 
   // Class-wise distribution from Backend RPC
   const chartClassWiseData = useMemo(() => {
+    if (!Array.isArray(classStats)) return [];
     return classStats.map(cs => ({
       name: `Class ${cs.class}`,
-      students: cs.studentCount,
-      exams: cs.examsTaken,
+      students: cs.studentCount || 0,
+      exams: cs.examsTaken || 0,
     }));
   }, [classStats]);
 
-  const successfulPayments = payments.filter((p) => p.status === 'SUCCESS');
+  const successfulPayments = useMemo(() =>
+    (payments || []).filter((p) => p.status === 'SUCCESS'),
+    [payments]
+  );
 
   // Revenue trends (last 7 days)
   const revenueTrends = useMemo(() => {
@@ -109,8 +113,12 @@ export function AdminDashboard() {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const dateStr = date.toISOString().split('T')[0];
-      const dayPayments = successfulPayments.filter(p => p.paidAt?.split('T')[0] === dateStr || p.createdAt.split('T')[0] === dateStr);
-      const dayRevenue = dayPayments.reduce((sum, p) => sum + p.amount, 0);
+      const dayPayments = successfulPayments.filter(p => {
+        const paidAtDate = p.paidAt?.split('T')[0];
+        const createdAtDate = p.createdAt?.split('T')[0];
+        return paidAtDate === dateStr || createdAtDate === dateStr;
+      });
+      const dayRevenue = dayPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
       data.push({
         date: date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
         revenue: dayRevenue,
@@ -123,6 +131,9 @@ export function AdminDashboard() {
   const trendsData = useMemo(() => {
     const days = 14;
     const data = [];
+    const safeStudents = students || [];
+    const safeRewards = rewards || [];
+
     for (let i = days - 1; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
@@ -132,13 +143,15 @@ export function AdminDashboard() {
       const dayStart = new Date(dateStr).getTime();
       const dayEnd = dayStart + 86400000;
 
-      const regCount = students.filter(s => {
+      const regCount = safeStudents.filter(s => {
+        if (!s.createdAt) return false;
         const d = new Date(s.createdAt).getTime();
         return d >= dayStart && d < dayEnd;
       }).length;
 
-      const refCount = rewards.filter(r => {
-        const d = new Date(r.createdAt || new Date().toISOString()).getTime(); // Fallback date
+      const refCount = safeRewards.filter(r => {
+        const createdStr = r.createdAt || new Date().toISOString();
+        const d = new Date(createdStr).getTime();
         return d >= dayStart && d < dayEnd;
       }).length;
 
@@ -171,10 +184,12 @@ export function AdminDashboard() {
       { name: '80-100%', min: 80, max: 100 },
     ];
     const maxScore = 240; // 60 questions * 4 marks
+    const safeResults = results || [];
     return ranges.map(range => ({
       name: range.name,
-      count: results.filter(r => {
-        const percent = (r.totalScore / maxScore) * 100;
+      count: safeResults.filter(r => {
+        const score = Number(r.totalScore) || 0;
+        const percent = (score / maxScore) * 100;
         return percent >= range.min && percent < range.max;
       }).length,
     }));
@@ -200,7 +215,7 @@ export function AdminDashboard() {
     {
       title: 'Exams Completed',
       value: examsCompletedCount,
-      subtitle: `${results.filter(r => r.resultStatus === 'PUBLISHED').length} published`,
+      subtitle: `${(results || []).filter(r => r.resultStatus === 'PUBLISHED').length} published`,
       icon: FileCheck,
       color: 'text-purple-600',
       bg: 'bg-purple-100',
@@ -216,7 +231,7 @@ export function AdminDashboard() {
     {
       title: 'Referral Rewards',
       value: formatCurrency(totalCenterRewardsAmount),
-      subtitle: `${rewards.length} referrals`,
+      subtitle: `${(rewards || []).length} referrals`,
       icon: Share2,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
@@ -231,10 +246,17 @@ export function AdminDashboard() {
     },
   ];
 
-  const recentPayments = payments
-    .filter((p) => p.status === 'SUCCESS')
-    .sort((a, b) => new Date(b.paidAt || b.createdAt).getTime() - new Date(a.paidAt || a.createdAt).getTime())
-    .slice(0, 5);
+  const recentPayments = useMemo(() =>
+    (payments || [])
+      .filter((p) => p.status === 'SUCCESS')
+      .sort((a, b) => {
+        const timeB = new Date(b.paidAt || b.createdAt || 0).getTime();
+        const timeA = new Date(a.paidAt || a.createdAt || 0).getTime();
+        return timeB - timeA;
+      })
+      .slice(0, 5),
+    [payments]
+  );
 
   return (
     <div className="p-6 space-y-6">
@@ -509,8 +531,8 @@ export function AdminDashboard() {
               <p className="text-muted-foreground text-sm">No payments yet</p>
             ) : (
               <div className="space-y-3">
-                {recentPayments.map((payment) => {
-                  const student = students.find((s) => s.id === payment.studentId);
+                {(recentPayments || []).map((payment) => {
+                  const student = (students || []).find((s) => s.id === payment.studentId);
                   return (
                     <div key={payment.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                       <div>
@@ -552,7 +574,7 @@ export function AdminDashboard() {
                 <div>
                   <p className="font-medium text-sm">Results to Publish</p>
                   <p className="text-2xl font-bold text-blue-700">
-                    {results.filter((r) => r.resultStatus === 'PENDING').length}
+                    {(results || []).filter((r) => r.resultStatus === 'PENDING').length}
                   </p>
                 </div>
               </div>
@@ -569,7 +591,7 @@ export function AdminDashboard() {
                 </div>
               ) : null;
             })()}
-            {pendingScholarshipsCount === 0 && results.filter((r) => r.resultStatus === 'PENDING').length === 0 && (
+            {pendingScholarshipsCount === 0 && (results || []).filter((r) => r.resultStatus === 'PENDING').length === 0 && (
               <p className="text-muted-foreground text-sm col-span-full text-center py-4">No pending actions</p>
             )}
           </div>

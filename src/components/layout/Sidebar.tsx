@@ -16,6 +16,8 @@ import {
   Share2,
   Mail,
   Image,
+  BookOpen,
+  Cpu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores';
@@ -33,6 +35,8 @@ const adminNavItems = [
   { href: '/admin/centers', label: 'Centers', icon: GraduationCap },
   { href: '/admin/questions', label: 'Questions', icon: ClipboardList },
   { href: '/admin/certificates', label: 'Certificates', icon: FileText },
+  { href: '/admin/syllabus', label: 'Syllabus', icon: BookOpen },
+  { href: '/admin/automation', label: 'Automation', icon: Cpu },
   { href: '/admin/gallery', label: 'Gallery', icon: Image },
   { href: '/admin/emails', label: 'Emails', icon: Mail },
   { href: '/admin/settings', label: 'Settings', icon: Settings },

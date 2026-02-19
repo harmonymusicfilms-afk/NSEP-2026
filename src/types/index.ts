@@ -161,6 +161,7 @@ export interface ExamConfigSettings {
   fees: Record<string, number>;
   marksPerCorrect: number;
   marksPerWrong: number;
+  scholarshipPrizes: Record<number, number>;
 }
 
 // Form Types
@@ -380,5 +381,60 @@ export interface GalleryItem {
   year?: number;
   featured: boolean;
   isPublished: boolean;
+  createdAt: string;
+}
+// Syllabus & Automated Exam System Types
+export interface SyllabusTopic {
+  title: string;
+  description: string;
+}
+
+export interface Syllabus {
+  id: string;
+  classLevel: number;
+  subject: string;
+  topics: SyllabusTopic[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ExamScheduleStatus = 'SCHEDULED' | 'NOTIFYING' | 'LIVE' | 'COMPLETED' | 'CANCELLED';
+
+export interface ExamSchedule {
+  id: string;
+  examDate: string;
+  classLevel?: number;
+  status: ExamScheduleStatus;
+  recurring: boolean;
+  autoGenerateQuestions: boolean;
+  notificationsStartedAt?: string;
+  createdAt: string;
+}
+
+export type NotificationChannel = 'EMAIL' | 'WHATSAPP';
+export type NotificationLogType = 'REMINDER_5D' | 'REMINDER_4D' | 'REMINDER_3D' | 'REMINDER_2D' | 'REMINDER_1D' | 'EXAM_DAY' | 'URGENT';
+
+export interface NotificationDispatchLog {
+  id: string;
+  scheduleId: string;
+  studentId: string;
+  channel: NotificationChannel;
+  notifType: NotificationLogType;
+  status: 'PENDING' | 'SENT' | 'DELIVERED' | 'FAILED';
+  providerRef?: string;
+  errorMessage?: string;
+  sentAt?: string;
+  createdAt: string;
+}
+
+export interface AIGenerationReport {
+  id: string;
+  classLevel: number;
+  syllabusId?: string;
+  questionsGenerated: number;
+  status: 'PROCESSING' | 'SUCCESS' | 'FAILED';
+  promptUsed?: string;
+  errorLog?: string;
   createdAt: string;
 }

@@ -57,7 +57,7 @@ export function AdminScholarshipsPage() {
   const handleApprove = (scholarshipId: string, studentId: string, rank: number) => {
     if (!currentAdmin) return;
 
-    const amount = SCHOLARSHIP_CONFIG.defaultAmounts[rank] || 0;
+    const amount = (config.scholarshipPrizes && config.scholarshipPrizes[rank]) || SCHOLARSHIP_CONFIG.defaultAmounts[rank] || 0;
     const examResult = results.find((r) => r.studentId === studentId);
 
     approveScholarship(scholarshipId, currentAdmin.id, 'BOTH', amount);
@@ -171,7 +171,7 @@ export function AdminScholarshipsPage() {
             <TableBody>
               {scholarships.map((scholarship) => {
                 const student = students.find((s) => s.id === scholarship.studentId);
-                const defaultAmount = SCHOLARSHIP_CONFIG.defaultAmounts[scholarship.rank] || 0;
+                const defaultAmount = (config.scholarshipPrizes && config.scholarshipPrizes[scholarship.rank]) || SCHOLARSHIP_CONFIG.defaultAmounts[scholarship.rank] || 0;
 
                 return (
                   <TableRow key={scholarship.id}>

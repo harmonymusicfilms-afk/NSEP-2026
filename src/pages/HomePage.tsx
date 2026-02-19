@@ -22,6 +22,7 @@ import { APP_CONFIG, EXAM_CONFIG, getExamFee, SCHOLARSHIP_CONFIG, REFERRAL_CONFI
 import { formatCurrency, getOrdinal } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useExamStore } from '@/stores';
 
 import heroImg from '@/assets/hero-scholarship.jpg';
 import logoImg from '@/assets/gphdm-logo.png';
@@ -31,6 +32,8 @@ export function HomePage() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { config, loadExamData } = useExamStore();
+  const prizes = config.scholarshipPrizes || SCHOLARSHIP_CONFIG.defaultAmounts;
 
   useEffect(() => {
     const refCode = searchParams.get('ref');
@@ -39,6 +42,10 @@ export function HomePage() {
       navigate(`/register?ref=${refCode}`);
     }
   }, [searchParams, navigate]);
+
+  useEffect(() => {
+    loadExamData();
+  }, [loadExamData]);
 
   const handleNotify = () => {
     toast({
@@ -66,7 +73,7 @@ export function HomePage() {
     {
       icon: Award,
       title: 'Scholarship Awards',
-      description: `Top ${SCHOLARSHIP_CONFIG.eligibleRanks.length} ranks eligible for scholarships up to ${formatCurrency(SCHOLARSHIP_CONFIG.defaultAmounts[1])}`,
+      description: `Top ${SCHOLARSHIP_CONFIG.eligibleRanks.length} ranks eligible for scholarships up to ${formatCurrency(prizes[1])}`,
     },
     {
       icon: BadgeCheck,
@@ -435,7 +442,7 @@ export function HomePage() {
                     {getOrdinal(rank)} Rank
                   </div>
                   <div className="text-xl font-bold text-primary">
-                    {formatCurrency(SCHOLARSHIP_CONFIG.defaultAmounts[rank])}
+                    {formatCurrency(prizes[rank] || 0)}
                   </div>
                 </CardContent>
               </Card>

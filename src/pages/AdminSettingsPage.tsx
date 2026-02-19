@@ -46,6 +46,15 @@ export function AdminSettingsPage() {
   const [fees, setFees] = useState(config.fees);
   const [marksPerCorrect, setMarksPerCorrect] = useState(config.marksPerCorrect);
   const [marksPerWrong, setMarksPerWrong] = useState(config.marksPerWrong);
+  const [scholarshipPrizes, setScholarshipPrizes] = useState<Record<string, number>>(() => {
+    const prizes: Record<string, number> = {};
+    if (config.scholarshipPrizes) {
+      Object.entries(config.scholarshipPrizes).forEach(([rank, amount]) => {
+        prizes[rank] = amount;
+      });
+    }
+    return prizes;
+  });
 
   const [selectedTemplate, setSelectedTemplate] = useState<CertificateTemplate>(settings.defaultTemplate);
   const [templateColors, setTemplateColors] = useState({
@@ -88,6 +97,24 @@ export function AdminSettingsPage() {
     loadScholarships();
   }, [isAdminLoggedIn, currentAdmin, navigate, loadExamData, loadSettings, loadStudents, loadScholarships]);
 
+  useEffect(() => {
+    if (config) {
+      setTimePerQuestion(config.timePerQuestion);
+      setDemoQuestionCount(config.demoQuestionCount);
+      setGapBetweenQuestions(config.gapBetweenQuestions);
+      setFees(config.fees);
+      setMarksPerCorrect(config.marksPerCorrect);
+      setMarksPerWrong(config.marksPerWrong);
+      if (config.scholarshipPrizes) {
+        const prizes: Record<string, number> = {};
+        Object.entries(config.scholarshipPrizes).forEach(([rank, amount]) => {
+          prizes[rank] = amount;
+        });
+        setScholarshipPrizes(prizes);
+      }
+    }
+  }, [config]);
+
   const isSuperAdmin = currentAdmin?.role === 'SUPER_ADMIN';
 
   const handleSaveExamSettings = () => {
@@ -129,6 +156,30 @@ export function AdminSettingsPage() {
     toast({
       title: 'Donations Updated',
       description: 'Examination donations have been saved successfully.',
+    });
+  };
+
+  const handleSaveScholarshipPrizes = () => {
+    // Convert string keys back to numbers for the store
+    const prizesAsNumbers: Record<number, number> = {};
+    Object.entries(scholarshipPrizes).forEach(([rank, amount]) => {
+      prizesAsNumbers[Number(rank)] = amount;
+    });
+
+    updateConfig({ scholarshipPrizes: prizesAsNumbers });
+
+    if (currentAdmin) {
+      addLog(
+        currentAdmin.id,
+        'UPDATE_SCHOLARSHIP_PRIZES',
+        undefined,
+        `Prizes for Ranks 1-10 updated`
+      );
+    }
+
+    toast({
+      title: 'Scholarship Prizes Updated',
+      description: 'Prizes for all ranks have been saved successfully.',
     });
   };
 
@@ -437,6 +488,51 @@ export function AdminSettingsPage() {
             >
               <Save className="size-4" />
               Save Donation Structure
+            </Button>
+          </CardContent>
+        </Card>
+        {/* Scholarship Prizes Card (Added) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="size-5 text-amber-600" />
+              Scholarship Prizes
+            </CardTitle>
+            <CardDescription>
+              Set amount for each eligible rank
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rank) => (
+                <div key={rank} className="space-y-1">
+                  <Label htmlFor={`rank-${rank}`} className="text-xs">Rank {rank}</Label>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">₹</span>
+                    <Input
+                      id={`rank-${rank}`}
+                      type="number"
+                      min="0"
+                      value={scholarshipPrizes[rank.toString()] || 0}
+                      onChange={(e) => setScholarshipPrizes({
+                        ...scholarshipPrizes,
+                        [rank.toString()]: Number(e.target.value)
+                      })}
+                      className="pl-6 h-8 text-sm"
+                      disabled={!isSuperAdmin}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              onClick={handleSaveScholarshipPrizes}
+              className="w-full institutional-gradient gap-2 mt-2"
+              disabled={!isSuperAdmin}
+            >
+              <Save className="size-4" />
+              Save Scholarship Prizes
             </Button>
           </CardContent>
         </Card>
@@ -912,7 +1008,6 @@ export function AdminSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
       {/* Info Banner */}
       <Card className="bg-yellow-50 border-yellow-200">
         <CardContent className="p-4 flex items-start gap-3">
