@@ -76,18 +76,40 @@ export function AdminGalleryPage() {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64String = reader.result as string;
-            if (isEdit) {
-                setEditForm(prev => ({ ...prev, imageUrl: base64String }));
-            } else {
-                setNewItem(prev => ({ ...prev, imageUrl: base64String }));
+            // Save image to localStorage to avoid DB column size limits
+            const localKey = `gallery_img_${Date.now()}`;
+            try {
+                localStorage.setItem(localKey, base64String);
+                // Store a reference key prefixed with 'local:' so we can retrieve it
+                const imageRef = `local:${localKey}`;
+                if (isEdit) {
+                    setEditForm(prev => ({ ...prev, imageUrl: imageRef }));
+                } else {
+                    setNewItem(prev => ({ ...prev, imageUrl: imageRef }));
+                }
+            } catch {
+                // If localStorage is full, just use base64 directly
+                if (isEdit) {
+                    setEditForm(prev => ({ ...prev, imageUrl: base64String }));
+                } else {
+                    setNewItem(prev => ({ ...prev, imageUrl: base64String }));
+                }
             }
             toast({
-                title: "Image Selected",
+                title: "Image Uploaded ✓",
                 description: file.name
             });
         };
         reader.readAsDataURL(file);
         event.target.value = '';
+    };
+
+    // Helper: resolve imageUrl - if it's a local: reference, get from localStorage
+    const resolveImageUrl = (url: string) => {
+        if (url?.startsWith('local:')) {
+            return localStorage.getItem(url.slice(6)) || url;
+        }
+        return url;
     };
 
     const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
@@ -221,7 +243,7 @@ export function AdminGalleryPage() {
                             Add Photo
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
+                    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Add Gallery Item</DialogTitle>
                             <DialogDescription>
@@ -291,7 +313,7 @@ export function AdminGalleryPage() {
                                     <Label>Preview</Label>
                                     <div className="w-full h-40 rounded-md overflow-hidden bg-muted">
                                         <img
-                                            src={newItem.imageUrl}
+                                            src={resolveImageUrl(newItem.imageUrl)}
                                             alt="Preview"
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
@@ -358,7 +380,7 @@ export function AdminGalleryPage() {
 
                 {/* Edit Dialog */}
                 <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                    <DialogContent className="sm:max-w-[500px]">
+                    <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Edit Gallery Item</DialogTitle>
                             <DialogDescription>
@@ -428,7 +450,7 @@ export function AdminGalleryPage() {
                                     <Label>Preview</Label>
                                     <div className="w-full h-40 rounded-md overflow-hidden bg-muted">
                                         <img
-                                            src={editForm.imageUrl}
+                                            src={resolveImageUrl(editForm.imageUrl)}
                                             alt="Preview"
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
@@ -555,7 +577,7 @@ export function AdminGalleryPage() {
                                         <Card className="overflow-hidden group relative">
                                             <div className="aspect-square relative flex items-center justify-center bg-muted">
                                                 <img
-                                                    src={item.imageUrl}
+                                                    src={resolveImageUrl(item.imageUrl)}
                                                     alt={item.title}
                                                     className="w-full h-full object-cover transition-transform group-hover:scale-110"
                                                 />

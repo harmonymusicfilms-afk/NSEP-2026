@@ -127,6 +127,12 @@ export function AdminReferralsPage() {
         title: 'Admin Code Created',
         description: `Code ${code.code} created successfully.`,
       });
+    } else {
+      toast({
+        title: 'Creation Failed',
+        description: 'Failed to create referral code. Please check database permissions or try again.',
+        variant: 'destructive',
+      });
     }
   };
 

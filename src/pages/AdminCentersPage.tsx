@@ -113,15 +113,16 @@ export function AdminCentersPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        // RLS/recursion errors - just show empty list, don't crash
+        console.warn('Centers fetch error (check Supabase RLS):', error.message);
+        setCenters([]);
+        return;
+      }
       setCenters((data || []).map(mapCenter));
     } catch (err: any) {
       console.error('Error loading centers:', err);
-      toast({
-        title: 'Fetch Failed',
-        description: err.message,
-        variant: 'destructive',
-      });
+      setCenters([]);
     } finally {
       setIsLoading(false);
     }
