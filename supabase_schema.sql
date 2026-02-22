@@ -517,12 +517,23 @@ create policy "Anyone can view questions during exam" on public.exam_questions
 create policy "Admins can manage questions" on public.exam_questions
     for all using (exists (select 1 from public.admin_users where id = auth.uid()));
 
+-- Helper function to check if a user is super admin safely
+create or replace function public.is_super_admin()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from public.admin_users
+    where id = auth.uid() and role = 'SUPER_ADMIN'
+  );
+end;
+$$ language plpgsql security definer;
+
 -- Policies for 'admin_users'
 create policy "Admins can view their own entry" on public.admin_users
     for select using (auth.uid() = id);
 
 create policy "Super Admins can view all admins" on public.admin_users
-    for select using (exists (select 1 from public.admin_users where id = auth.uid() and role = 'SUPER_ADMIN'));
+    for select using (public.is_super_admin());
 
 -- Policies for 'contact_submissions'
 create policy "Anyone can submit contact form" on public.contact_submissions

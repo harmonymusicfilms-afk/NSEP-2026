@@ -167,8 +167,8 @@ export const STORAGE_KEYS = {
 
 // Referral Configuration
 export const REFERRAL_CONFIG = {
-  adminCenterReward: 25, // ₹25 per referral for Admin
-  centerCodeReward: 50, // ₹50 per referral for Centers
+  adminCenterReward: 75, // ₹75 per referral for Admin
+  centerCodeReward: 75, // ₹75 per referral for Centers
   studentReferralReward: 25, // ₹25 per referral for students
   adminCodePrefix: 'ADM',
   centerCodePrefix: 'CC',

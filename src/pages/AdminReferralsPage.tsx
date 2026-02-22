@@ -93,12 +93,12 @@ export function AdminReferralsPage() {
     centerCodes: referralCodes.filter(c => c.type === 'CENTER_CODE').length,
   };
 
-  // Create Admin Referral Code (Super Admin Only)
+  // Create Admin Referral Code (Admin & Super Admin)
   const handleCreateAdminCode = async () => {
-    if (currentAdmin?.role !== 'SUPER_ADMIN') {
+    if (currentAdmin?.role !== 'SUPER_ADMIN' && currentAdmin?.role !== 'ADMIN') {
       toast({
         title: 'Permission Denied',
-        description: 'Only Super Admin can create Admin Center Codes.',
+        description: 'Only Admins can create Admin Center Codes.',
         variant: 'destructive',
       });
       return;
@@ -132,10 +132,10 @@ export function AdminReferralsPage() {
 
   // Approve Center and Generate Center Code
   const handleApproveCenter = async (centerId: string) => {
-    if (currentAdmin?.role !== 'SUPER_ADMIN') {
+    if (currentAdmin?.role !== 'SUPER_ADMIN' && currentAdmin?.role !== 'ADMIN') {
       toast({
         title: 'Permission Denied',
-        description: 'Only Super Admin can approve centers.',
+        description: 'Only Admins can approve centers.',
         variant: 'destructive',
       });
       return;
@@ -207,7 +207,7 @@ export function AdminReferralsPage() {
           <h1 className="text-2xl font-bold">CenterCode Referral System</h1>
           <p className="text-muted-foreground">Manage referral codes and track earnings</p>
         </div>
-        {currentAdmin?.role === 'SUPER_ADMIN' && (
+        {(currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
           <Button onClick={() => setShowCreateAdminCode(true)} className="gap-2">
             <Plus className="size-4" />
             Create Admin Code
@@ -468,7 +468,7 @@ export function AdminReferralsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {center.status === 'PENDING' && currentAdmin?.role === 'SUPER_ADMIN' && (
+                        {center.status === 'PENDING' && (currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
                           <Button
                             size="sm"
                             onClick={() => handleApproveCenter(center.id)}

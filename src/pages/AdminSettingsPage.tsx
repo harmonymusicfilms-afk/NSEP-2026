@@ -1008,6 +1008,7 @@ export function AdminSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
       {/* Info Banner */}
       <Card className="bg-yellow-50 border-yellow-200">
         <CardContent className="p-4 flex items-start gap-3">

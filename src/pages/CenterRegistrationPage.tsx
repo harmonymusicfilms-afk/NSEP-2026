@@ -54,6 +54,7 @@ interface CenterFormData {
   idProofName?: string;
   addressProofName?: string;
   centerPhotoName?: string;
+  password?: string;
 }
 
 const initialFormData: CenterFormData = {
@@ -72,6 +73,7 @@ const initialFormData: CenterFormData = {
   idProofUrl: '',
   addressProofUrl: '',
   centerPhotoUrl: '',
+  password: '',
 };
 
 const centerTypes = [
@@ -158,6 +160,11 @@ export function CenterRegistrationPage() {
     } else if (formData.ownerAadhaar.length !== 12) {
       newErrors.ownerAadhaar = 'Aadhaar must be 12 digits';
     }
+    if (!formData.password?.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -241,10 +248,28 @@ export function CenterRegistrationPage() {
 
     // 4. Save to Supabase (Real Database)
     try {
+      // a. Sign up the user first
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.ownerEmail,
+        password: formData.password || 'password123',
+        options: {
+          data: {
+            full_name: formData.ownerName,
+            role: 'CENTER',
+          }
+        }
+      });
+
+      if (authError) throw authError;
+
+      const userId = authData.user?.id;
+
+      // b. Insert center record
       const { error } = await supabase
         .from('centers')
         .insert([{
           id: center.id,
+          user_id: userId,
           name: center.name,
           center_type: center.centerType,
           owner_name: center.ownerName,
@@ -264,14 +289,18 @@ export function CenterRegistrationPage() {
           center_photo_url: center.centerPhotoUrl,
         }]);
 
-      if (error) {
-        console.warn('Supabase insert failed, using localStorage fallback:', error);
-        // Fallback to localStorage is already handled below
-      } else {
-        console.log('Center registered successfully in Supabase');
-      }
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
+      if (error) throw error;
+
+      console.log('Center registered successfully in Supabase');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      toast({
+        title: 'Registration Error',
+        description: err.message || 'An error occurred during registration.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
     }
 
     // 5. Save to localStorage (Safely - as secondary/redundant or for local testing)
@@ -627,6 +656,25 @@ export function CenterRegistrationPage() {
                   <p className="text-xs text-muted-foreground">
                     {language === 'hi' ? 'सत्यापन और KYC के लिए आवश्यक' : 'Required for verification and KYC'}
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">
+                    {language === 'hi' ? 'पासवर्ड सेट करें' : 'Set Password'} *
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => updateField('password', e.target.value)}
+                    placeholder="Min 6 characters"
+                    className={errors.password ? 'border-destructive' : ''}
+                  />
+                  {errors.password && (
+                    <p className="text-xs text-destructive flex items-center gap-1">
+                      <AlertCircle className="size-3" /> {errors.password}
+                    </p>
+                  )}
                 </div>
               </div>
             )}

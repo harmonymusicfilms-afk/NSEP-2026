@@ -306,6 +306,7 @@ export interface ReferralLog {
 // Center (Approved Centers that can have referral codes)
 export interface Center {
   id: string;
+  userId?: string; // Link to auth.users
   name: string;
   centerType: string;
   ownerName: string;

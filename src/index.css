@@ -181,6 +181,33 @@
     background-size: 24px 24px;
   }
 
+  /* Mobile Touch Target Optimizations */
+  @media (max-width: 768px) {
+
+    button,
+    [role="button"],
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+
+    a,
+    .nav-link {
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+  }
+
+  .pb-safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
   @keyframes bounce-subtle {
 
     0%,

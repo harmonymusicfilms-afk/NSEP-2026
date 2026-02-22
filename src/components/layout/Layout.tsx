@@ -1,7 +1,12 @@
-import { Outlet, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, Navigate, Link } from 'react-router-dom';
+import { Clock, XCircle, Menu } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 import { Header } from './Header';
 import { Footer } from './Footer';
 import { Sidebar } from './Sidebar';
+import { MobileNav } from './MobileNav';
 import { useAuthStore } from '@/stores';
 
 // Public layout with header and footer
@@ -20,17 +25,52 @@ export function PublicLayout() {
 // Student dashboard layout with sidebar
 export function StudentLayout() {
   const { isStudentLoggedIn } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!isStudentLoggedIn) {
     return <Navigate to="/login" replace />;
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Sidebar variant="student" />
-      <main className="flex-1 overflow-x-hidden">
-        <Outlet />
+    <div className="flex min-h-screen bg-background pb-16 md:pb-0">
+      <Sidebar variant="student" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      {/* Edge Swipe Trigger for Mobile */}
+      <div
+        className="fixed inset-y-0 left-0 w-6 z-[90] md:hidden"
+        onMouseEnter={() => setIsSidebarOpen(true)} // For testing on desktop
+        onTouchStart={(e) => {
+          const startX = e.touches[0].clientX;
+          const handleTouchMove = (moveEvent: TouchEvent) => {
+            const currentX = moveEvent.touches[0].clientX;
+            if (currentX - startX > 50) {
+              setIsSidebarOpen(true);
+              document.removeEventListener('touchmove', handleTouchMove);
+            }
+          };
+          document.addEventListener('touchmove', handleTouchMove);
+          document.addEventListener('touchend', () => document.removeEventListener('touchmove', handleTouchMove), { once: true });
+        }}
+      />
+
+      <main className="flex-1 relative flex flex-col overflow-x-hidden">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-40">
+          <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+            <Menu className="size-6 text-foreground" />
+          </Button>
+          <span className="font-serif font-bold text-primary">NSEP Portal</span>
+          <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20 text-primary font-bold">
+            {useAuthStore.getState().currentStudent?.name.charAt(0) || 'S'}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
+
+      <MobileNav onMenuClick={() => setIsSidebarOpen(true)} />
     </div>
   );
 }
@@ -38,6 +78,7 @@ export function StudentLayout() {
 // Admin dashboard layout with sidebar
 export function AdminLayout() {
   const { isAdminLoggedIn } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   if (!isAdminLoggedIn) {
     return <Navigate to="/admin/login" replace />;
@@ -45,8 +86,83 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar variant="admin" />
-      <main className="flex-1 overflow-x-hidden">
+      <Sidebar variant="admin" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <main className="flex-1 overflow-x-hidden relative flex flex-col">
+        {/* Mobile Admin Toggle */}
+        <div className="md:hidden p-4 bg-red-900 text-white flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setIsSidebarOpen(true)}>
+            <Menu className="size-6" />
+          </Button>
+          <span className="font-bold">ADMIN PANEL</span>
+        </div>
+        <Outlet />
+      </main>
+    </div>
+  );
+}
+
+// Center dashboard layout with sidebar
+export function CenterLayout() {
+  const { isCenterLoggedIn, currentCenter } = useAuthStore();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  if (!isCenterLoggedIn) {
+    return <Navigate to="/center/login" replace />;
+  }
+
+  if (currentCenter?.status === 'PENDING') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="size-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto">
+            <Clock className="size-10 text-amber-600 animate-pulse" />
+          </div>
+          <h1 className="text-2xl font-bold font-serif">Registration Pending</h1>
+          <p className="text-muted-foreground">
+            Your center application is currently being reviewed by our administrators.
+            Once approved, you will have full access to your referral dashboard.
+          </p>
+          <Button variant="outline" asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentCenter?.status === 'BLOCKED') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="size-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+            <XCircle className="size-10 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold font-serif">Account Blocked</h1>
+          <p className="text-muted-foreground">
+            Your center account has been suspended or rejected.
+            Please contact administration for more details.
+          </p>
+          <Button variant="outline" asChild>
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar variant="center" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+
+      <main className="flex-1 overflow-x-hidden relative flex flex-col">
+        {/* Mobile Center Toggle */}
+        <div className="md:hidden p-4 bg-amber-600 text-white flex items-center gap-4">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setIsSidebarOpen(true)}>
+            <Menu className="size-6" />
+          </Button>
+          <span className="font-bold">CENTER PANEL</span>
+        </div>
         <Outlet />
       </main>
     </div>
@@ -64,3 +180,4 @@ export function AuthLayout() {
     </div>
   );
 }
+

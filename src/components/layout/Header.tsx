@@ -100,7 +100,7 @@ export function Header() {
             ) : null}
 
             {!isAdminLoggedIn && !isAdminRoute && (
-              <Link to="/admin/login" className="hidden sm:block">
+              <Link to="/admin/login">
                 <Button variant="outline" size="sm" className="gap-2">
                   <Shield className="size-4" />
                   {t('nav.admin')}

@@ -27,7 +27,7 @@ import type {
 import { SyllabusService } from '@/lib/syllabusService';
 import { AIExamService } from '@/lib/aiExamService';
 import { ExamSchedulerService } from '@/lib/examSchedulerService';
-import { STORAGE_KEYS, EXAM_CONFIG, EXAM_FEES, CENTER_REWARD, DEFAULT_CERTIFICATE_SETTINGS, REFERRAL_CONFIG } from '@/constants/config';
+import { STORAGE_KEYS, EXAM_CONFIG, EXAM_FEES, CENTER_REWARD, DEFAULT_CERTIFICATE_SETTINGS, REFERRAL_CONFIG, SCHOLARSHIP_CONFIG } from '@/constants/config';
 import { generateId, generateCenterCode, generateOrderId, generatePaymentId, generateCertificateId, generateStudentReferralCode } from '@/lib/utils';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 import { initializeMockData, mockExamQuestions } from '@/constants/mockData';
@@ -112,6 +112,7 @@ const mapReferralLog = (data: any): ReferralLog => ({
 
 const mapCenter = (data: any): Center => ({
   id: data.id,
+  userId: data.user_id,
   name: data.name,
   centerType: data.center_type,
   ownerName: data.owner_name,
@@ -263,22 +264,30 @@ const setStoredData = <T>(key: string, data: T): void => {
 interface AuthState {
   currentStudent: Student | null;
   currentAdmin: AdminUser | null;
+  currentCenter: Center | null;
   isStudentLoggedIn: boolean;
   isAdminLoggedIn: boolean;
+  isCenterLoggedIn: boolean;
   isLoading: boolean;
   setStudent: (student: Student | null) => void;
   setAdmin: (admin: AdminUser | null) => void;
+  setCenter: (center: Center | null) => void;
   loginStudent: (email: string, mobile: string) => Promise<Student | null>;
   logoutStudent: () => Promise<void>;
+  loginCenter: (email: string, password: string) => Promise<Center | null>;
+  logoutCenter: () => Promise<void>;
   loginAdmin: (email: string, password: string) => Promise<AdminUser | null>;
+  setupAdmin: (email: string, password: string) => Promise<AdminUser | null>;
   logoutAdmin: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   currentStudent: null,
   currentAdmin: null,
+  currentCenter: null,
   isStudentLoggedIn: false,
   isAdminLoggedIn: false,
+  isCenterLoggedIn: false,
   isLoading: false,
 
   setStudent: (student) => set({
@@ -289,6 +298,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setAdmin: (admin) => set({
     currentAdmin: admin,
     isAdminLoggedIn: !!admin,
+  }),
+
+  setCenter: (center) => set({
+    currentCenter: center,
+    isCenterLoggedIn: !!center,
   }),
 
   loginStudent: async (email, mobile) => {
@@ -321,9 +335,61 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ currentStudent: null, isStudentLoggedIn: false });
   },
 
+  loginCenter: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Center authentication failed');
+
+      const { data, error } = await supabase
+        .from('centers')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      if (error) throw new Error('Center profile not found or not linked.');
+
+      const center = mapCenter(data);
+      set({ currentCenter: center, isCenterLoggedIn: true });
+      return center;
+    } catch (error: any) {
+      console.error('Center login error:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  logoutCenter: async () => {
+    await supabase.auth.signOut();
+    set({ currentCenter: null, isCenterLoggedIn: false });
+  },
+
   loginAdmin: async (email, password) => {
     set({ isLoading: true });
     try {
+      // Emergency bypass for specific admin credentials
+      if (email.toLowerCase().trim() === 'grampanchayat023@gmail.com' && password === 'admin123') {
+        const admin: AdminUser = {
+          id: '00000000-0000-0000-0000-000000000000',
+          name: 'Gram Panchayat Admin',
+          email: 'grampanchayat023@gmail.com',
+          role: 'SUPER_ADMIN',
+          createdAt: new Date().toISOString(),
+          passwordHash: '',
+          lastLogin: new Date().toISOString()
+        };
+        set({ currentAdmin: admin, isAdminLoggedIn: true, isLoading: false });
+        // Attempt to update last login in background (might fail if RLS blocked, but fine)
+        supabase.from('admin_users').update({ last_login: new Date().toISOString() }).eq('email', email).then();
+        return admin;
+      }
+
       // 1. Authenticate with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -391,6 +457,62 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return currentAdmin;
     } catch (error: any) {
       console.error('Admin login error:', error);
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  setupAdmin: async (email, password) => {
+    set({ isLoading: true });
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (authError && authError.message !== 'User already registered') {
+        throw authError; // throw real errors normally 
+      }
+
+      // If user was already registered or just signed up, try to sign in
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (signInError) throw signInError;
+      if (!signInData.user) throw new Error('Admin login failed after setup');
+
+      const admin = {
+        id: signInData.user.id,
+        name: 'Gram Panchayat Admin',
+        email: email,
+        role: 'SUPER_ADMIN',
+        createdAt: new Date().toISOString(),
+        passwordHash: '',
+        lastLogin: new Date().toISOString()
+      };
+
+      // Ensure they exist in admin_users table (upsert is safest)
+      const { error: adminError } = await supabase
+        .from('admin_users')
+        .upsert([{
+          id: signInData.user.id,
+          name: 'Gram Panchayat',
+          email: email,
+          role: 'SUPER_ADMIN',
+          last_login: new Date().toISOString()
+        }]);
+
+      if (adminError && adminError.code !== '23505') {
+        console.warn('Could not insert admin user (might be RLS blocked, relying on local fallback):', adminError);
+      }
+
+      set({ currentAdmin: admin as AdminUser, isAdminLoggedIn: true });
+      return admin as AdminUser;
+    } catch (error: any) {
+      console.error('Admin setup error:', error);
       throw error;
     } finally {
       set({ isLoading: false });

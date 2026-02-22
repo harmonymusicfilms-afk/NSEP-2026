@@ -38,8 +38,14 @@ import { AdminQuestionsPage } from '@/pages/AdminQuestionsPage';
 import { AdminSyllabusPage } from '@/pages/AdminSyllabusPage';
 import { AdminAutomationPage } from '@/pages/AdminAutomationPage';
 
+import { CenterLoginPage } from '@/pages/CenterLoginPage';
+import { CenterDashboardPage } from '@/pages/CenterDashboardPage';
+import { CenterStudentsPage } from '@/pages/CenterStudentsPage';
+import { CenterRewardsPage } from '@/pages/CenterRewardsPage';
+import { CenterProfilePage } from '@/pages/CenterProfilePage';
+
 // Layouts
-import { PublicLayout, StudentLayout, AdminLayout } from '@/components/layout';
+import { PublicLayout, StudentLayout, AdminLayout, AuthLayout, CenterLayout } from '@/components/layout';
 
 function App() {
   return (
@@ -62,6 +68,7 @@ function App() {
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/center-registration" element={<CenterRegistrationPage />} />
             <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/center/login" element={<CenterLoginPage />} />
           </Route>
 
           {/* Student Routes */}
@@ -72,6 +79,14 @@ function App() {
             <Route path="/dashboard/certificates" element={<StudentCertificatesPage />} />
             <Route path="/dashboard/wallet" element={<StudentWalletPage />} />
             <Route path="/dashboard/create-mock-result" element={<CreateMockResultPage />} />
+          </Route>
+
+          {/* Center Routes */}
+          <Route element={<CenterLayout />}>
+            <Route path="/center/dashboard" element={<CenterDashboardPage />} />
+            <Route path="/center/students" element={<CenterStudentsPage />} />
+            <Route path="/center/rewards" element={<CenterRewardsPage />} />
+            <Route path="/center/profile" element={<CenterProfilePage />} />
           </Route>
 
           {/* Admin Routes */}

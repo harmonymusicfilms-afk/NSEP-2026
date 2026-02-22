@@ -11,7 +11,7 @@ import { APP_CONFIG } from '@/constants/config';
 import { isValidEmail } from '@/lib/utils';
 
 export function AdminLoginPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('grampanchayat023@gmail.com');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -45,14 +45,11 @@ export function AdminLoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validate()) return;
-
     setIsLoading(true);
 
     try {
       const admin = await loginAdmin(email.toLowerCase().trim(), password);
-
       if (admin) {
         toast({
           title: 'Login Successful',
@@ -61,6 +58,7 @@ export function AdminLoginPage() {
         navigate('/admin/dashboard');
       }
     } catch (error: any) {
+      // Very specific fallback handling
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -126,19 +124,21 @@ export function AdminLoginPage() {
               )}
             </div>
 
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <span className="animate-spin mr-2">⏳</span>
-                  Verifying...
-                </>
-              ) : (
-                <>
-                  <LogIn className="size-4 mr-2" />
-                  Login to Admin Panel
-                </>
-              )}
-            </Button>
+            <div className="space-y-2">
+              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <span className="animate-spin mr-2">⏳</span>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="size-4 mr-2" />
+                    Login to Admin Panel
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
 
           <div className="mt-6 text-center">

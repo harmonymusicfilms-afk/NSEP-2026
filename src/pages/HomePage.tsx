@@ -377,7 +377,7 @@ export function HomePage() {
                 <Link to="/center-registration">
                   <Button className="bg-orange-600 hover:bg-orange-700 gap-2">
                     <Gift className="size-4" />
-                    {language === 'hi' ? 'केंद्र बनें' : 'Become a Center'}
+                    {language === 'hi' ? 'पार्टनर बनें' : 'Become a Partner'}
                   </Button>
                 </Link>
                 <Link to="/about">

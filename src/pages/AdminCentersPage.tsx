@@ -46,6 +46,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore, useAdminLogStore } from '@/stores';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate, generateId } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 import { REFERRAL_CONFIG, STORAGE_KEYS } from '@/constants/config';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 
@@ -58,6 +59,7 @@ export function AdminCentersPage() {
   const { toast } = useToast();
 
   const [centers, setCenters] = useState<Center[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCenter, setSelectedCenter] = useState<Center | null>(null);
@@ -65,6 +67,35 @@ export function AdminCentersPage() {
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+
+  const mapCenter = (data: any): Center => ({
+    id: data.id,
+    userId: data.user_id,
+    name: data.name,
+    centerType: data.center_type,
+    ownerName: data.owner_name,
+    ownerPhone: data.phone,
+    ownerEmail: data.email,
+    email: data.email, // Added this to avoid undefined in table
+    ownerAadhaar: data.owner_aadhaar,
+    address: data.address,
+    village: data.village,
+    block: data.block,
+    state: data.state,
+    district: data.district,
+    pincode: data.pincode,
+    centerCode: data.center_code,
+    status: data.status,
+    idProofUrl: data.id_proof_url,
+    addressProofUrl: data.address_proof_url,
+    centerPhotoUrl: data.center_photo_url,
+    approvedBy: data.approved_by,
+    approvedAt: data.approved_at,
+    rejectionReason: data.rejection_reason,
+    totalStudents: data.total_students || 0,
+    totalEarnings: Number(data.total_earnings || 0),
+    createdAt: data.created_at,
+  });
 
   useEffect(() => {
     if (!isAdminLoggedIn || !currentAdmin) {
@@ -74,100 +105,127 @@ export function AdminCentersPage() {
     loadCenters();
   }, [isAdminLoggedIn, currentAdmin, navigate]);
 
-  const loadCenters = () => {
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEYS.centers) || '[]');
-    setCenters(data);
+  const loadCenters = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('centers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCenters((data || []).map(mapCenter));
+    } catch (err: any) {
+      console.error('Error loading centers:', err);
+      toast({
+        title: 'Fetch Failed',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const saveCenters = (data: Center[]) => {
-    localStorage.setItem(STORAGE_KEYS.centers, JSON.stringify(data));
-    setCenters(data);
-  };
-
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (!selectedCenter || !currentAdmin) return;
 
-    const updatedCenters = centers.map(c => {
-      if (c.id === selectedCenter.id) {
-        return {
-          ...c,
-          status: 'APPROVED' as const,
-          approvedBy: currentAdmin.id,
-          approvedAt: new Date().toISOString(),
-        };
-      }
-      return c;
-    });
+    try {
+      // 1. Update center status in Supabase
+      const { error: updateError } = await supabase
+        .from('centers')
+        .update({
+          status: 'APPROVED',
+          approved_by: currentAdmin.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', selectedCenter.id);
 
-    // Create referral code for center
-    const referralCodes = JSON.parse(localStorage.getItem(STORAGE_KEYS.referralCodes) || '[]');
-    const newCode = {
-      id: generateId(),
-      code: selectedCenter.centerCode,
-      type: 'CENTER_CODE',
-      ownerId: selectedCenter.id,
-      ownerName: selectedCenter.name,
-      rewardAmount: REFERRAL_CONFIG.centerCodeReward,
-      isActive: true,
-      totalReferrals: 0,
-      totalEarnings: 0,
-      createdAt: new Date().toISOString(),
-    };
-    referralCodes.push(newCode);
-    localStorage.setItem(STORAGE_KEYS.referralCodes, JSON.stringify(referralCodes));
+      if (updateError) throw updateError;
 
-    // Send approval email
-    sendEmailNotification(
-      'CENTER_APPROVED',
-      selectedCenter.email,
-      {
-        studentName: selectedCenter.ownerName,
-        studentEmail: selectedCenter.email,
-        centerName: selectedCenter.name,
-        centerCode: selectedCenter.centerCode,
-        date: new Date().toISOString(),
-      }
-    );
+      // 2. Create referral code in Supabase
+      const { error: refError } = await supabase
+        .from('referral_codes')
+        .insert([{
+          code: selectedCenter.centerCode,
+          type: 'CENTER_CODE',
+          owner_id: selectedCenter.id,
+          owner_name: selectedCenter.name,
+          reward_amount: REFERRAL_CONFIG.centerCodeReward,
+          is_active: true,
+          total_referrals: 0,
+          total_earnings: 0,
+        }]);
 
-    saveCenters(updatedCenters);
-    setIsApproveDialogOpen(false);
-    setSelectedCenter(null);
+      if (refError) console.warn('Referral code creation failed:', refError);
 
-    addLog(currentAdmin.id, 'APPROVE_CENTER', selectedCenter.id, `Approved center ${selectedCenter.name} (${selectedCenter.centerCode})`);
+      // 3. Send email
+      sendEmailNotification(
+        'CENTER_APPROVED',
+        selectedCenter.ownerEmail,
+        {
+          studentName: selectedCenter.ownerName,
+          studentEmail: selectedCenter.ownerEmail,
+          centerName: selectedCenter.name,
+          centerCode: selectedCenter.centerCode,
+          date: new Date().toISOString(),
+        }
+      );
 
-    toast({
-      title: 'Center Approved',
-      description: `${selectedCenter.name} has been approved successfully.`,
-    });
+      toast({
+        title: 'Center Approved',
+        description: `${selectedCenter.name} has been approved.`,
+      });
+
+      addLog(currentAdmin.id, 'APPROVE_CENTER', selectedCenter.id, `Approved center ${selectedCenter.name}`);
+      loadCenters();
+    } catch (err: any) {
+      toast({
+        title: 'Approval Failed',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsApproveDialogOpen(false);
+      setSelectedCenter(null);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!selectedCenter || !currentAdmin) return;
 
-    const updatedCenters = centers.map(c => {
-      if (c.id === selectedCenter.id) {
-        return {
-          ...c,
-          status: 'BLOCKED' as const,
-          approvedBy: currentAdmin.id,
-          approvedAt: new Date().toISOString(),
-        };
-      }
-      return c;
-    });
+    try {
+      const { error } = await supabase
+        .from('centers')
+        .update({
+          status: 'BLOCKED',
+          rejection_reason: rejectionReason,
+          approved_by: currentAdmin.id,
+          approved_at: new Date().toISOString(),
+        })
+        .eq('id', selectedCenter.id);
 
-    saveCenters(updatedCenters);
-    setIsRejectDialogOpen(false);
-    setSelectedCenter(null);
-    setRejectionReason('');
+      if (error) throw error;
 
-    addLog(currentAdmin.id, 'REJECT_CENTER', selectedCenter.id, `Rejected center ${selectedCenter.name}. Reason: ${rejectionReason}`);
+      toast({
+        title: 'Center Rejected',
+        description: `${selectedCenter.name} has been rejected.`,
+        variant: 'destructive',
+      });
 
-    toast({
-      title: 'Center Rejected',
-      description: `${selectedCenter.name} has been rejected.`,
-      variant: 'destructive',
-    });
+      addLog(currentAdmin.id, 'REJECT_CENTER', selectedCenter.id, `Rejected center ${selectedCenter.name}. Reason: ${rejectionReason}`);
+      loadCenters();
+    } catch (err: any) {
+      toast({
+        title: 'Rejection Failed',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRejectDialogOpen(false);
+      setSelectedCenter(null);
+      setRejectionReason('');
+    }
   };
 
   const filteredCenters = centers.filter(center => {
