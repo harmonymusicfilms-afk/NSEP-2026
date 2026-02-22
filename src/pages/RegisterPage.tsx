@@ -689,7 +689,7 @@ export function RegisterPage() {
                 <CardTitle>{steps[currentStepIndex].label} Details</CardTitle>
                 <CardDescription>{steps[currentStepIndex].description}</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="max-h-[70vh] sm:max-h-none overflow-y-auto custom-scrollbar pr-2">
                 {/* Identity Step */}
                 {step === 'identity' && (
                   <div className="space-y-4">
