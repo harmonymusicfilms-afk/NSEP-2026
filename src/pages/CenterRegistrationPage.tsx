@@ -626,6 +626,7 @@ export function CenterRegistrationPage() {
                       value={formData.ownerEmail}
                       onChange={(e) => updateField('ownerEmail', e.target.value)}
                       placeholder="email@example.com"
+                      autoComplete="off"
                       className={errors.ownerEmail ? 'border-destructive' : ''}
                     />
                     {errors.ownerEmail && (
@@ -668,6 +669,7 @@ export function CenterRegistrationPage() {
                     value={formData.password}
                     onChange={(e) => updateField('password', e.target.value)}
                     placeholder="Min 6 characters"
+                    autoComplete="new-password"
                     className={errors.password ? 'border-destructive' : ''}
                   />
                   {errors.password && (

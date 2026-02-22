@@ -736,6 +736,7 @@ export function RegisterPage() {
                           value={formData.email}
                           onChange={(e) => updateField('email', e.target.value)}
                           placeholder="your.email@example.com"
+                          autoComplete="off"
                           className={errors.email ? 'border-destructive' : ''}
                         />
                         {errors.email && (
@@ -752,6 +753,7 @@ export function RegisterPage() {
                           value={formData.password}
                           onChange={(e) => updateField('password', e.target.value)}
                           placeholder="Min 6 characters"
+                          autoComplete="new-password"
                           className={errors.password ? 'border-destructive' : ''}
                         />
                         {errors.password && (
