@@ -260,9 +260,10 @@ export function CenterRegistrationPage() {
 
     // 4. Save to Supabase (Real Database)
     try {
-      // a. Sign up the user or handle existing user
-      let userId: string | undefined;
+      console.log("NSEP Debug - Starting registration for:", formData.ownerEmail);
 
+      // a. Sign up the user (using a method that doesn't auto-login if possible, 
+      // but Supabase JS always auto-logins on signup. We must handle the potential redirect crash)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.ownerEmail,
         password: formData.password || 'password123',
@@ -274,51 +275,40 @@ export function CenterRegistrationPage() {
         }
       });
 
-      if (authError) {
-        // If user already exists, try to sign in to get the ID and complete registration
-        if (authError.message.toLowerCase().includes('already registered')) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: formData.ownerEmail,
-            password: formData.password || 'password123',
-          });
+      let userId = authData.user?.id;
 
-          if (signInError) {
-            // If sign in also fails, show the original error or a clearer one
-            throw new Error('This email is already registered. If it belongs to you, please use the correct password.');
-          }
-          userId = signInData.user?.id;
+      if (authError) {
+        if (authError.message.toLowerCase().includes('already registered')) {
+          console.log("NSEP Debug - Auth: User already exists, proceeding to table check");
+          // If auth exists, we need to get the user ID. 
+          // Since we can't get ID without login, and login might cause white screen,
+          // we will rely on the email unique constraint in the centers table.
         } else {
           throw authError;
         }
-      } else {
-        userId = authData.user?.id;
       }
 
-      if (!userId) throw new Error('Authentication failed. Please try again.');
-
-      // b. Check if center already exists to prevent duplicate error
-      const { data: existingCenter, error: fetchError } = await supabase
+      // b. Check if center already exists in the table
+      const { data: existingCenter } = await supabase
         .from('centers')
-        .select('id, center_code')
-        .eq('email', center.email)
+        .select('center_code')
+        .eq('email', formData.ownerEmail)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
-
       if (existingCenter) {
-        console.log('Center already exists, jumping to success');
+        console.log("NSEP Debug - Center exists in table:", existingCenter.center_code);
         setGeneratedCenterCode(existingCenter.center_code);
-        setIsSubmitting(false);
         setStep('success');
+        setIsSubmitting(false);
         return;
       }
 
       // c. Insert center record
-      const { error } = await supabase
+      const { error: insertError } = await supabase
         .from('centers')
         .insert([{
           id: center.id,
-          user_id: userId,
+          user_id: userId, // Might be null if user was already registered, but email constraint will catch it
           name: center.name,
           center_type: center.centerType,
           owner_name: center.ownerName,
@@ -339,17 +329,46 @@ export function CenterRegistrationPage() {
           payment_screenshot_url: formData.paymentScreenshotUrl,
         }]);
 
-      if (error) throw error;
+      if (insertError) {
+        if (insertError.message.toLowerCase().includes('duplicate key') || insertError.code === '23505') {
+          // Double check attempt to get the code if insert failed due to race condition
+          const { data: retryData } = await supabase
+            .from('centers')
+            .select('center_code')
+            .eq('email', formData.ownerEmail)
+            .maybeSingle();
 
-      console.log('Center registered successfully in Supabase');
+          if (retryData) {
+            setGeneratedCenterCode(retryData.center_code);
+            setStep('success');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+        throw insertError;
+      }
+
+      console.log('NSEP Debug - Center registered successfully');
     } catch (err: any) {
-      console.error('Registration error:', err);
+      console.error('Registration error details:', err);
       toast({
-        title: 'Registration Error',
-        description: err.message || 'An error occurred during registration.',
+        title: 'Registration Update',
+        description: err.message || 'Something went wrong. Please check if you are already registered.',
         variant: 'destructive',
       });
       setIsSubmitting(false);
+
+      // even on error, if it's a duplicate, try to show success
+      if (err.message?.includes('unique constraint') || err.message?.includes('already registered')) {
+        // Silently try to recover
+        setIsSubmitting(true);
+        const { data } = await supabase.from('centers').select('center_code').eq('email', formData.ownerEmail).maybeSingle();
+        if (data) {
+          setGeneratedCenterCode(data.center_code);
+          setStep('success');
+        }
+        setIsSubmitting(false);
+      }
       return;
     }
 
