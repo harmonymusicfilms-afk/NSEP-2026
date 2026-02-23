@@ -6,12 +6,16 @@ import {
   Shield,
   Loader2,
   FileCheck,
+  Eye,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useAuthStore, useCertificateStore, useExamStore, useScholarshipStore } from '@/stores';
 import { formatDateTime } from '@/lib/utils';
 import { CertificateDownloader } from '@/components/features/CertificateDownloader';
+import { CertificateGenerator } from '@/components/CertificateGenerator';
 
 export function StudentCertificatesPage() {
   const navigate = useNavigate();
@@ -113,32 +117,41 @@ export function StudentCertificatesPage() {
                 </div>
               </div>
 
-              <CertificateDownloader
-                student={currentStudent}
-                result={{
-                  id: 'demo-result',
-                  studentId: currentStudent.id,
-                  class: currentStudent.class,
-                  score: 95,
-                  totalMarks: 100,
-                  rank: 1,
-                  correctAnswers: 95,
-                  wrongAnswers: 5,
-                  attemptDate: new Date().toISOString(),
-                  resultStatus: 'PUBLISHED'
-                }}
-                certificate={{
-                  id: 'demo-cert',
-                  studentId: currentStudent.id,
-                  examResultId: 'demo-result',
-                  certificateType: 'MERIT',
-                  certificateId: 'DEMO-00000X',
-                  issuedAt: new Date().toISOString()
-                }}
-                totalStudents={100}
-                className="w-full institutional-gradient relative z-20"
-                label="Preview Demo Certificate"
-              />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full institutional-gradient relative z-20">
+                    <Eye className="size-4 mr-2" />
+                    Preview Demo Certificate
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[1250px] w-[95vw] overflow-auto flex justify-center p-8 bg-muted/50 border-none shadow-none">
+                  <div className="scale-[0.5] sm:scale-75 md:scale-90 lg:scale-100 origin-top flex items-center justify-center">
+                    <CertificateGenerator
+                      student={currentStudent}
+                      result={{
+                        id: 'demo-result',
+                        studentId: currentStudent.id,
+                        class: currentStudent.class,
+                        score: 95,
+                        totalMarks: 100,
+                        rank: 1,
+                        correctAnswers: 95,
+                        wrongAnswers: 5,
+                        attemptDate: new Date().toISOString(),
+                        resultStatus: 'PUBLISHED'
+                      }}
+                      certificate={{
+                        id: 'demo-cert',
+                        studentId: currentStudent.id,
+                        examResultId: 'demo-result',
+                        certificateType: 'MERIT',
+                        certificateId: 'DEMO-00000X',
+                        issuedAt: new Date().toISOString()
+                      }}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         )}
