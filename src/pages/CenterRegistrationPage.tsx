@@ -296,7 +296,24 @@ export function CenterRegistrationPage() {
 
       if (!userId) throw new Error('Authentication failed. Please try again.');
 
-      // b. Insert center record
+      // b. Check if center already exists to prevent duplicate error
+      const { data: existingCenter, error: fetchError } = await supabase
+        .from('centers')
+        .select('id, center_code')
+        .eq('email', center.email)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (existingCenter) {
+        console.log('Center already exists, jumping to success');
+        setGeneratedCenterCode(existingCenter.center_code);
+        setIsSubmitting(false);
+        setStep('success');
+        return;
+      }
+
+      // c. Insert center record
       const { error } = await supabase
         .from('centers')
         .insert([{
