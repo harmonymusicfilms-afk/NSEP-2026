@@ -49,11 +49,9 @@ interface CenterFormData {
   state: string;
   pincode: string;
   idProofUrl: string;
-  addressProofUrl: string;
-  centerPhotoUrl: string;
+  userPhotoUrl: string;
   idProofName?: string;
-  addressProofName?: string;
-  centerPhotoName?: string;
+  userPhotoName?: string;
   password?: string;
   transactionId: string;
   paymentScreenshotUrl: string;
@@ -74,8 +72,7 @@ const initialFormData: CenterFormData = {
   state: '',
   pincode: '',
   idProofUrl: '',
-  addressProofUrl: '',
-  centerPhotoUrl: '',
+  userPhotoUrl: '',
   password: '',
   transactionId: '',
   paymentScreenshotUrl: '',
@@ -102,8 +99,7 @@ export function CenterRegistrationPage() {
   const [showReferralGate, setShowReferralGate] = useState(false);
 
   const idProofRef = useRef<HTMLInputElement>(null);
-  const addressProofRef = useRef<HTMLInputElement>(null);
-  const centerPhotoRef = useRef<HTMLInputElement>(null);
+  const userPhotoRef = useRef<HTMLInputElement>(null);
 
   const paymentScreenshotRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -203,8 +199,7 @@ export function CenterRegistrationPage() {
   const validateDocumentsStep = (): boolean => {
     const newErrors: Partial<Record<keyof CenterFormData, string>> = {};
     if (!formData.idProofUrl) newErrors.idProofUrl = 'ID Proof is required';
-    if (!formData.addressProofUrl) newErrors.addressProofUrl = 'Address Proof is required';
-    if (!formData.centerPhotoUrl) newErrors.centerPhotoUrl = 'Center Photo is required';
+    if (!formData.userPhotoUrl) newErrors.userPhotoUrl = 'User Photo is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -259,13 +254,14 @@ export function CenterRegistrationPage() {
       totalEarnings: 0,
       createdAt: new Date().toISOString(),
       idProofUrl: formData.idProofUrl,
-      addressProofUrl: formData.addressProofUrl,
-      centerPhotoUrl: formData.centerPhotoUrl,
+      userPhotoUrl: formData.userPhotoUrl,
     };
 
     // 4. Save to Supabase (Real Database)
     try {
-      // a. Sign up the user first
+      // a. Sign up the user or handle existing user
+      let userId: string | undefined;
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.ownerEmail,
         password: formData.password || 'password123',
@@ -277,9 +273,27 @@ export function CenterRegistrationPage() {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        // If user already exists, try to sign in to get the ID and complete registration
+        if (authError.message.toLowerCase().includes('already registered')) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email: formData.ownerEmail,
+            password: formData.password || 'password123',
+          });
 
-      const userId = authData.user?.id;
+          if (signInError) {
+            // If sign in also fails, show the original error or a clearer one
+            throw new Error('This email is already registered. If it belongs to you, please use the correct password.');
+          }
+          userId = signInData.user?.id;
+        } else {
+          throw authError;
+        }
+      } else {
+        userId = authData.user?.id;
+      }
+
+      if (!userId) throw new Error('Authentication failed. Please try again.');
 
       // b. Insert center record
       const { error } = await supabase
@@ -302,8 +316,7 @@ export function CenterRegistrationPage() {
           center_code: center.centerCode,
           status: 'PENDING',
           id_proof_url: center.idProofUrl,
-          address_proof_url: center.addressProofUrl,
-          center_photo_url: center.centerPhotoUrl,
+          user_photo_url: (center as any).userPhotoUrl,
           transaction_id: formData.transactionId,
           payment_screenshot_url: formData.paymentScreenshotUrl,
         }]);
@@ -971,17 +984,10 @@ export function CenterRegistrationPage() {
                   />
                   <input
                     type="file"
-                    ref={addressProofRef}
-                    className="hidden"
-                    accept="image/*,.pdf"
-                    onChange={(e) => handleFileChange(e, 'addressProofUrl')}
-                  />
-                  <input
-                    type="file"
-                    ref={centerPhotoRef}
+                    ref={userPhotoRef}
                     className="hidden"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'centerPhotoUrl')}
+                    onChange={(e) => handleFileChange(e, 'userPhotoUrl')}
                   />
 
                   {/* ID Proof */}
@@ -1036,89 +1042,37 @@ export function CenterRegistrationPage() {
                     </div>
                   </div>
 
-                  {/* Address Proof */}
-                  <div className={`border-2 border-dashed rounded-lg p-4 transition-colors ${errors.addressProofUrl ? 'border-destructive/50 bg-red-50/10' : 'hover:border-primary/50'}`}>
+                  {/* User Photo */}
+                  <div className={`border-2 border-dashed rounded-lg p-4 transition-colors ${errors.userPhotoUrl ? 'border-destructive/50 bg-red-50/10' : 'hover:border-primary/50'}`}>
                     <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium">{language === 'hi' ? 'पता प्रमाण' : 'Address Proof'} *</h4>
+                          <h4 className="font-medium">{t('center.field.userPhoto')} *</h4>
                           <p className="text-sm text-muted-foreground">
-                            {language === 'hi' ? 'बिजली बिल/राशन कार्ड' : 'Electricity bill/Ration card'}
+                            {language === 'hi' ? 'उपयोगकर्ता की तस्वीर' : 'Recent passport size photo'}
                           </p>
                         </div>
                         <Button
                           type="button"
                           size="sm"
-                          variant={formData.addressProofUrl ? "secondary" : "outline"}
-                          onClick={() => handleFileSelect(addressProofRef)}
-                        >
-                          <Upload className="size-4 mr-2" />
-                          {formData.addressProofUrl
-                            ? (language === 'hi' ? 'बदलें' : 'Change')
-                            : (language === 'hi' ? 'अपलोड करें' : 'Upload')}
-                        </Button>
-                      </div>
-
-                      {formData.addressProofUrl && (
-                        <div className="flex items-center gap-3 p-2 bg-green-50/50 rounded-md border border-green-100">
-                          <div className="size-12 rounded border bg-white overflow-hidden flex-shrink-0">
-                            <img src={formData.addressProofUrl} alt="Address Preview" className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-green-800 truncate">
-                              {(formData as any).addressProofName || (language === 'hi' ? 'पते का प्रमाण चुना गया' : 'Address proof selected')}
-                            </p>
-                            <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
-                              <CheckCircle className="size-3" />
-                              {language === 'hi' ? 'अपलोड किया गया' : 'Uploaded'}
-                            </p>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
-                            onClick={() => removeFile('addressProofUrl')}
-                          >
-                            ×
-                          </Button>
-                        </div>
-                      )}
-                      {errors.addressProofUrl && <p className="text-xs text-destructive">{errors.addressProofUrl}</p>}
-                    </div>
-                  </div>
-
-                  {/* Center Photo */}
-                  <div className={`border-2 border-dashed rounded-lg p-4 transition-colors ${errors.centerPhotoUrl ? 'border-destructive/50 bg-red-50/10' : 'hover:border-primary/50'}`}>
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{language === 'hi' ? 'केंद्र फोटो' : 'Center Photo'} *</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {language === 'hi' ? 'केंद्र की तस्वीर' : 'Photo of center premises'}
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant={formData.centerPhotoUrl ? "secondary" : "outline"}
-                          onClick={() => handleFileSelect(centerPhotoRef)}
+                          variant={formData.userPhotoUrl ? "secondary" : "outline"}
+                          onClick={() => handleFileSelect(userPhotoRef)}
                         >
                           <Camera className="size-4 mr-2" />
-                          {formData.centerPhotoUrl
+                          {formData.userPhotoUrl
                             ? (language === 'hi' ? 'बदलें' : 'Change')
                             : (language === 'hi' ? 'अपलोड करें' : 'Upload')}
                         </Button>
                       </div>
 
-                      {formData.centerPhotoUrl && (
+                      {formData.userPhotoUrl && (
                         <div className="flex items-center gap-3 p-2 bg-green-50/50 rounded-md border border-green-100">
                           <div className="size-12 rounded border bg-white overflow-hidden flex-shrink-0">
-                            <img src={formData.centerPhotoUrl} alt="Center Preview" className="w-full h-full object-cover" />
+                            <img src={formData.userPhotoUrl} alt="User Preview" className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium text-green-800 truncate">
-                              {(formData as any).centerPhotoName || (language === 'hi' ? 'केंद्र फोटो चुनी गई' : 'Center photo selected')}
+                              {formData.userPhotoName || (language === 'hi' ? 'फोटो चुनी गई' : 'Photo selected')}
                             </p>
                             <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
                               <CheckCircle className="size-3" />
@@ -1130,13 +1084,13 @@ export function CenterRegistrationPage() {
                             variant="ghost"
                             size="sm"
                             className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
-                            onClick={() => removeFile('centerPhotoUrl')}
+                            onClick={() => removeFile('userPhotoUrl')}
                           >
                             ×
                           </Button>
                         </div>
                       )}
-                      {errors.centerPhotoUrl && <p className="text-xs text-destructive">{errors.centerPhotoUrl}</p>}
+                      {errors.userPhotoUrl && <p className="text-xs text-destructive">{errors.userPhotoUrl}</p>}
                     </div>
                   </div>
                 </div>
@@ -1206,11 +1160,8 @@ export function CenterRegistrationPage() {
                     <span className={`px-2 py-1 rounded ${formData.idProofUrl ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {language === 'hi' ? 'पहचान प्रमाण' : 'ID Proof'}: {formData.idProofUrl ? '✓' : '—'}
                     </span>
-                    <span className={`px-2 py-1 rounded ${formData.addressProofUrl ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {language === 'hi' ? 'पता प्रमाण' : 'Address Proof'}: {formData.addressProofUrl ? '✓' : '—'}
-                    </span>
-                    <span className={`px-2 py-1 rounded ${formData.centerPhotoUrl ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                      {language === 'hi' ? 'केंद्र फोटो' : 'Center Photo'}: {formData.centerPhotoUrl ? '✓' : '—'}
+                    <span className={`px-2 py-1 rounded ${formData.userPhotoUrl ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {language === 'hi' ? 'उपयोगकर्ता फोटो' : 'User Photo'}: {formData.userPhotoUrl ? '✓' : '—'}
                     </span>
                   </div>
                 </div>

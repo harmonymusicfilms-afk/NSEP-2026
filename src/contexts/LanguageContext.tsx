@@ -144,7 +144,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.referralStats': 'Referral Statistics',
 
     // Center Registration
-    'center.register.title': 'Center Registration',
+    'center.register.title': 'Register Your Center',
     'center.register.subtitle': 'Apply to become an approved examination center',
     'center.details': 'Center Details',
     'center.ownerInfo': 'Owner Information',
@@ -159,8 +159,7 @@ const translations: Record<Language, Record<string, string>> = {
     'center.field.city': 'City',
     'center.field.pincode': 'Pincode',
     'center.field.idProof': 'ID Proof',
-    'center.field.addressProof': 'Address Proof',
-    'center.field.centerPhoto': 'Center Photo',
+    'center.field.userPhoto': 'User Photo',
     'center.submit': 'Submit Application',
     'center.submitting': 'Submitting...',
     'center.terms': 'I agree to the Center Partnership Terms and Conditions',
@@ -361,7 +360,7 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.referralStats': 'रेफरल आंकड़े',
 
     // Center Registration
-    'center.register.title': 'केंद्र पंजीकरण',
+    'center.register.title': 'अपना केंद्र पंजीकृत करें',
     'center.register.subtitle': 'अनुमोदित परीक्षा केंद्र बनने के लिए आवेदन करें',
     'center.details': 'केंद्र विवरण',
     'center.ownerInfo': 'स्वामी की जानकारी',
@@ -376,8 +375,7 @@ const translations: Record<Language, Record<string, string>> = {
     'center.field.city': 'शहर',
     'center.field.pincode': 'पिनकोड',
     'center.field.idProof': 'पहचान प्रमाण',
-    'center.field.addressProof': 'पता प्रमाण',
-    'center.field.centerPhoto': 'केंद्र फोटो',
+    'center.field.userPhoto': 'उपयोगकर्ता फोटो',
     'center.submit': 'आवेदन जमा करें',
     'center.submitting': 'जमा हो रहा है...',
     'center.terms': 'मैं केंद्र साझेदारी नियम और शर्तों से सहमत हूं',
