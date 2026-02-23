@@ -278,7 +278,7 @@ export function AdminQuestionsPage() {
                             Add New Question
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Add New Question</DialogTitle>
                             <DialogDescription>Create a new multiple-choice question for the exam.</DialogDescription>
@@ -533,7 +533,7 @@ export function AdminQuestionsPage() {
 
             {/* Edit Dialog */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Question</DialogTitle>
                         <DialogDescription>Modify the question details and options.</DialogDescription>
