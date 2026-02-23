@@ -271,13 +271,26 @@ export function AdminQuestionsPage() {
                     <p className="text-muted-foreground">Manage and organize questions for different classes</p>
                 </div>
 
+                {/* Desktop Button */}
+                <div className="hidden sm:block">
+                    <Button onClick={() => setIsAddDialogOpen(true)} className="institutional-gradient gap-2">
+                        <Plus className="size-4" />
+                        Add New Question
+                    </Button>
+                </div>
+
+                {/* Mobile App-like Bottom Button */}
+                <div className="sm:hidden fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-lg border-t z-50">
+                    <Button
+                        onClick={() => setIsAddDialogOpen(true)}
+                        className="institutional-gradient w-full gap-2 shadow-xl h-12 text-base rounded-full"
+                    >
+                        <Plus className="size-5" />
+                        Add New Question
+                    </Button>
+                </div>
+
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                    <DialogTrigger asChild>
-                        <Button className="institutional-gradient gap-2">
-                            <Plus className="size-4" />
-                            Add New Question
-                        </Button>
-                    </DialogTrigger>
                     <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Add New Question</DialogTitle>
