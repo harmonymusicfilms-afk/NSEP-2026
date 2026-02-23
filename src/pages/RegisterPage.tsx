@@ -264,26 +264,27 @@ export function RegisterPage() {
     if (!formData.name.trim()) newErrors.name = 'Student name is required';
     if (!formData.class) newErrors.class = 'Class is required';
 
-    // Contact checks
+    // Mobile - required + format check only (same mobile allowed for family members)
     if (!formData.mobile.trim()) {
       newErrors.mobile = 'Mobile number is required';
     } else if (!isValidMobile(formData.mobile)) {
       newErrors.mobile = 'Invalid mobile number (10 digits required)';
-    } else {
-      const existing = await getStudentByMobile(formData.mobile);
-      if (existing) {
-        newErrors.mobile = 'Mobile number already registered';
-      }
     }
 
+    // Email - must be unique, no duplicate profiles allowed
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!isValidEmail(formData.email)) {
       newErrors.email = 'Invalid email format';
     } else {
-      const existing = await getStudentByEmail(formData.email);
-      if (existing) {
-        newErrors.email = 'Email already registered';
+      try {
+        const existing = await getStudentByEmail(formData.email.trim().toLowerCase());
+        if (existing) {
+          newErrors.email = 'This email is already registered. Please use a different email or login.';
+        }
+      } catch (e) {
+        // If RLS blocks the check, Supabase auth.signUp will catch duplicate anyway
+        console.warn('Email duplicate check failed (RLS), will rely on Supabase auth:', e);
       }
     }
 
