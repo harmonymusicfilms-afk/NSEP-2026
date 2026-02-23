@@ -1,9 +1,9 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  GraduationCap, 
-  Menu, 
-  X, 
-  User, 
+import {
+  GraduationCap,
+  Menu,
+  X,
+  User,
   LogOut,
   Shield,
   FileCheck
@@ -56,11 +56,10 @@ export function Header() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  location.pathname === link.href
+                className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.href
                     ? 'text-primary'
                     : 'text-muted-foreground'
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -99,14 +98,7 @@ export function Header() {
               </div>
             ) : null}
 
-            {!isAdminLoggedIn && !isAdminRoute && (
-              <Link to="/admin/login">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Shield className="size-4" />
-                  {t('nav.admin')}
-                </Button>
-              </Link>
-            )}
+
 
             <Link to="/verify" className="md:hidden">
               <Button variant="ghost" size="icon">
@@ -138,16 +130,15 @@ export function Header() {
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    location.pathname === link.href
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === link.href
                       ? 'bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:bg-muted'
-                  }`}
+                    }`}
                 >
                   {link.label}
                 </Link>
               ))}
-              
+
               {isStudentLoggedIn ? (
                 <>
                   <Link
@@ -185,15 +176,8 @@ export function Header() {
                   </Link>
                 </>
               )}
-              
-              <Link
-                to="/admin/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted flex items-center gap-2"
-              >
-                <Shield className="size-4" />
-                Admin Portal
-              </Link>
+
+
             </nav>
           </div>
         )}

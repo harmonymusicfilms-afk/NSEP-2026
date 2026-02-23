@@ -375,24 +375,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loginAdmin: async (email, password) => {
     set({ isLoading: true });
     try {
-      // ✅ SUPER ADMIN LOGIN - First authenticate with Supabase, then setup admin
-      if (email.toLowerCase().trim() === 'grampanchayat023@gmail.com' && password === 'admin123') {
-        const actualSupabasePassword = 'grampanchayat_admin';
+      // ✅ SUPER ADMIN LOGIN - Credentials from environment variables
+      const superAdminEmail = (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase().trim();
+      const superAdminLoginPassword = import.meta.env.VITE_ADMIN_PASSWORD || '';
+      const superAdminSupabasePassword = import.meta.env.VITE_ADMIN_SUPABASE_PASSWORD || '';
 
+      if (superAdminEmail && email.toLowerCase().trim() === superAdminEmail && password === superAdminLoginPassword) {
         // Force sign out first to clear any student session
         await supabase.auth.signOut();
 
         let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
-          password: actualSupabasePassword,
+          password: superAdminSupabasePassword,
         });
 
         // If not found or invalid, attempt to create/reset it
         if (authError && authError.message.toLowerCase().includes('invalid login credentials')) {
-          // If the real password was actually missing/deleted
           const signUpRes = await supabase.auth.signUp({
             email: email.trim(),
-            password: actualSupabasePassword,
+            password: superAdminSupabasePassword,
           });
           authData = signUpRes.data;
           authError = signUpRes.error;
@@ -403,7 +404,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         // Upsert admin_users row so RLS policies work
-        // Note: this may fail if infinite recursion RLS policy exists, we catch it silently
         const { error: upsertError } = await supabase.from('admin_users').upsert([{
           id: authData.user.id,
           name: 'Gram Panchayat Admin',
@@ -417,7 +417,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const admin: AdminUser = {
           id: authData.user.id,
           name: 'Gram Panchayat Admin',
-          email: 'grampanchayat023@gmail.com',
+          email: email.trim(),
           role: 'SUPER_ADMIN',
           createdAt: new Date().toISOString(),
           passwordHash: '',

@@ -58,11 +58,7 @@ export function Footer() {
                   Verify Certificate
                 </Link>
               </li>
-              <li>
-                <Link to="/admin/login" className="text-white/70 hover:text-white transition-colors">
-                  Admin Portal
-                </Link>
-              </li>
+
             </ul>
           </div>
 
