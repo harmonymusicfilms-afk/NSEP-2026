@@ -28,7 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { INDIAN_STATES, APP_CONFIG, REFERRAL_CONFIG } from '@/constants/config';
-import { isValidEmail, isValidMobile, generateId, formatCurrency, generateCenterCode, compressImage } from '@/lib/utils';
+import { isValidEmail, isValidMobile, generateId, formatCurrency, generateCenterCode, compressImage, generateUUID } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import logoImg from '@/assets/gphdm-logo.png';
@@ -230,12 +230,12 @@ export function CenterRegistrationPage() {
     setIsSubmitting(true);
     // Removed artificial delay for snappy UX
 
-    // Generate center code
     const centerCode = generateCenterCode();
+    console.log("NSEP Debug - Generated Center Code:", centerCode);
 
     // Create center record
     const center = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       name: formData.centerName,
       centerType: formData.centerType,
       ownerName: formData.ownerName,
@@ -256,6 +256,7 @@ export function CenterRegistrationPage() {
       idProofUrl: formData.idProofUrl,
       userPhotoUrl: formData.userPhotoUrl,
     };
+    console.log("NSEP Debug - Center Object created:", center);
 
     // 4. Save to Supabase (Real Database)
     try {
@@ -336,32 +337,29 @@ export function CenterRegistrationPage() {
     }
 
     // 5. Save to localStorage (Safely - as secondary/redundant or for local testing)
-    let storedCenters: any[] = [];
+    // 5. Finalize UI State
     try {
-      const item = localStorage.getItem('gphdm_centers');
-      if (item) {
-        storedCenters = JSON.parse(item);
+      console.log("NSEP Debug - Finalizing UI state...");
+      setGeneratedCenterCode(centerCode);
+      setIsSubmitting(false);
+      setStep('success');
+      console.log("NSEP Debug - Step set to success");
+
+      // Save to localStorage safely
+      try {
+        const item = localStorage.getItem('gphdm_centers');
+        let storedCenters = item ? JSON.parse(item) : [];
         if (!Array.isArray(storedCenters)) storedCenters = [];
+        storedCenters.push(center);
+        localStorage.setItem('gphdm_centers', JSON.stringify(storedCenters));
+      } catch (e) {
+        console.warn("Storage warning:", e);
       }
-    } catch (error) {
-      console.error('Error parsing stored centers:', error);
-      storedCenters = [];
+    } catch (finalErr) {
+      console.error("Critical success UI error:", finalErr);
+      alert("Registration saved, but there was a display error. Your Center Code is: " + centerCode);
+      setIsSubmitting(false);
     }
-
-    storedCenters.push(center);
-    localStorage.setItem('gphdm_centers', JSON.stringify(storedCenters));
-
-    toast({
-      title: language === 'hi' ? 'आवेदन जमा!' : 'Application Submitted!',
-      description: language === 'hi'
-        ? `आपका आवेदन जमा हो गया है। आपका केंद्र कोड ${centerCode} है।`
-        : `Your application has been submitted. Your Center Code is ${centerCode}.`,
-    });
-
-    setGeneratedCenterCode(centerCode);
-    setIsSubmitting(false);
-    setStep('success');
-    navigate('#success'); // Avoid navigation away
   };
 
   const handleFileSelect = (ref: React.RefObject<HTMLInputElement>) => {

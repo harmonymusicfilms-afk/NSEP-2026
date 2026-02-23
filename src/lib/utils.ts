@@ -42,9 +42,24 @@ export function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Generate unique ID
+// Generate unique ID (legacy/short)
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+}
+
+// Generate valid UUID v4
+export function generateUUID(): string {
+  // Use crypto.randomUUID if available (modern browsers + HTTPS)
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  // Fallback for older browsers or non-HTTPS
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 // Generate center code
