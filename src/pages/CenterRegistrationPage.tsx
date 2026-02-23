@@ -235,7 +235,7 @@ export function CenterRegistrationPage() {
 
     // Create center record
     const center = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       name: formData.centerName,
       centerType: formData.centerType,
       ownerName: formData.ownerName,
