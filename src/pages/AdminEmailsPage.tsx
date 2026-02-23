@@ -338,21 +338,19 @@ export function AdminEmailsPage() {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => setActiveTab('deliveries')}
-          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
-            activeTab === 'deliveries'
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === 'deliveries'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           Email Deliveries
         </button>
         <button
           onClick={() => setActiveTab('templates')}
-          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
-            activeTab === 'templates'
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === 'templates'
               ? 'border-primary text-primary'
               : 'border-transparent text-muted-foreground hover:text-foreground'
-          }`}
+            }`}
         >
           Email Templates
         </button>
@@ -443,10 +441,10 @@ export function AdminEmailsPage() {
                                   delivery.status === 'SENT'
                                     ? 'default'
                                     : delivery.status === 'FAILED'
-                                    ? 'destructive'
-                                    : delivery.status === 'PENDING'
-                                    ? 'secondary'
-                                    : 'outline'
+                                      ? 'destructive'
+                                      : delivery.status === 'PENDING'
+                                        ? 'secondary'
+                                        : 'outline'
                                 }
                               >
                                 {delivery.status === 'SENT' && <CheckCircle className="size-3 mr-1" />}
@@ -595,7 +593,7 @@ export function AdminEmailsPage() {
                 {editingTemplate ? 'Edit Email Template' : 'Create Email Template'}
               </CardTitle>
               <CardDescription>
-                Use variables like {`{{studentName}}, {{rank}}, {{class}}, {{score}}`} in your template
+                Create your email template. You can insert dynamic variables that will be replaced when sending.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -624,7 +622,22 @@ export function AdminEmailsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bodyHtml">Email Body (HTML) *</Label>
+                <div className="flex justify-between items-end mb-1">
+                  <Label htmlFor="bodyHtml">Email Body (HTML) *</Label>
+                  <div className="flex gap-1.5 flex-wrap">
+                    <span className="text-xs text-muted-foreground mr-1 self-center hidden sm:block">Insert:</span>
+                    {['studentName', 'rank', 'class', 'score', 'centerCode'].map(v => (
+                      <Badge
+                        key={v}
+                        variant="secondary"
+                        className="cursor-pointer hover:bg-primary/20 text-[10px] py-0 px-1.5"
+                        onClick={() => setTemplateForm(prev => ({ ...prev, bodyHtml: prev.bodyHtml + `{{${v}}}` }))}
+                      >
+                        +{v}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
                 <Textarea
                   id="bodyHtml"
                   rows={12}
