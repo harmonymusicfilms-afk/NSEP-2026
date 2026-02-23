@@ -89,21 +89,7 @@ export function AdminLayout() {
       <Sidebar variant="admin" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 overflow-x-hidden relative flex flex-col">
-        {/* SITE VERSION BANNER */}
-        <div className="bg-red-600 text-white p-3 text-center text-sm font-bold flex items-center justify-center gap-4 animate-pulse shadow-lg sticky top-0 z-[100]">
-          <span className="flex items-center gap-2">
-            <AlertTriangle className="size-5" />
-            SITE UPDATED: APPROVE BUTTONS READY! PLEASE REFRESH YOUR BROWSER.
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white text-red-600 border-none h-8 font-black hover:bg-white/90"
-            onClick={() => window.location.reload()}
-          >
-            REFRESH NOW
-          </Button>
-        </div>
+
         {/* Mobile Admin Toggle */}
         <div className="md:hidden p-4 bg-red-900 text-white flex items-center gap-4">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setIsSidebarOpen(true)}>
