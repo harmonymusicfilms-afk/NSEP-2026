@@ -132,13 +132,14 @@ export function StudentCertificatesPage() {
                         id: 'demo-result',
                         studentId: currentStudent.id,
                         class: currentStudent.class,
-                        score: 95,
-                        totalMarks: 100,
+                        totalScore: 95,
+                        correctCount: 95,
+                        wrongCount: 5,
+                        unansweredCount: 0,
+                        totalTimeTaken: 3600,
                         rank: 1,
-                        correctAnswers: 95,
-                        wrongAnswers: 5,
-                        attemptDate: new Date().toISOString(),
-                        resultStatus: 'PUBLISHED'
+                        resultStatus: 'PUBLISHED',
+                        createdAt: new Date().toISOString()
                       }}
                       certificate={{
                         id: 'demo-cert',
