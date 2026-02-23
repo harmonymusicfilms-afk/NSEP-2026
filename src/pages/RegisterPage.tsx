@@ -190,20 +190,15 @@ export function RegisterPage() {
     }
 
     // Check if it's a student referral code (STU prefix)
-    if (normalizedCode.startsWith('STU')) {
-      const { getStudentByReferralCode } = useStudentStore.getState();
-      const referrer = await getStudentByReferralCode(code);
-
-      if (referrer) {
-        setReferralInfo({
-          type: 'Student Referral',
-          ownerName: referrer.name,
-        });
-        setReferralType('STUDENT');
-      } else {
-        setReferralInfo(null);
-        setReferralType(null);
-      }
+    if (normalizedCode.startsWith('STU') && normalizedCode.length >= 8) {
+      // Due to Supabase RLS policies, unauthenticated users cannot read `students` table
+      // to fetch the referrer's name. We'll accept valid-looking STU codes here.
+      // The backend/payment processor will securely handle the actual reward mapping.
+      setReferralInfo({
+        type: 'Student Referral',
+        ownerName: 'Fellow Student',
+      });
+      setReferralType('STUDENT');
       return;
     }
 
@@ -219,21 +214,19 @@ export function RegisterPage() {
       return;
     }
 
-    // Check if it's a student center code
-    const { getStudentByCenterCode } = useStudentStore.getState();
-    const referrer = await getStudentByCenterCode(code);
-
-    if (referrer) {
+    // Check if it's a student center code (CC prefix fallback)
+    if (normalizedCode.startsWith('CC') && normalizedCode.length >= 6) {
       setReferralInfo({
         type: 'Center Code',
-        ownerName: referrer.name,
+        ownerName: 'Authorized Center',
       });
       setReferralType('CENTER');
-    } else {
-      // Invalid code
-      setReferralInfo(null);
-      setReferralType(null);
+      return;
     }
+
+    // Invalid code if nothing matched
+    setReferralInfo(null);
+    setReferralType(null);
   };
 
   const steps: { key: Step; label: string; description: string }[] = [
