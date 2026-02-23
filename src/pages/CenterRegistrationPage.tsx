@@ -537,7 +537,7 @@ export function CenterRegistrationPage() {
               {language === 'hi' ? steps[currentStepIndex].labelHi : steps[currentStepIndex].label}
             </CardTitle>
           </CardHeader>
-          <CardContent className="max-h-[70vh] sm:max-h-none overflow-y-auto custom-scrollbar pr-2">
+          <CardContent className="max-h-[70vh] sm:max-h-[75vh] md:max-h-[80vh] overflow-y-auto custom-scrollbar pr-2">
             {/* Details Step */}
             {step === 'details' && (
               <div className="space-y-4">
