@@ -318,7 +318,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .eq('email', email)
         .eq('mobile', mobile)
         .in('status', ['ACTIVE', 'PENDING'])
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const student = mapStudent(data);
@@ -352,7 +352,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .from('centers')
         .select('*')
         .eq('user_id', authData.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw new Error('Center profile not found or not linked.');
 
@@ -445,7 +445,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           .from('admin_users')
           .select('*')
           .eq('id', authData.user.id)
-          .single();
+          .maybeSingle();
 
         if (data) {
           admin = data as AdminUser;
@@ -612,7 +612,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({
         .from('students')
         .insert([studentData])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase students insert error:', error);
@@ -679,7 +679,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({
         .update(dbUpdate)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -697,31 +697,31 @@ export const useStudentStore = create<StudentState>((set, get) => ({
   },
 
   getStudentById: async (id) => {
-    const { data, error } = await supabase.from('students').select('*').eq('id', id).single();
+    const { data, error } = await supabase.from('students').select('*').eq('id', id).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByEmail: async (email) => {
-    const { data, error } = await supabase.from('students').select('*').eq('email', email).single();
+    const { data, error } = await supabase.from('students').select('*').eq('email', email).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByMobile: async (mobile) => {
-    const { data, error } = await supabase.from('students').select('*').eq('mobile', mobile).single();
+    const { data, error } = await supabase.from('students').select('*').eq('mobile', mobile).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByCenterCode: async (code) => {
-    const { data, error } = await supabase.from('students').select('*').eq('center_code', code).single();
+    const { data, error } = await supabase.from('students').select('*').eq('center_code', code).maybeSingle();
     if (error) return null;
     return mapStudent(data);
   },
 
   getStudentByReferralCode: async (code) => {
-    const { data, error } = await supabase.from('students').select('*').eq('referral_code', code).single();
+    const { data, error } = await supabase.from('students').select('*').eq('referral_code', code).maybeSingle();
     if (error) return null;
     return mapStudent(data);
   },
@@ -792,7 +792,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
           status: 'PENDING',
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase payment insert error:', error);
@@ -819,7 +819,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         })
         .eq('id', paymentId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const updatedPayment = mapPayment(data);
@@ -836,7 +836,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         .from('students')
         .select('*')
         .eq('id', updatedPayment.studentId)
-        .single();
+        .maybeSingle();
 
       if (student) {
         sendEmailNotification('PAYMENT_RECEIPT', student.email, {
@@ -887,7 +887,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         })
         .eq('id', paymentId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const updatedPayment = mapPayment(data);
@@ -919,7 +919,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         })
         .eq('id', paymentId)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const updatedPayment = mapPayment(data);
@@ -994,7 +994,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           .from('wallets')
           .insert([{ student_id: studentId, balance: 0 }])
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         wallet = mapWallet(data);
@@ -1029,7 +1029,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
           reference_id: referenceId,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (transError) throw transError;
 
@@ -1082,7 +1082,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
         .from('center_rewards')
         .select('*')
         .eq('new_student_id', newStudentId)
-        .single();
+        .maybeSingle();
 
       if (existingReward) {
         console.log('Reward already exists for this student:', existingReward);
@@ -1099,7 +1099,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
           status: 'CREDITED',
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Supabase center_rewards insert error:', error);
@@ -1227,7 +1227,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
           is_active: true,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         // DB insert succeeded - use DB record
@@ -1276,7 +1276,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
           center_code: generateCenterCode(),
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const center = mapCenter(newCenter);
@@ -1515,7 +1515,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
           question_file_url: question.questionFileUrl,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -1542,7 +1542,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
         .update(dbUpdate)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -1615,7 +1615,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
           user_agent: userAgent,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const session = mapExamSession(data);
@@ -1708,7 +1708,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
           result_status: 'PENDING',
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (resultError) throw resultError;
 
@@ -1830,7 +1830,7 @@ export const useScholarshipStore = create<ScholarshipState>((set, get) => ({
           approval_status: 'PENDING',
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const scholarship = mapScholarship(data);
@@ -2068,15 +2068,15 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
           is_valid: true,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const certificate = data as Certificate;
       set({ certificates: [...get().certificates, certificate] });
 
       // Send certificate issued email
-      const { data: student } = await supabase.from('students').select('*').eq('id', studentId).single();
-      const { data: result } = await supabase.from('exam_results').select('*').eq('id', examResultId).single();
+      const { data: student } = await supabase.from('students').select('*').eq('id', studentId).maybeSingle();
+      const { data: result } = await supabase.from('exam_results').select('*').eq('id', examResultId).maybeSingle();
 
       if (student && result) {
         sendEmailNotification('CERTIFICATE_ISSUED', student.email, {
@@ -2107,7 +2107,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
         .from('certificates')
         .select('*')
         .eq('certificate_id', term)
-        .single();
+        .maybeSingle();
 
       // If not found, try searching by Student ID
       if (!certData) {
@@ -2115,7 +2115,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
           .from('certificates')
           .select('*')
           .eq('student_id', term)
-          .single();
+          .maybeSingle();
 
         if (certByStudent) {
           certData = certByStudent;
@@ -2143,7 +2143,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
         .from('students')
         .select('*')
         .eq('id', certificate.studentId)
-        .single();
+        .maybeSingle();
 
       if (!studentData) {
         return { isValid: false };
@@ -2197,7 +2197,7 @@ export const useAdminLogStore = create<AdminLogState>((set, get) => ({
           details,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
@@ -2268,7 +2268,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
           is_default: false,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const template = data as EmailTemplate;
@@ -2343,7 +2343,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
           error_message: !success ? 'Simulated delivery failure' : null,
         }])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       const delivery = data as EmailDelivery;

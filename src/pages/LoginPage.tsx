@@ -68,15 +68,15 @@ export function LoginPage() {
         .from('students')
         .select('*')
         .eq('id', data.user.id)
-        .single();
+        .maybeSingle();
 
       if (studentData) {
         // Attempt to login to local store
-        let loggedIn = loginStudent(email.toLowerCase().trim(), studentData.mobile);
+        let loggedIn = await loginStudent(email.toLowerCase().trim(), studentData.mobile);
 
         if (!loggedIn) {
           // Hydrate local store from Supabase data
-          addStudent({
+          await addStudent({
             name: studentData.name,
             fatherName: studentData.father_name,
             class: studentData.class || studentData.class_level,
@@ -89,11 +89,12 @@ export function LoginPage() {
             addressTahsil: studentData.address_tahsil,
             addressDistrict: studentData.address_district,
             addressState: studentData.address_state,
-            referredByCenter: studentData.referred_by_center || undefined
-          });
+            referredByCenter: studentData.referred_by_center || undefined,
+            referredByStudent: studentData.referred_by_student || undefined
+          }, data.user.id);
 
           // Try login again
-          loggedIn = loginStudent(studentData.email, studentData.mobile);
+          loggedIn = await loginStudent(studentData.email, studentData.mobile);
         }
 
         if (!loggedIn) {

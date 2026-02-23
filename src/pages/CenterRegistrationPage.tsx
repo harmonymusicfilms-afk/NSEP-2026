@@ -260,86 +260,58 @@ export function CenterRegistrationPage() {
 
     // 4. Save to Supabase (Real Database)
     try {
-      console.log("NSEP Debug - Starting registration for:", formData.ownerEmail);
+      console.log("NSEP Debug - Process started for:", formData.ownerEmail);
 
-      // a. Sign up the user (using a method that doesn't auto-login if possible, 
-      // but Supabase JS always auto-logins on signup. We must handle the potential redirect crash)
+      // Step A: Attempt Auth SignUp (Fire and Forget if already exists)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.ownerEmail,
         password: formData.password || 'password123',
-        options: {
-          data: {
-            full_name: formData.ownerName,
-            role: 'CENTER',
-          }
-        }
+        options: { data: { full_name: formData.ownerName, role: 'CENTER' } }
       });
 
-      let userId = authData.user?.id;
-
-      if (authError) {
-        if (authError.message.toLowerCase().includes('already registered')) {
-          console.log("NSEP Debug - Auth: User already exists, proceeding to table check");
-          // If auth exists, we need to get the user ID. 
-          // Since we can't get ID without login, and login might cause white screen,
-          // we will rely on the email unique constraint in the centers table.
-        } else {
-          throw authError;
-        }
+      const userId = authData?.user?.id;
+      if (authError && !authError.message.toLowerCase().includes('already registered')) {
+        console.warn("Auth signup error (non-critical):", authError.message);
       }
 
-      // b. Check if center already exists in the table
-      const { data: existingCenter } = await supabase
-        .from('centers')
-        .select('center_code')
-        .eq('email', formData.ownerEmail)
-        .maybeSingle();
+      // Step B: Direct Insert attempt
+      const centerData = {
+        id: center.id,
+        user_id: userId,
+        name: center.name,
+        center_type: center.centerType,
+        owner_name: center.ownerName,
+        email: center.ownerEmail,
+        phone: center.ownerPhone,
+        owner_aadhaar: center.ownerAadhaar,
+        address: center.address,
+        village: center.village,
+        block: center.block,
+        district: center.district,
+        state: center.state,
+        pincode: center.pincode,
+        center_code: center.centerCode,
+        status: 'PENDING',
+        id_proof_url: center.idProofUrl,
+        user_photo_url: (center as any).userPhotoUrl,
+        transaction_id: formData.transactionId,
+        payment_screenshot_url: formData.paymentScreenshotUrl,
+      };
 
-      if (existingCenter) {
-        console.log("NSEP Debug - Center exists in table:", existingCenter.center_code);
-        setGeneratedCenterCode(existingCenter.center_code);
-        setStep('success');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // c. Insert center record
-      const { error: insertError } = await supabase
-        .from('centers')
-        .insert([{
-          id: center.id,
-          user_id: userId, // Might be null if user was already registered, but email constraint will catch it
-          name: center.name,
-          center_type: center.centerType,
-          owner_name: center.ownerName,
-          email: center.ownerEmail,
-          phone: center.ownerPhone,
-          owner_aadhaar: center.ownerAadhaar,
-          address: center.address,
-          village: center.village,
-          block: center.block,
-          district: center.district,
-          state: center.state,
-          pincode: center.pincode,
-          center_code: center.centerCode,
-          status: 'PENDING',
-          id_proof_url: center.idProofUrl,
-          user_photo_url: (center as any).userPhotoUrl,
-          transaction_id: formData.transactionId,
-          payment_screenshot_url: formData.paymentScreenshotUrl,
-        }]);
+      const { error: insertError } = await supabase.from('centers').insert([centerData]);
 
       if (insertError) {
-        if (insertError.message.toLowerCase().includes('duplicate key') || insertError.code === '23505') {
-          // Double check attempt to get the code if insert failed due to race condition
-          const { data: retryData } = await supabase
+        // If it's a duplicate, it's actually a success for the user
+        if (insertError.message.toLowerCase().includes('duplicate') || insertError.code === '23505') {
+          console.log("Duplicate detected, fetching existing code...");
+          const { data: existing } = await supabase
             .from('centers')
             .select('center_code')
             .eq('email', formData.ownerEmail)
             .maybeSingle();
 
-          if (retryData) {
-            setGeneratedCenterCode(retryData.center_code);
+          if (existing) {
+            setGeneratedCenterCode(existing.center_code);
             setStep('success');
             setIsSubmitting(false);
             return;
@@ -348,52 +320,31 @@ export function CenterRegistrationPage() {
         throw insertError;
       }
 
-      console.log('NSEP Debug - Center registered successfully');
-    } catch (err: any) {
-      console.error('Registration error details:', err);
-      toast({
-        title: 'Registration Update',
-        description: err.message || 'Something went wrong. Please check if you are already registered.',
-        variant: 'destructive',
-      });
-      setIsSubmitting(false);
-
-      // even on error, if it's a duplicate, try to show success
-      if (err.message?.includes('unique constraint') || err.message?.includes('already registered')) {
-        // Silently try to recover
-        setIsSubmitting(true);
-        const { data } = await supabase.from('centers').select('center_code').eq('email', formData.ownerEmail).maybeSingle();
-        if (data) {
-          setGeneratedCenterCode(data.center_code);
-          setStep('success');
-        }
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
-    // 5. Save to localStorage (Safely - as secondary/redundant or for local testing)
-    // 5. Finalize UI State
-    try {
-      console.log("NSEP Debug - Finalizing UI state...");
-      setGeneratedCenterCode(centerCode);
-      setIsSubmitting(false);
+      // Step C: Success
+      console.log("Registration successful");
+      setGeneratedCenterCode(center.centerCode);
       setStep('success');
-      console.log("NSEP Debug - Step set to success");
+    } catch (err: any) {
+      console.error('Final Registration Catch:', err);
 
-      // Save to localStorage safely
-      try {
-        const item = localStorage.getItem('gphdm_centers');
-        let storedCenters = item ? JSON.parse(item) : [];
-        if (!Array.isArray(storedCenters)) storedCenters = [];
-        storedCenters.push(center);
-        localStorage.setItem('gphdm_centers', JSON.stringify(storedCenters));
-      } catch (e) {
-        console.warn("Storage warning:", e);
+      // Attempt recovery one last time before showing error
+      const { data: finalCheck } = await supabase
+        .from('centers')
+        .select('center_code')
+        .eq('email', formData.ownerEmail)
+        .maybeSingle();
+
+      if (finalCheck) {
+        setGeneratedCenterCode(finalCheck.center_code);
+        setStep('success');
+      } else {
+        toast({
+          title: 'Registration Update',
+          description: err.message || 'Please contact support if you are unable to register.',
+          variant: 'destructive',
+        });
       }
-    } catch (finalErr) {
-      console.error("Critical success UI error:", finalErr);
-      alert("Registration saved, but there was a display error. Your Center Code is: " + centerCode);
+    } finally {
       setIsSubmitting(false);
     }
   };
