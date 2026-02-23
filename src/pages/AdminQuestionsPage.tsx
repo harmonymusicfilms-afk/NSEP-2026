@@ -51,6 +51,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore, useExamStore, useAdminLogStore } from '@/stores';
 import { ExamQuestion } from '@/types';
+import { compressImage } from '@/lib/utils';
 
 export function AdminQuestionsPage() {
     const navigate = useNavigate();
@@ -75,24 +76,47 @@ export function AdminQuestionsPage() {
         questionFileUrl: '',
     });
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) { // 5MB limit
-            toast({
-                title: 'File too large',
-                description: 'Please upload a file smaller than 5MB.',
-                variant: 'destructive',
-            });
-            return;
-        }
+        const compressToast = toast({
+            title: "Processing File",
+            description: "Optimizing for upload...",
+        });
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setFormData(prev => ({ ...prev, questionFileUrl: reader.result as string }));
-        };
-        reader.readAsDataURL(file);
+        try {
+            if (file.type.startsWith('image/')) {
+                // Auto-compress images to under 2MB
+                const compressedBase64 = await compressImage(file, 2);
+                setFormData(prev => ({ ...prev, questionFileUrl: compressedBase64 }));
+            } else {
+                // For PDFs or other files, use as is if under 5MB
+                if (file.size > 5 * 1024 * 1024) {
+                    toast({
+                        title: 'File too large',
+                        description: 'Please upload a file smaller than 5MB.',
+                        variant: 'destructive',
+                    });
+                    compressToast.dismiss();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setFormData(prev => ({ ...prev, questionFileUrl: reader.result as string }));
+                };
+                reader.readAsDataURL(file);
+            }
+            compressToast.dismiss();
+        } catch (error) {
+            console.error('Processing error:', error);
+            compressToast.dismiss();
+            toast({
+                title: "Error",
+                description: "Failed to process file.",
+                variant: "destructive"
+            });
+        }
     };
 
     const removeFile = () => {

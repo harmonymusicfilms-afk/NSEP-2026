@@ -28,7 +28,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { INDIAN_STATES, APP_CONFIG, REFERRAL_CONFIG } from '@/constants/config';
-import { isValidEmail, isValidMobile, generateId, formatCurrency, generateCenterCode } from '@/lib/utils';
+import { isValidEmail, isValidMobile, generateId, formatCurrency, generateCenterCode, compressImage } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import logoImg from '@/assets/gphdm-logo.png';
@@ -340,33 +340,52 @@ export function CenterRegistrationPage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Check file size (max 5MB for base64 safety)
-    if (file.size > 5 * 1024 * 1024) {
+    // Check file size (max 2MB after compression, but warn if extremely large before)
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Maximum file size is 5MB",
+        description: "Please upload an image smaller than 10MB.",
         variant: "destructive"
       });
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setFormData(prev => ({
-        ...prev,
-        [field]: base64String,
-        [`${field}Name`]: file.name
-      }));
+    const compressToast = toast({
+      title: "Processing Document",
+      description: "Optimizing image for upload...",
+    });
 
-      toast({
-        title: language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document Selected',
-        description: file.name,
-      });
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        // Auto-compress to under 2MB
+        const compressedBase64 = await compressImage(file, 2);
+
+        setFormData(prev => ({
+          ...prev,
+          [field]: compressedBase64,
+          [`${field}Name`]: file.name
+        }));
+
+        compressToast.dismiss();
+        toast({
+          title: language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document Selected',
+          description: file.name,
+        });
+      } catch (error) {
+        console.error('Compression error:', error);
+        compressToast.dismiss();
+        toast({
+          title: "Error",
+          description: "Failed to process image.",
+          variant: "destructive"
+        });
+      }
     };
     reader.readAsDataURL(file);
     event.target.value = '';
   };
+
   const removeFile = (field: keyof CenterFormData) => {
     setFormData(prev => ({
       ...prev,

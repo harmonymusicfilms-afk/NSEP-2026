@@ -103,9 +103,53 @@ export function StudentDashboard() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Payment Status</p>
-                <p className={cn("font-semibold", hasPaid ? 'text-green-600' : 'text-yellow-600')}>
-                  {hasPaid ? 'Verified' : 'Pending'}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className={cn("font-semibold", hasPaid ? 'text-green-600' : 'text-yellow-600')}>
+                    {hasPaid ? 'Verified' : 'Pending'}
+                  </p>
+                  {!hasPaid && useAuthStore.getState().isAdminLoggedIn && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-green-600 border-green-200 hover:bg-green-50 font-bold border-2 ml-2"
+                      onClick={async () => {
+                        const pendingPayment = payments.find(p => p.studentId === currentStudent.id && p.status === 'PENDING');
+                        if (pendingPayment) {
+                          if (confirm(`Approve payment for ${currentStudent.name}?`)) {
+                            await usePaymentStore.getState().approvePayment(pendingPayment.id);
+                            toast({ title: "Approved", description: "Payment approved successfully." });
+                          }
+                        } else {
+                          toast({ title: "No Pending Payment", description: "No pending payment found to approve.", variant: "default" });
+                        }
+                      }}
+                    >
+                      <CheckCircle className="size-3 mr-1" />
+                      ADMIN APPROVE
+                    </Button>
+                  )}
+                  {hasPaid && useAuthStore.getState().isAdminLoggedIn && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2 text-yellow-600 border-yellow-200 hover:bg-yellow-50 font-bold border-2 ml-2"
+                      onClick={async () => {
+                        const successPayment = payments.find(p => p.studentId === currentStudent.id && p.status === 'SUCCESS');
+                        if (successPayment) {
+                          if (confirm(`Mark payment as pending for ${currentStudent.name}?`)) {
+                            await usePaymentStore.getState().markPaymentPending(successPayment.id);
+                            toast({ title: "Marked Pending", description: "Payment status set to pending." });
+                          }
+                        } else {
+                          toast({ title: "No Success Payment", description: "No successful payment found to mark as pending.", variant: "default" });
+                        }
+                      }}
+                    >
+                      <AlertTriangle className="size-3 mr-1" />
+                      ADMIN PENDING
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>

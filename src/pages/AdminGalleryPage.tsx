@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useGalleryStore } from '@/stores';
+import { compressImage } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { GalleryItem } from '@/types';
@@ -60,22 +61,19 @@ export function AdminGalleryPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const editFileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, isEdit: boolean) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            toast({
-                title: "File too large",
-                description: "Maximum file size is 5MB",
-                variant: "destructive"
-            });
-            return;
-        }
+        const compressToast = toast({
+            title: "Processing Image",
+            description: "Optimizing for gallery...",
+        });
 
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const base64String = reader.result as string;
+        try {
+            // Auto-compress to under 2MB
+            const base64String = await compressImage(file, 2);
+
             // Save image to localStorage to avoid DB column size limits
             const localKey = `gallery_img_${Date.now()}`;
             try {
@@ -95,12 +93,21 @@ export function AdminGalleryPage() {
                     setNewItem(prev => ({ ...prev, imageUrl: base64String }));
                 }
             }
+
+            compressToast.dismiss();
             toast({
                 title: "Image Uploaded ✓",
                 description: file.name
             });
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Compression error:', error);
+            compressToast.dismiss();
+            toast({
+                title: "Error",
+                description: "Failed to process image.",
+                variant: "destructive"
+            });
+        }
         event.target.value = '';
     };
 
@@ -330,7 +337,7 @@ export function AdminGalleryPage() {
                                         id="category"
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         value={newItem.category}
-                                        onChange={(e) => setNewItem({ ...newItem, category: e.target.value })}
+                                        onChange={(e) => setNewItem({ ...newItem, category: e.target.value as any })}
                                     >
                                         <option value="CEREMONY">Ceremony</option>
                                         <option value="TOPPERS">Toppers</option>
@@ -467,7 +474,7 @@ export function AdminGalleryPage() {
                                         id="edit-category"
                                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                         value={editForm.category}
-                                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                                        onChange={(e) => setEditForm({ ...editForm, category: e.target.value as any })}
                                     >
                                         <option value="CEREMONY">Ceremony</option>
                                         <option value="TOPPERS">Toppers</option>

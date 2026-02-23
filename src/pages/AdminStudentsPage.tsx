@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Eye, Ban, CheckCircle, MoreHorizontal, Camera, Pencil, User, Upload, X, Loader2, Save } from 'lucide-react';
+import { Search, Eye, Ban, CheckCircle, MoreHorizontal, Camera, Pencil, User, Upload, X, Loader2, Save, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useAuthStore, useStudentStore, usePaymentStore, useAdminLogStore } from '@/stores';
-import { formatDate, getStatusColorClass } from '@/lib/utils';
+import { formatDate, getStatusColorClass, compressImage } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import type { Student } from '@/types';
@@ -140,7 +140,7 @@ export function AdminStudentsPage() {
     setIsEditDialogOpen(true);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
@@ -155,24 +155,41 @@ export function AdminStudentsPage() {
       return;
     }
 
-    // Validate file size (2MB max)
-    if (file.size > MAX_FILE_SIZE) {
+    // Auto-compress image to under 2MB
+    const compressToast = toast({
+      title: "Processing Image",
+      description: "Optimizing photo for upload...",
+    });
+
+    try {
+      const compressedBase64 = await compressImage(file);
+      setPreviewUrl(compressedBase64);
+
+      // Convert base64 back to file for the upload function if needed, 
+      // or modify uploadPhoto to accept base64. 
+      // For now, let's just keep the file if it's already under 2MB, 
+      // otherwise use the compressed base64 approach.
+
+      if (file.size > MAX_FILE_SIZE) {
+        // Create a new file from compressed base64
+        const res = await fetch(compressedBase64);
+        const blob = await res.blob();
+        const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+        setSelectedFile(compressedFile);
+      } else {
+        setSelectedFile(file);
+      }
+
+      compressToast.dismiss();
+    } catch (error) {
+      console.error('Compression error:', error);
       toast({
-        title: "File Too Large",
-        description: "Please upload an image smaller than 2MB.",
+        title: "Error",
+        description: "Failed to process image. Please try a different one.",
         variant: "destructive"
       });
-      return;
+      compressToast.dismiss();
     }
-
-    setSelectedFile(file);
-
-    // Create preview URL
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setPreviewUrl(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleRemoveFile = () => {
@@ -428,23 +445,66 @@ export function AdminStudentsPage() {
                           <User className="size-5 text-muted-foreground" />
                         </div>
                       )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2"
-                        onClick={() => openPhotoDialog(student)}
-                      >
-                        <Camera className="size-3 mr-1" />
-                        {student.photoUrl ? 'Change' : 'Add'}
-                      </Button>
                     </div>
                   </TableCell>
                   <TableCell>Class {student.class}</TableCell>
                   <TableCell className="font-mono text-xs">{student.centerCode}</TableCell>
                   <TableCell>
-                    <Badge variant={hasSuccessfulPayment(student.id) ? 'default' : 'secondary'}>
-                      {hasSuccessfulPayment(student.id) ? 'Paid' : 'Pending'}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={hasSuccessfulPayment(student.id) ? 'default' : 'secondary'}>
+                        {hasSuccessfulPayment(student.id) ? 'Paid' : 'Pending'}
+                      </Badge>
+                      {!hasSuccessfulPayment(student.id) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-green-600 border-green-200 hover:bg-green-50"
+                          onClick={async () => {
+                            const pendingPayment = payments.find(p => p.studentId === student.id && p.status === 'PENDING');
+                            if (pendingPayment) {
+                              if (confirm(`Approve payment for ${student.name}?`)) {
+                                try {
+                                  await usePaymentStore.getState().approvePayment(pendingPayment.id);
+                                  toast({ title: "Approved", description: "Payment approved successfully." });
+                                } catch (e) {
+                                  toast({ title: "Error", description: "Failed to approve payment.", variant: "destructive" });
+                                }
+                              }
+                            } else {
+                              toast({ title: "No Pending Payment", description: "This student has no pending payment to approve.", variant: "default" });
+                            }
+                          }}
+                        >
+                          <CheckCircle className="size-3 mr-1" />
+                          Approve
+                        </Button>
+                      )}
+                      {hasSuccessfulPayment(student.id) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-yellow-600 border-yellow-200 hover:bg-yellow-50"
+                          onClick={async () => {
+                            const successPayment = payments.find(p => p.studentId === student.id && p.status === 'SUCCESS');
+                            if (successPayment) {
+                              if (confirm(`Mark payment as pending for ${student.name}?`)) {
+                                try {
+                                  await usePaymentStore.getState().markPaymentPending(successPayment.id);
+                                  toast({ title: "Marked Pending", description: "Payment status set to pending." });
+                                } catch (e) {
+                                  toast({ title: "Error", description: "Failed to mark payment as pending.", variant: "destructive" });
+                                }
+                              }
+                            } else {
+                              toast({ title: "No Success Payment", description: "No successful payment found to mark as pending.", variant: "default" });
+                            }
+                          }}
+                        >
+                          <AlertTriangle className="size-3 mr-1" />
+                          Mark Pending
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className={`status-badge ${getStatusColorClass(student.status)}`}>
@@ -577,6 +637,18 @@ export function AdminStudentsPage() {
                   <p className="font-medium">Class {selectedStudent.class}</p>
                 </div>
                 <div>
+                  <p className="text-muted-foreground">Referred By</p>
+                  <p className="font-medium">
+                    {selectedStudent.referredByCenter ? (
+                      <span className="text-primary font-mono">{selectedStudent.referredByCenter} (Center)</span>
+                    ) : selectedStudent.referredByStudent ? (
+                      <span className="text-primary font-mono">{selectedStudent.referredByStudent} (Student)</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </p>
+                </div>
+                <div>
                   <p className="text-muted-foreground">Mobile</p>
                   <p className="font-medium">{selectedStudent.mobile}</p>
                 </div>
@@ -594,16 +666,66 @@ export function AdminStudentsPage() {
                     {selectedStudent.addressVillage}, {selectedStudent.addressBlock}, {selectedStudent.addressDistrict}, {selectedStudent.addressState}
                   </p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Center Code</p>
-                  <p className="font-mono font-medium">{selectedStudent.centerCode}</p>
+                <div className="col-span-2 pt-2 border-t mt-2">
+                  <p className="text-muted-foreground mb-1">Payment Status</p>
+                  <div className="flex items-center justify-between bg-muted/50 p-2 rounded-lg">
+                    <Badge variant={hasSuccessfulPayment(selectedStudent.id) ? 'default' : 'secondary'}>
+                      {hasSuccessfulPayment(selectedStudent.id) ? 'Paid' : 'Pending'}
+                    </Badge>
+                    {!hasSuccessfulPayment(selectedStudent.id) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-green-600 border-green-200 hover:bg-green-50 h-8"
+                        onClick={async () => {
+                          const pendingPayment = payments.find(p => p.studentId === selectedStudent.id && p.status === 'PENDING');
+                          if (pendingPayment) {
+                            if (confirm(`Approve payment for ${selectedStudent.name}?`)) {
+                              await usePaymentStore.getState().approvePayment(pendingPayment.id);
+                              toast({ title: "Approved", description: "Payment approved successfully." });
+                            }
+                          } else {
+                            toast({ title: "No Pending Payment", description: "This student has no pending payment to approve.", variant: "default" });
+                          }
+                        }}
+                      >
+                        <CheckCircle className="size-3 mr-1" />
+                        Approve Payment
+                      </Button>
+                    )}
+                    {hasSuccessfulPayment(selectedStudent.id) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-yellow-600 border-yellow-200 hover:bg-yellow-50 h-8"
+                        onClick={async () => {
+                          const successPayment = payments.find(p => p.studentId === selectedStudent.id && p.status === 'SUCCESS');
+                          if (successPayment) {
+                            if (confirm(`Mark payment as pending for ${selectedStudent.name}?`)) {
+                              await usePaymentStore.getState().markPaymentPending(successPayment.id);
+                              toast({ title: "Marked Pending", description: "Payment status set to pending." });
+                            }
+                          } else {
+                            toast({ title: "No Success Payment", description: "No successful payment found to mark as pending.", variant: "default" });
+                          }
+                        }}
+                      >
+                        <AlertTriangle className="size-3 mr-1" />
+                        Mark Pending
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Status</p>
-                  <span className={`status-badge ${getStatusColorClass(selectedStudent.status)}`}>
-                    {selectedStudent.status}
-                  </span>
-                </div>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Center Code</p>
+                <p className="font-mono font-medium">{selectedStudent.centerCode}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Status</p>
+                <span className={`status-badge ${getStatusColorClass(selectedStudent.status)}`}>
+                  {selectedStudent.status}
+                </span>
               </div>
             </div>
           )}
@@ -922,6 +1044,6 @@ export function AdminStudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

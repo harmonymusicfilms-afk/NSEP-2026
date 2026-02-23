@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2 } from 'lucide-react';
+import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { useStudentStore, useAuthStore, useReferralStore, usePaymentStore, useCenterRewardStore } from '@/stores';
 import { CLASSES, INDIAN_STATES, getExamFee, APP_CONFIG, POLICY_CONFIG, REFERRAL_CONFIG, RAZORPAY_CONFIG } from '@/constants/config';
-import { isValidEmail, isValidMobile, formatCurrency, generateId, generateCenterCode } from '@/lib/utils';
+import { isValidEmail, isValidMobile, formatCurrency, generateId, generateCenterCode, compressImage } from '@/lib/utils';
 import { STATE_DISTRICTS } from '@/constants/districts';
 import { supabase } from '@/lib/supabase';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -34,6 +34,7 @@ interface FormData {
   addressState: string;
   referredByCenter: string;
   password?: string;
+  photoUrl: string;
 }
 
 interface ConsentData {
@@ -57,7 +58,14 @@ const initialFormData: FormData = {
   addressState: '',
   referredByCenter: '',
   password: '',
+  photoUrl: '',
 };
+
+// Maximum file size: 2MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024;
+
+// Allowed image types
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 const initialConsentData: ConsentData = {
   termsAccepted: false,
@@ -85,6 +93,8 @@ export function RegisterPage() {
   const [registeredStudent, setRegisteredStudent] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const [showReferralGate, setShowReferralGate] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -121,6 +131,7 @@ export function RegisterPage() {
         addressState: currentStudent.addressState || INDIAN_STATES[0],
         referredByCenter: currentStudent.referredByCenter || currentStudent.referredByStudent || '',
         password: '', // Password cannot be retrieved
+        photoUrl: currentStudent.photoUrl || '',
       });
 
       // If already paid, move to address step
@@ -526,6 +537,70 @@ export function RegisterPage() {
         description: errorMsg,
       });
       setIsProcessingPayment(false);
+    }
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingStudentId) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast({ title: "Invalid File", description: "Only JPG, PNG and WebP are allowed.", variant: "destructive" });
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: "File Too Large", description: "Image size must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const compressedFile = await compressImage(file, 800);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${pendingStudentId}_${Date.now()}.${fileExt}`;
+      const filePath = `student-photos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(filePath, compressedFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(filePath);
+
+      updateField('photoUrl', publicUrl);
+
+      // Save it immediately so they don't lose it if they refresh
+      await useStudentStore.getState().updateStudent(pendingStudentId, { photoUrl: publicUrl });
+      toast({ title: "Success", description: "Profile photo uploaded successfully." });
+    } catch (error) {
+      console.error("Upload error", error);
+      toast({ title: "Upload Failed", description: "Could not upload photo.", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    if (!formData.photoUrl || !pendingStudentId) return;
+
+    setIsUploading(true);
+    try {
+      const urlMatches = formData.photoUrl.match(/documents\/(.+)$/);
+      if (urlMatches && urlMatches[1]) {
+        await supabase.storage.from('documents').remove([urlMatches[1]]);
+      }
+
+      updateField('photoUrl', '');
+      await useStudentStore.getState().updateStudent(pendingStudentId, { photoUrl: null });
+      toast({ title: "Success", description: "Photo removed successfully." });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to remove photo.", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -979,6 +1054,64 @@ export function RegisterPage() {
                 {/* Address Step */}
                 {step === 'address' && (
                   <div className="space-y-4">
+                    {/* Photo Upload Section */}
+                    <div className="border-b pb-6 mb-4">
+                      <Label className="text-base font-semibold mb-3 block">Profile Photo (Optional)</Label>
+                      <div className="flex flex-col sm:flex-row items-center gap-6">
+                        <div className="relative group shrink-0">
+                          <div className="size-24 rounded-full border-4 border-muted overflow-hidden bg-muted flex items-center justify-center relative shadow-sm">
+                            {formData.photoUrl ? (
+                              <img src={formData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="size-10 text-muted-foreground" />
+                            )}
+                            {isUploading && (
+                              <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                                <Loader2 className="size-6 animate-spin text-primary" />
+                              </div>
+                            )}
+                          </div>
+                          {formData.photoUrl && (
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 size-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              onClick={handleRemovePhoto}
+                              disabled={isUploading}
+                            >
+                              <X className="size-3" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-3 flex-1 text-center sm:text-left">
+                          <p className="text-sm text-muted-foreground">
+                            Upload a recent passport-size photograph. This will be used for your admit card and certificate.
+                          </p>
+                          <div className="flex justify-center sm:justify-start">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/webp"
+                              className="hidden"
+                              ref={fileInputRef}
+                              onChange={handlePhotoUpload}
+                              disabled={isUploading}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploading}
+                              className="gap-2"
+                            >
+                              <Camera className="size-4" />
+                              {formData.photoUrl ? 'Change Photo' : 'Upload Photo'}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Primary Location Selection First */}
                     <div className="grid sm:grid-cols-2 gap-4 border-b pb-4 mb-4">
                       <div className="space-y-2">

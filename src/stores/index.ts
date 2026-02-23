@@ -377,25 +377,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       // ✅ SUPER ADMIN LOGIN - First authenticate with Supabase, then setup admin
       if (email.toLowerCase().trim() === 'grampanchayat023@gmail.com' && password === 'admin123') {
-        // Await the Supabase auth so real session token is set BEFORE any DB calls
-        const { data: authData } = await supabase.auth.signInWithPassword({
+        const actualSupabasePassword = 'grampanchayat_admin';
+
+        // Force sign out first to clear any student session
+        await supabase.auth.signOut();
+
+        let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: email.trim(),
-          password,
+          password: actualSupabasePassword,
         });
 
-        // Upsert admin_users row so RLS policies work
-        if (authData?.user) {
-          await supabase.from('admin_users').upsert([{
-            id: authData.user.id,
-            name: 'Gram Panchayat Admin',
+        // If not found or invalid, attempt to create/reset it
+        if (authError && authError.message.toLowerCase().includes('invalid login credentials')) {
+          // If the real password was actually missing/deleted
+          const signUpRes = await supabase.auth.signUp({
             email: email.trim(),
-            role: 'SUPER_ADMIN',
-            last_login: new Date().toISOString()
-          }]);
+            password: actualSupabasePassword,
+          });
+          authData = signUpRes.data;
+          authError = signUpRes.error;
         }
 
+        if (authError || !authData?.user) {
+          throw new Error('Super Admin authentication failed: ' + (authError?.message || 'No user data'));
+        }
+
+        // Upsert admin_users row so RLS policies work
+        // Note: this may fail if infinite recursion RLS policy exists, we catch it silently
+        const { error: upsertError } = await supabase.from('admin_users').upsert([{
+          id: authData.user.id,
+          name: 'Gram Panchayat Admin',
+          email: email.trim(),
+          role: 'SUPER_ADMIN',
+          last_login: new Date().toISOString()
+        }]);
+
+        if (upsertError) console.error("Could not upsert admin user:", upsertError);
+
         const admin: AdminUser = {
-          id: authData?.user?.id || 'super-admin-001',
+          id: authData.user.id,
           name: 'Gram Panchayat Admin',
           email: 'grampanchayat023@gmail.com',
           role: 'SUPER_ADMIN',
@@ -408,6 +428,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // Normal admin login via Supabase Auth
+      await supabase.auth.signOut();
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
@@ -722,6 +743,8 @@ interface PaymentState {
   createPayment: (studentId: string, amount: number) => Promise<Payment | null>;
   verifyPayment: (paymentId: string, razorpayPaymentId: string, signature: string) => Promise<Payment | null>;
   failPayment: (paymentId: string) => Promise<void>;
+  approvePayment: (paymentId: string) => Promise<void>;
+  markPaymentPending: (paymentId: string) => Promise<void>;
   getPaymentsByStudent: (studentId: string) => Payment[];
   hasSuccessfulPayment: (studentId: string) => boolean;
 }
@@ -847,6 +870,73 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       });
     } catch (error) {
       console.error('Error failing payment:', error);
+    }
+  },
+
+  approvePayment: async (paymentId) => {
+    try {
+      const payment = get().payments.find(p => p.id === paymentId);
+      if (!payment) return;
+
+      const { data, error } = await supabase
+        .from('payments')
+        .update({
+          status: 'SUCCESS',
+          paid_at: new Date().toISOString(),
+          razorpay_payment_id: `manual_${Date.now()}`
+        })
+        .eq('id', paymentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      const updatedPayment = mapPayment(data);
+
+      // Update student status to ACTIVE
+      await useStudentStore.getState().updateStudent(updatedPayment.studentId, { status: 'ACTIVE' });
+
+      set({
+        payments: get().payments.map((p) => (p.id === paymentId ? updatedPayment : p)),
+      });
+    } catch (error) {
+      console.error('Error approving payment:', error);
+      throw error;
+    }
+  },
+
+  markPaymentPending: async (paymentId) => {
+    try {
+      const payment = get().payments.find(p => p.id === paymentId);
+      if (!payment) return;
+
+      const { data, error } = await supabase
+        .from('payments')
+        .update({
+          status: 'PENDING',
+          paid_at: null,
+          razorpay_payment_id: null,
+          razorpay_signature: null
+        })
+        .eq('id', paymentId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      const updatedPayment = mapPayment(data);
+
+      // We might also update the student to 'PENDING', but they might have other success payments
+      // For safety, let's update student status back to PENDING if they have no other successful payments
+      const otherPayments = get().payments.filter(p => p.studentId === updatedPayment.studentId && p.id !== paymentId && p.status === 'SUCCESS');
+      if (otherPayments.length === 0) {
+        await useStudentStore.getState().updateStudent(updatedPayment.studentId, { status: 'PENDING' });
+      }
+
+      set({
+        payments: get().payments.map((p) => (p.id === paymentId ? updatedPayment : p)),
+      });
+    } catch (error) {
+      console.error('Error marking payment as pending:', error);
+      throw error;
     }
   },
 
@@ -1058,9 +1148,19 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
   loadReferralData: async () => {
     set({ isLoading: true });
     try {
-      const { data: codes } = await supabase.from('referral_codes').select('*').order('created_at', { ascending: false });
-      const { data: logs } = await supabase.from('referral_logs').select('*').order('created_at', { ascending: false });
-      const { data: centers } = await supabase.from('centers').select('*').order('created_at', { ascending: false });
+      const safeFetch = async (query: any) => {
+        try {
+          return await query;
+        } catch (e) {
+          return { data: [] };
+        }
+      };
+
+      const [{ data: codes }, { data: logs }, { data: centers }] = await Promise.all([
+        safeFetch(supabase.from('referral_codes').select('*').order('created_at', { ascending: false })),
+        safeFetch(supabase.from('referral_logs').select('*').order('created_at', { ascending: false })),
+        safeFetch(supabase.from('centers').select('*').order('created_at', { ascending: false }))
+      ]);
 
       // Also load locally stored codes (saved when DB insert is blocked by RLS)
       const localCodesRaw = localStorage.getItem('gphdm_referral_codes_local');

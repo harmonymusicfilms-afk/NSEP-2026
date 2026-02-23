@@ -16,11 +16,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore, usePaymentStore, useStudentStore } from '@/stores';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export function AdminPaymentsPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { currentAdmin, isAdminLoggedIn } = useAuthStore();
-  const { payments, loadPayments } = usePaymentStore();
+  const { payments, loadPayments, approvePayment } = usePaymentStore();
   const { students, loadStudents } = useStudentStore();
 
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -109,6 +111,24 @@ export function AdminPaymentsPage() {
     a.click();
   };
 
+  const handleApprove = async (paymentId: string, studentName: string) => {
+    if (confirm(`Are you sure you want to manually approve the payment for ${studentName}?`)) {
+      try {
+        await approvePayment(paymentId);
+        toast({
+          title: "Payment Approved",
+          description: `Payment for ${studentName} has been successfully approved.`
+        });
+      } catch (error) {
+        toast({
+          title: "Approval Failed",
+          description: "Failed to approve payment. Please try again.",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -119,10 +139,16 @@ export function AdminPaymentsPage() {
           </h1>
           <p className="text-muted-foreground">Manage and monitor all payment transactions</p>
         </div>
-        <Button onClick={handleExport} className="gap-2">
-          <Download className="size-4" />
-          Export CSV
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => { loadPayments(); loadStudents(); }} className="gap-2">
+            <Clock className="size-4" />
+            Refresh Data
+          </Button>
+          <Button onClick={handleExport} className="gap-2">
+            <Download className="size-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -192,6 +218,7 @@ export function AdminPaymentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Student</TableHead>
+                    <TableHead className="bg-green-50 text-green-800 font-black">APPROVAL ACTION</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
@@ -204,18 +231,36 @@ export function AdminPaymentsPage() {
                   {filteredPayments.map((payment) => {
                     const student = students.find((s) => s.id === payment.studentId);
                     return (
-                      <TableRow key={payment.id}>
+                      <TableRow key={payment.id} className={payment.status === 'PENDING' ? 'bg-yellow-50/30' : ''}>
                         <TableCell>
                           <div>
                             <p className="font-medium">{student?.name || 'Unknown'}</p>
-                            <p className="text-xs text-muted-foreground">{student?.email}</p>
+                            <p className="text-xs text-muted-foreground">{student?.email || 'No email'}</p>
                           </div>
                         </TableCell>
-                        <TableCell>{student?.class || 'N/A'}</TableCell>
+                        <TableCell className="bg-green-50/50">
+                          {payment.status === 'PENDING' ? (
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="bg-green-600 hover:bg-green-700 text-white h-9 px-4 gap-2 font-black shadow-lg border-2 border-white ring-2 ring-green-600 animate-bounce"
+                              onClick={() => handleApprove(payment.id, student?.name || 'Unknown')}
+                            >
+                              <CheckCircle className="size-4" />
+                              APPROVE NOW
+                            </Button>
+                          ) : (
+                            <div className="flex items-center gap-1 text-green-600 font-bold text-xs">
+                              <CheckCircle className="size-3" />
+                              VERIFIED
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>Class {student?.class || 'N/A'}</TableCell>
                         <TableCell className="font-semibold">{formatCurrency(payment.amount)}</TableCell>
                         <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                        <TableCell className="font-mono text-xs">{payment.razorpayOrderId}</TableCell>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="font-mono text-xs text-muted-foreground">{payment.razorpayOrderId}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted-foreground">
                           {payment.razorpayPaymentId || '-'}
                         </TableCell>
                         <TableCell className="text-sm">
