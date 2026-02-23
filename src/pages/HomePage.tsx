@@ -119,18 +119,15 @@ export function HomePage() {
               </div>
 
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-7xl font-bold leading-tight tracking-tight text-white mb-4">
-                {t('home.hero.title').split(' ').map((word, i, arr) => (
-                  <span key={i}>
-                    {word === 'Trusted' || word === 'भरोसेमंद' ? (
-                      <span className="text-primary italic font-medium">{word}</span>
-                    ) : word}
-                    {i < arr.length - 1 ? ' ' : ''}
-                  </span>
-                ))}
+                {t('home.hero.title')}
               </h1>
 
-              <p className="text-xl sm:text-2xl font-medium text-primary mb-6 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200">
+              <p className="text-xl sm:text-2xl font-bold text-primary mb-2 animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-200 bg-primary/10 inline-block px-4 py-1 rounded-lg border border-primary/20">
                 {t('home.hero.missionLine')}
+              </p>
+
+              <p className="text-lg sm:text-xl font-medium text-white/90 mb-6 uppercase tracking-wider">
+                {t('home.hero.production')}
               </p>
 
               <p className="text-lg sm:text-xl text-white/70 max-w-xl mx-auto lg:mx-0 leading-relaxed mb-4">

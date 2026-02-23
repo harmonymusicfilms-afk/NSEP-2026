@@ -28,8 +28,9 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.admin': 'Admin',
 
     // Home Page
-    'home.hero.title': 'S.V. MEDIA FILMS PRODUCTION',
+    'home.hero.title': 'GPHDM National Scholarship Certificate',
     'home.hero.missionLine': 'Through Gram Panchayat Help Mission',
+    'home.hero.production': 'S.V. MEDIA FILMS PRODUCTION',
     'home.hero.subtitle': 'Empowering students across India through merit-based scholarships. Register now for Class 1-12 examinations.',
     'home.hero.registerBtn': 'Register Now',
     'home.hero.learnMore': 'Learn More',
@@ -244,8 +245,9 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.admin': 'एडमिन',
 
     // Home Page
-    'home.hero.title': 'S.V. MEDIA FILMS PRODUCTION',
+    'home.hero.title': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति प्रमाणपत्र',
     'home.hero.missionLine': 'ग्राम पंचायत हेल्प मिशन के माध्यम से',
+    'home.hero.production': 'S.V. MEDIA FILMS PRODUCTION',
     'home.hero.subtitle': 'योग्यता-आधारित छात्रवृत्ति के माध्यम से भारत भर के छात्रों को सशक्त बनाना। कक्षा 1-12 परीक्षाओं के लिए अभी पंजीकरण करें।',
     'home.hero.registerBtn': 'अभी पंजीकरण करें',
     'home.hero.learnMore': 'और जानें',

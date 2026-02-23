@@ -33,7 +33,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/lib/supabase';
 import logoImg from '@/assets/gphdm-logo.png';
 
-type Step = 'details' | 'owner' | 'address' | 'documents' | 'review' | 'success';
+type Step = 'details' | 'owner' | 'payment' | 'address' | 'documents' | 'review' | 'success';
 
 interface CenterFormData {
   centerName: string;
@@ -55,6 +55,9 @@ interface CenterFormData {
   addressProofName?: string;
   centerPhotoName?: string;
   password?: string;
+  transactionId: string;
+  paymentScreenshotUrl: string;
+  paymentScreenshotName?: string;
 }
 
 const initialFormData: CenterFormData = {
@@ -74,6 +77,8 @@ const initialFormData: CenterFormData = {
   addressProofUrl: '',
   centerPhotoUrl: '',
   password: '',
+  transactionId: '',
+  paymentScreenshotUrl: '',
 };
 
 const centerTypes = [
@@ -100,9 +105,10 @@ export function CenterRegistrationPage() {
   const addressProofRef = useRef<HTMLInputElement>(null);
   const centerPhotoRef = useRef<HTMLInputElement>(null);
 
+  const paymentScreenshotRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
 
   useEffect(() => {
     console.log("NSEP Debug - Form Data Updated:", formData);
@@ -120,6 +126,7 @@ export function CenterRegistrationPage() {
   const steps: { key: Step; label: string; labelHi: string; icon: typeof Building2 }[] = [
     { key: 'details', label: 'Center Details', labelHi: 'केंद्र विवरण', icon: Building2 },
     { key: 'owner', label: 'Owner Info', labelHi: 'स्वामी जानकारी', icon: User },
+    { key: 'payment', label: 'Payment', labelHi: 'भुगतान', icon: Gift },
     { key: 'address', label: 'Address', labelHi: 'पता', icon: MapPin },
     { key: 'documents', label: 'Documents', labelHi: 'दस्तावेज़', icon: FileText },
     { key: 'review', label: 'Review', labelHi: 'समीक्षा', icon: CheckCircle },
@@ -169,6 +176,14 @@ export function CenterRegistrationPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validatePaymentStep = (): boolean => {
+    const newErrors: Partial<Record<keyof CenterFormData, string>> = {};
+    if (!formData.transactionId.trim()) newErrors.transactionId = 'Transaction ID is required';
+    if (!formData.paymentScreenshotUrl) newErrors.paymentScreenshotUrl = 'Payment screenshot is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const validateAddressStep = (): boolean => {
     const newErrors: Partial<Record<keyof CenterFormData, string>> = {};
     if (!formData.fullAddress.trim()) newErrors.fullAddress = 'Address is required';
@@ -197,14 +212,16 @@ export function CenterRegistrationPage() {
 
   const handleNext = () => {
     if (step === 'details' && validateDetailsStep()) setStep('owner');
-    else if (step === 'owner' && validateOwnerStep()) setStep('address');
+    else if (step === 'owner' && validateOwnerStep()) setStep('payment');
+    else if (step === 'payment' && validatePaymentStep()) setStep('address');
     else if (step === 'address' && validateAddressStep()) setStep('documents');
     else if (step === 'documents' && validateDocumentsStep()) setStep('review');
   };
 
   const handleBack = () => {
     if (step === 'owner') setStep('details');
-    else if (step === 'address') setStep('owner');
+    else if (step === 'payment') setStep('owner');
+    else if (step === 'address') setStep('payment');
     else if (step === 'documents') setStep('address');
     else if (step === 'review') setStep('documents');
   };
@@ -287,6 +304,8 @@ export function CenterRegistrationPage() {
           id_proof_url: center.idProofUrl,
           address_proof_url: center.addressProofUrl,
           center_photo_url: center.centerPhotoUrl,
+          transaction_id: formData.transactionId,
+          payment_screenshot_url: formData.paymentScreenshotUrl,
         }]);
 
       if (error) throw error;
@@ -700,6 +719,130 @@ export function CenterRegistrationPage() {
               </div>
             )}
 
+            {/* Payment Step */}
+            {step === 'payment' && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-right duration-500">
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-6 text-center">
+                  <h3 className="text-xl font-bold text-primary mb-2">
+                    {language === 'hi' ? 'पंजीकरण शुल्क: ₹500' : 'Registration Fee: ₹500'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {language === 'hi'
+                      ? 'पार्टनर बनने के लिए कृपया नीचे दिए गए QR कोड को स्कैन करके ₹500 का भुगतान करें।'
+                      : 'Please scan the QR code below to pay ₹500 to become a partner.'}
+                  </p>
+
+                  <div className="max-w-[280px] mx-auto bg-white p-4 rounded-2xl shadow-xl border-4 border-primary/10 mb-6">
+                    {/* QR Code Placeholder - User will replace this or I will provide asset */}
+                    <div className="aspect-square bg-muted flex items-center justify-center rounded-lg overflow-hidden relative group">
+                      <img
+                        src="/qr-code-placeholder.png"
+                        alt="Payment QR Code"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=Vyapar.175692887286@hdfcbank&pn=GRAM%20PANCHAYAT%20HELP%20DESK%20MISSION&am=500&cu=INR";
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <p className="text-white text-xs font-bold px-4 text-center">Scan with GPay, PhonePe or any UPI app</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-dashed">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">UPI ID</p>
+                      <p className="text-sm font-mono font-bold text-primary">Vyapar.175692887286@hdfcbank</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 text-left">
+                    <div className="space-y-2">
+                      <Label htmlFor="transactionId">
+                        {language === 'hi' ? 'ट्रांजैक्शन ID' : 'Transaction / UTR ID'} *
+                      </Label>
+                      <Input
+                        id="transactionId"
+                        value={formData.transactionId}
+                        onChange={(e) => updateField('transactionId', e.target.value)}
+                        placeholder="Enter 12-digit Transaction ID"
+                        className={errors.transactionId ? 'border-destructive' : ''}
+                      />
+                      {errors.transactionId && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="size-3" /> {errors.transactionId}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>{language === 'hi' ? 'पेमेंट स्क्रीनशॉट' : 'Payment Screenshot'} *</Label>
+                      <input
+                        type="file"
+                        ref={paymentScreenshotRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, 'paymentScreenshotUrl')}
+                      />
+                      <div
+                        onClick={() => paymentScreenshotRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-4 cursor-pointer transition-all hover:bg-primary/5 flex flex-col items-center justify-center gap-2 ${errors.paymentScreenshotUrl ? 'border-destructive bg-destructive/5' : 'border-muted-foreground/20'}`}
+                      >
+                        {formData.paymentScreenshotUrl ? (
+                          <div className="flex items-center gap-3 w-full">
+                            <div className="size-16 rounded bg-white border p-1">
+                              <img src={formData.paymentScreenshotUrl} alt="Screenshot" className="w-full h-full object-cover rounded shadow-sm" />
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="text-xs font-bold truncate">{formData.paymentScreenshotName || 'Screenshot uploaded'}</p>
+                              <p className="text-[10px] text-green-600 font-bold uppercase tracking-widest mt-0.5">File Ready ✓</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeFile('paymentScreenshotUrl');
+                              }}
+                            >
+                              ×
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="size-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Upload className="size-5 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-bold">{language === 'hi' ? 'स्क्रीनशॉट अपलोड करें' : 'Upload Screenshot'}</p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-tighter">Images only (JPG, PNG)</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      {errors.paymentScreenshotUrl && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertCircle className="size-3" /> {errors.paymentScreenshotUrl}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-8 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-amber-800 uppercase tracking-widest mb-1">
+                        {language === 'hi' ? 'महत्वपूर्ण सूचना' : 'Important Notice'}
+                      </p>
+                      <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                        {language === 'hi'
+                          ? 'भुगतान के बाद आपके आवेदन को सुपर एडमिन द्वारा सत्यापित किया जाएगा। इस प्रक्रिया में 24 घंटे तक का समय लग सकता है। अनुमोदन के बाद ही आपका सेंटर कोड सक्रिय होगा।'
+                          : 'After payment, your application will be verified by the Super Admin. This process can take up to 24 hours. Your Center Code will be activated only after approval.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Address Step */}
             {step === 'address' && (
               <div className="space-y-4">
@@ -1039,6 +1182,19 @@ export function CenterRegistrationPage() {
                   <p className="text-sm">
                     {formData.fullAddress}, {formData.village}, {formData.block}, {formData.district}, {formData.state} - {formData.pincode}
                   </p>
+                </div>
+
+                <div className="bg-muted rounded-lg p-4 space-y-3">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Gift className="size-4" />
+                    {language === 'hi' ? 'भुगतान विवरण' : 'Payment Details'}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-muted-foreground">{language === 'hi' ? 'ट्रांजैक्शन ID:' : 'Transaction ID:'}</span>
+                    <span className="font-mono">{formData.transactionId}</span>
+                    <span className="text-muted-foreground">{language === 'hi' ? 'स्क्रीनशॉट:' : 'Screenshot:'}</span>
+                    <span className="text-green-600 font-bold">{formData.paymentScreenshotUrl ? '✓ Uploaded' : '—'}</span>
+                  </div>
                 </div>
 
                 <div className="bg-muted rounded-lg p-4 space-y-3">
