@@ -63,75 +63,140 @@ export function StudentCertificatesPage() {
         </p>
       </div>
 
-      {myCertificates.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Shield className="size-8 text-muted-foreground" />
+      {myCertificates.length === 0 && (
+        <div className="mb-8">
+          <Card className="text-center py-12 border-dashed">
+            <CardContent>
+              <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="size-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No Certificates Earned Yet</h3>
+              <p className="text-muted-foreground mb-0 max-w-md mx-auto">
+                Complete the exam and achieve a qualifying score to earn official certificates. Below is a preview of what your certificate will look like.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {myCertificates.length === 0 && (
+          <Card className="overflow-hidden hover:shadow-md transition-shadow relative border-dashed">
+            <div className="absolute top-4 -right-10 bg-amber-500 text-white text-[10px] font-bold uppercase py-1 px-12 rotate-45 z-10 shadow-lg">
+              DEMO PREVIEW
             </div>
-            <h3 className="text-lg font-semibold mb-2">No Certificates Yet</h3>
-            <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
-              You haven't earned any certificates yet. Complete the exam and achieve a qualifying score to earn certificates.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {myCertificates.map((cert) => {
-            const result = results.find(r => r.id === cert.examResultId);
-            const scholarship = scholarships.find(s => s.studentId === cert.studentId);
-            const totalStudents = result ? getClassTotalStudents(result.class) : 0;
+            <div className="aspect-[1.414/1] bg-muted relative border-b p-4 flex items-center justify-center opacity-80">
+              <div className="text-center p-6 bg-white border shadow-sm w-full h-full flex flex-col items-center justify-center pointer-events-none">
+                <Award className="size-12 text-primary mb-2" />
+                <div className="font-serif font-bold text-lg text-primary">Certificate</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4">OF ACHIEVEMENT</div>
+                <div className="text-sm font-medium">{currentStudent.name}</div>
+              </div>
+              <div className="absolute top-2 left-2 pointer-events-none">
+                <Badge variant="secondary" className="bg-white/80">DEMO</Badge>
+              </div>
+            </div>
 
-            if (!result) return null;
+            <CardContent className="p-4 space-y-4 relative">
+              <div className="space-y-2 text-sm opacity-80 pointer-events-none">
+                <div className="flex justify-between py-1 border-b">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <FileCheck className="size-3" /> Cert ID
+                  </span>
+                  <span className="font-mono text-xs">DEMO-00000X</span>
+                </div>
+                <div className="flex justify-between py-1 border-b">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <Calendar className="size-3" /> Issued
+                  </span>
+                  <span>{new Date().toISOString().split('T')[0]}</span>
+                </div>
+              </div>
 
-            return (
-              <Card key={cert.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className="aspect-[1.414/1] bg-muted relative border-b p-4 flex items-center justify-center">
-                  <div className="text-center p-6 bg-white border shadow-sm w-full h-full flex flex-col items-center justify-center">
-                    <Award className="size-12 text-primary mb-2" />
-                    <div className="font-serif font-bold text-lg text-primary">Certificate</div>
-                    <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4">OF ACHIEVEMENT</div>
-                    <div className="text-sm font-medium">{currentStudent.name}</div>
+              <CertificateDownloader
+                student={currentStudent}
+                result={{
+                  id: 'demo-result',
+                  studentId: currentStudent.id,
+                  class: currentStudent.class,
+                  score: 95,
+                  totalMarks: 100,
+                  rank: 1,
+                  correctAnswers: 95,
+                  wrongAnswers: 5,
+                  attemptDate: new Date().toISOString(),
+                  resultStatus: 'PUBLISHED'
+                }}
+                certificate={{
+                  id: 'demo-cert',
+                  studentId: currentStudent.id,
+                  examResultId: 'demo-result',
+                  certificateType: 'MERIT',
+                  certificateId: 'DEMO-00000X',
+                  issuedAt: new Date().toISOString()
+                }}
+                totalStudents={100}
+                className="w-full institutional-gradient relative z-20"
+                label="Preview Demo Certificate"
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {myCertificates.map((cert) => {
+          const result = results.find(r => r.id === cert.examResultId);
+          const scholarship = scholarships.find(s => s.studentId === cert.studentId);
+          const totalStudents = result ? getClassTotalStudents(result.class) : 0;
+
+          if (!result) return null;
+
+          return (
+            <Card key={cert.id} className="overflow-hidden hover:shadow-md transition-shadow">
+              <div className="aspect-[1.414/1] bg-muted relative border-b p-4 flex items-center justify-center">
+                <div className="text-center p-6 bg-white border shadow-sm w-full h-full flex flex-col items-center justify-center">
+                  <Award className="size-12 text-primary mb-2" />
+                  <div className="font-serif font-bold text-lg text-primary">Certificate</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-widest mb-4">OF ACHIEVEMENT</div>
+                  <div className="text-sm font-medium">{currentStudent.name}</div>
+                </div>
+
+                <div className="absolute top-2 right-2">
+                  <Badge variant={cert.certificateType === 'SCHOLARSHIP' ? 'default' : 'secondary'}>
+                    {cert.certificateType}
+                  </Badge>
+                </div>
+              </div>
+
+              <CardContent className="p-4 space-y-4">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between py-1 border-b">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <FileCheck className="size-3" /> Cert ID
+                    </span>
+                    <span className="font-mono text-xs">{cert.certificateId}</span>
                   </div>
-
-                  <div className="absolute top-2 right-2">
-                    <Badge variant={cert.certificateType === 'SCHOLARSHIP' ? 'default' : 'secondary'}>
-                      {cert.certificateType}
-                    </Badge>
+                  <div className="flex justify-between py-1 border-b">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Calendar className="size-3" /> Issued
+                    </span>
+                    <span>{formatDateTime(cert.issuedAt).split(',')[0]}</span>
                   </div>
                 </div>
 
-                <CardContent className="p-4 space-y-4">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between py-1 border-b">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <FileCheck className="size-3" /> Cert ID
-                      </span>
-                      <span className="font-mono text-xs">{cert.certificateId}</span>
-                    </div>
-                    <div className="flex justify-between py-1 border-b">
-                      <span className="text-muted-foreground flex items-center gap-1">
-                        <Calendar className="size-3" /> Issued
-                      </span>
-                      <span>{formatDateTime(cert.issuedAt).split(',')[0]}</span>
-                    </div>
-                  </div>
-
-                  <CertificateDownloader
-                    student={currentStudent}
-                    result={result}
-                    certificate={cert}
-                    scholarship={scholarship}
-                    totalStudents={totalStudents}
-                    className="w-full institutional-gradient"
-                    label="Download / Preview"
-                  />
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                <CertificateDownloader
+                  student={currentStudent}
+                  result={result}
+                  certificate={cert}
+                  scholarship={scholarship}
+                  totalStudents={totalStudents}
+                  className="w-full institutional-gradient"
+                  label="Download / Preview"
+                />
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
