@@ -263,6 +263,7 @@ export function RegisterPage() {
     // Personal checks
     if (!formData.name.trim()) newErrors.name = 'Student name is required';
     if (!formData.class) newErrors.class = 'Class is required';
+    if (!formData.photoUrl) newErrors.photoUrl = 'Please upload a passport-size photo';
 
     // Mobile - required + format check only (same mobile allowed for family members)
     if (!formData.mobile.trim()) {
@@ -845,6 +846,76 @@ export function RegisterPage() {
                       {errors.fatherName && (
                         <p className="text-xs text-destructive flex items-center gap-1">
                           <AlertCircle className="size-3" /> {errors.fatherName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Profile Photo Upload - Right in Identity Step */}
+                    <div className="border rounded-lg p-4 bg-blue-50/50 border-blue-200">
+                      <Label className="text-sm font-semibold mb-3 block">
+                        <Camera className="size-4 inline mr-1" />
+                        Profile Photo (Passport Size) *
+                      </Label>
+                      <div className="flex items-center gap-4">
+                        <div className="relative group shrink-0">
+                          <div className="size-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-muted flex items-center justify-center">
+                            {formData.photoUrl ? (
+                              <img src={formData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="size-8 text-muted-foreground" />
+                            )}
+                          </div>
+                          {formData.photoUrl && (
+                            <button
+                              type="button"
+                              className="absolute -top-1 -right-1 size-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs hover:bg-red-600"
+                              onClick={() => updateField('photoUrl', '')}
+                            >
+                              <X className="size-3" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Recent passport-size photo. Used on admit card & certificate.
+                          </p>
+                          <input
+                            type="file"
+                            id="photoInput"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast({ title: 'File too large', description: 'Max 5MB allowed.', variant: 'destructive' });
+                                return;
+                              }
+                              try {
+                                const compressed = await compressImage(file, 800);
+                                updateField('photoUrl', compressed);
+                                toast({ title: 'Photo Selected ✓' });
+                              } catch {
+                                toast({ title: 'Error', description: 'Could not process image.', variant: 'destructive' });
+                              }
+                              e.target.value = '';
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById('photoInput')?.click()}
+                            className="gap-1"
+                          >
+                            <Upload className="size-3" />
+                            {formData.photoUrl ? 'Change Photo' : 'Upload Photo'}
+                          </Button>
+                        </div>
+                      </div>
+                      {errors.photoUrl && (
+                        <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                          <AlertCircle className="size-3" /> {errors.photoUrl}
                         </p>
                       )}
                     </div>
