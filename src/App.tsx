@@ -46,11 +46,13 @@ import { CenterProfilePage } from '@/pages/CenterProfilePage';
 
 // Layouts
 import { PublicLayout, StudentLayout, AdminLayout, AuthLayout, CenterLayout } from '@/components/layout';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 function App() {
   return (
     <LanguageProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Public Routes */}
           <Route element={<PublicLayout />}>

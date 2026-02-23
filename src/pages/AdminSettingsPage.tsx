@@ -29,6 +29,7 @@ import {
 import { formatCurrency } from '@/lib/utils';
 import { CertificateTemplate } from '@/types';
 import { generateCertificateByTemplate } from '@/lib/certificateTemplates';
+import { AdminTeamSettings } from './AdminTeamSettings';
 
 export function AdminSettingsPage() {
   const navigate = useNavigate();
@@ -1023,6 +1024,7 @@ export function AdminSettingsPage() {
           </div>
         </CardContent>
       </Card>
+      <AdminTeamSettings />
     </div>
   );
 }

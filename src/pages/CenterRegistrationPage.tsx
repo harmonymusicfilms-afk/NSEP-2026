@@ -128,7 +128,7 @@ export function CenterRegistrationPage() {
     { key: 'review', label: 'Review', labelHi: 'समीक्षा', icon: CheckCircle },
   ];
 
-  const currentStepIndex = steps.findIndex((s) => s.key === step);
+  const currentStepIndex = step === 'success' ? steps.length : steps.findIndex((s) => s.key === step);
 
   const updateField = (field: keyof CenterFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -249,12 +249,12 @@ export function CenterRegistrationPage() {
       state: formData.state,
       pincode: formData.pincode,
       centerCode,
-      status: 'PENDING',
+      status: 'APPROVED',
       totalStudents: 0,
       totalEarnings: 0,
       createdAt: new Date().toISOString(),
       idProofUrl: formData.idProofUrl,
-      userPhotoUrl: formData.userPhotoUrl,
+      centerPhotoUrl: formData.userPhotoUrl,
     };
     console.log("NSEP Debug - Center Object created:", center);
 
@@ -291,9 +291,9 @@ export function CenterRegistrationPage() {
         state: center.state,
         pincode: center.pincode,
         center_code: center.centerCode,
-        status: 'PENDING',
+        status: 'APPROVED',
         id_proof_url: center.idProofUrl,
-        user_photo_url: (center as any).userPhotoUrl,
+        center_photo_url: center.centerPhotoUrl,
         transaction_id: formData.transactionId,
         payment_screenshot_url: formData.paymentScreenshotUrl,
       };
@@ -320,11 +320,28 @@ export function CenterRegistrationPage() {
         throw insertError;
       }
 
-      // Step C: Success
+      // Step C: Create referral code record in DB so center can start referring immediately
+      try {
+        console.log("NSEP Debug - Creating referral code for:", center.centerCode);
+        await supabase.from('referral_codes').insert([{
+          code: center.centerCode,
+          type: 'CENTER_CODE',
+          owner_id: center.id,
+          owner_name: center.name,
+          reward_amount: REFERRAL_CONFIG.centerCodeReward,
+          is_active: true,
+          total_referrals: 0,
+          total_earnings: 0,
+        }]);
+      } catch (refErr) {
+        console.warn("Auto-referral code creation failed (non-critical):", refErr);
+      }
+
+      // Step D: Success
       console.log("Registration successful");
       setGeneratedCenterCode(center.centerCode);
       setStep('success');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Final Registration Catch:', err);
 
       // Attempt recovery one last time before showing error
@@ -338,9 +355,10 @@ export function CenterRegistrationPage() {
         setGeneratedCenterCode(finalCheck.center_code);
         setStep('success');
       } else {
+        const errorMsg = err instanceof Error ? err.message : 'Please contact support if you are unable to register.';
         toast({
           title: 'Registration Update',
-          description: err.message || 'Please contact support if you are unable to register.',
+          description: errorMsg,
           variant: 'destructive',
         });
       }
@@ -378,19 +396,37 @@ export function CenterRegistrationPage() {
         // Auto-compress to under 2MB
         const compressedBase64 = await compressImage(file, 2);
 
+        // Convert base64 to File for upload
+        const res = await fetch(compressedBase64);
+        const blob = await res.blob();
+        const fileExt = file.name.split('.').pop() || 'jpg';
+        const compressedFile = new File([blob], file.name, { type: blob.type || 'image/jpeg' });
+
+        // Upload to student-photos bucket
+        const fileName = `center-${field}-${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('student-photos')
+          .upload(fileName, compressedFile, { contentType: compressedFile.type });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('student-photos')
+          .getPublicUrl(fileName);
+
         setFormData(prev => ({
           ...prev,
-          [field]: compressedBase64,
+          [field]: publicUrl,
           [`${field}Name`]: file.name
         }));
 
         compressToast.dismiss();
         toast({
-          title: language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document Selected',
+          title: language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document Uploaded',
           description: file.name,
         });
       } catch (error) {
-        console.error('Compression error:', error);
+        console.error('Upload error:', error);
         compressToast.dismiss();
         toast({
           title: "Error",
@@ -483,7 +519,7 @@ export function CenterRegistrationPage() {
             <span className="font-serif text-xl font-bold">{APP_CONFIG.shortName}</span>
           </Link>
           <h1 className="font-serif text-2xl font-bold text-foreground">
-            {language === 'hi' ? 'केंद्र पंजीकरण (v2)' : 'Center Registration (v2)'}
+            {language === 'hi' ? 'केंद्र पंजीकरण' : 'Center Registration'}
           </h1>
           <p className="text-muted-foreground mt-1">
             {language === 'hi'
@@ -548,10 +584,26 @@ export function CenterRegistrationPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {(() => {
-                const StepIcon = steps[currentStepIndex].icon;
-                return <StepIcon className="size-5" />;
+                const currentStep = steps[currentStepIndex];
+                if (!currentStep) {
+                  if (step === 'success') {
+                    return (
+                      <>
+                        <CheckCircle className="size-5 text-green-600" />
+                        {language === 'hi' ? 'पंजीकरण सफल' : 'Registration Successful'}
+                      </>
+                    );
+                  }
+                  return null;
+                }
+                const StepIcon = currentStep.icon;
+                return (
+                  <>
+                    <StepIcon className="size-5" />
+                    {language === 'hi' ? currentStep.labelHi : currentStep.label}
+                  </>
+                );
               })()}
-              {language === 'hi' ? steps[currentStepIndex].labelHi : steps[currentStepIndex].label}
             </CardTitle>
           </CardHeader>
           <CardContent className="max-h-[70vh] sm:max-h-[75vh] md:max-h-[80vh] overflow-y-auto custom-scrollbar pr-2">
@@ -1005,7 +1057,7 @@ export function CenterRegistrationPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-medium text-green-800 truncate">
-                              {(formData as any).idProofName || (language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document selected')}
+                              {formData.idProofName || (language === 'hi' ? 'दस्तावेज़ चुना गया' : 'Document selected')}
                             </p>
                             <p className="text-[10px] text-green-600 font-bold flex items-center gap-1">
                               <CheckCircle className="size-3" />
@@ -1032,7 +1084,7 @@ export function CenterRegistrationPage() {
                     <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="font-medium">{t('center.field.userPhoto')} *</h4>
+                          <h4 className="font-medium">{language === 'hi' ? 'उपयोगकर्ता फोटो' : 'User Photo'} *</h4>
                           <p className="text-sm text-muted-foreground">
                             {language === 'hi' ? 'उपयोगकर्ता की तस्वीर' : 'Recent passport size photo'}
                           </p>
@@ -1226,11 +1278,17 @@ export function CenterRegistrationPage() {
                 </div>
 
                 <div className="pt-6 space-y-3">
-                  <p className="text-sm text-green-700 bg-green-50 p-3 rounded-lg border border-green-100">
-                    {language === 'hi'
-                      ? 'आपका खाता अनुमोदन के लिए भेजा गया है। अनुमोदन के बाद आप लॉगिन कर सकेंगे।'
-                      : 'Your account has been sent for approval. You will be able to login after verification.'}
-                  </p>
+                  <div className="text-sm text-green-700 bg-green-50 p-4 rounded-lg border border-green-200 shadow-sm transition-all duration-300 hover:shadow-md">
+                    <p className="font-bold flex items-center gap-2 mb-1">
+                      <CheckCircle className="size-4" />
+                      {language === 'hi' ? 'खाता सक्रिय है!' : 'Account is Active!'}
+                    </p>
+                    <p>
+                      {language === 'hi'
+                        ? 'आपका केंद्र खाता सफलतापूर्वक सक्रिय हो गया है। अब आप अपने पंजीकृत ईमेल और पासवर्ड का उपयोग करके लॉगिन कर सकते हैं।'
+                        : 'Your center account has been successfully activated. You can now login using your registered email and password.'}
+                    </p>
+                  </div>
                   <Link to="/">
                     <Button className="w-full institutional-gradient h-12 text-lg shadow-lg">
                       {language === 'hi' ? 'होम पेज पर जाएं' : 'Return to Homepage'}

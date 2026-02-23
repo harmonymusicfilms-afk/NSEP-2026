@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GraduationCap, LogIn, AlertCircle } from 'lucide-react';
+import { GraduationCap, LogIn, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -186,7 +186,7 @@ export function LoginPage() {
           <Button type="submit" className="w-full institutional-gradient" disabled={isLoading}>
             {isLoading ? (
               <>
-                <span className="animate-spin mr-2">⏳</span>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
                 Logging in...
               </>
             ) : (

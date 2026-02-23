@@ -550,19 +550,22 @@ export function RegisterPage() {
 
     setIsUploading(true);
     try {
-      const compressedFile = await compressImage(file, 800);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${pendingStudentId}_${Date.now()}.${fileExt}`;
-      const filePath = `student-photos/${fileName}`;
+      const compressedBase64 = await compressImage(file, 800);
+      const res = await fetch(compressedBase64);
+      const blob = await res.blob();
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const compressedFile = new File([blob], file.name, { type: blob.type || 'image/jpeg' });
 
+      const fileName = `${pendingStudentId}_${Date.now()}.${fileExt}`;
+      const filePath = fileName;
       const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, compressedFile);
+        .from('student-photos')
+        .upload(filePath, compressedFile, { contentType: compressedFile.type });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('documents')
+        .from('student-photos')
         .getPublicUrl(filePath);
 
       updateField('photoUrl', publicUrl);
@@ -584,9 +587,9 @@ export function RegisterPage() {
 
     setIsUploading(true);
     try {
-      const urlMatches = formData.photoUrl.match(/documents\/(.+)$/);
+      const urlMatches = formData.photoUrl.match(/student-photos\/(.+)$/);
       if (urlMatches && urlMatches[1]) {
-        await supabase.storage.from('documents').remove([urlMatches[1]]);
+        await supabase.storage.from('student-photos').remove([urlMatches[1]]);
       }
 
       updateField('photoUrl', '');
@@ -892,11 +895,33 @@ export function RegisterPage() {
                                 return;
                               }
                               try {
-                                const compressed = await compressImage(file, 800);
-                                updateField('photoUrl', compressed);
-                                toast({ title: 'Photo Selected ✓' });
-                              } catch {
-                                toast({ title: 'Error', description: 'Could not process image.', variant: 'destructive' });
+                                const compressToast = toast({ title: "Uploading Photo", description: "Please wait..." });
+                                const compressedBase64 = await compressImage(file, 800);
+
+                                // Convert base64 to File for upload
+                                const res = await fetch(compressedBase64);
+                                const blob = await res.blob();
+                                const fileExt = file.name.split('.').pop() || 'jpg';
+                                const compressedFile = new File([blob], file.name, { type: blob.type || 'image/jpeg' });
+
+                                // Upload to student-photos bucket
+                                const fileName = `student-temp-${Date.now()}.${fileExt}`;
+                                const { error: uploadError } = await supabase.storage
+                                  .from('student-photos')
+                                  .upload(fileName, compressedFile, { contentType: compressedFile.type });
+
+                                if (uploadError) throw uploadError;
+
+                                const { data: { publicUrl } } = supabase.storage
+                                  .from('student-photos')
+                                  .getPublicUrl(fileName);
+
+                                compressToast.dismiss();
+                                updateField('photoUrl', publicUrl);
+                                toast({ title: 'Photo Uploaded ✓' });
+                              } catch (err) {
+                                console.error('Upload Error:', err);
+                                toast({ title: 'Error', description: 'Could not upload image.', variant: 'destructive' });
                               }
                               e.target.value = '';
                             }}

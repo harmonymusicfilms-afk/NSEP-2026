@@ -67,31 +67,40 @@ export function AdminGalleryPage() {
 
         const compressToast = toast({
             title: "Processing Image",
-            description: "Optimizing for gallery...",
+            description: "Uploading to gallery...",
         });
+
+        setIsLoading(true);
 
         try {
             // Auto-compress to under 2MB
             const base64String = await compressImage(file, 2);
 
-            // Save image to localStorage to avoid DB column size limits
-            const localKey = `gallery_img_${Date.now()}`;
-            try {
-                localStorage.setItem(localKey, base64String);
-                // Store a reference key prefixed with 'local:' so we can retrieve it
-                const imageRef = `local:${localKey}`;
-                if (isEdit) {
-                    setEditForm(prev => ({ ...prev, imageUrl: imageRef }));
-                } else {
-                    setNewItem(prev => ({ ...prev, imageUrl: imageRef }));
-                }
-            } catch {
-                // If localStorage is full, just use base64 directly
-                if (isEdit) {
-                    setEditForm(prev => ({ ...prev, imageUrl: base64String }));
-                } else {
-                    setNewItem(prev => ({ ...prev, imageUrl: base64String }));
-                }
+            // Convert base64 to file
+            const res = await fetch(base64String);
+            const blob = await res.blob();
+            const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
+
+            // Upload to Supabase student-photos bucket (we reuse this bucket to avoid creating new ones)
+            const fileExt = file.name.split('.').pop() || 'jpg';
+            const fileName = `gallery-${Date.now()}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('student-photos')
+                .upload(fileName, compressedFile, { contentType: 'image/jpeg' });
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = supabase.storage
+                .from('student-photos')
+                .getPublicUrl(fileName);
+
+            const publicUrl = urlData.publicUrl;
+
+            if (isEdit) {
+                setEditForm(prev => ({ ...prev, imageUrl: publicUrl }));
+            } else {
+                setNewItem(prev => ({ ...prev, imageUrl: publicUrl }));
             }
 
             compressToast.dismiss();
@@ -100,21 +109,25 @@ export function AdminGalleryPage() {
                 description: file.name
             });
         } catch (error) {
-            console.error('Compression error:', error);
+            console.error('Upload error:', error);
             compressToast.dismiss();
             toast({
                 title: "Error",
-                description: "Failed to process image.",
+                description: "Failed to upload image. Please try again.",
                 variant: "destructive"
             });
+        } finally {
+            setIsLoading(false);
+            event.target.value = '';
         }
-        event.target.value = '';
     };
 
-    // Helper: resolve imageUrl - if it's a local: reference, get from localStorage
+    // Keep resolveImageUrl simple now
     const resolveImageUrl = (url: string) => {
-        if (url?.startsWith('local:')) {
-            return localStorage.getItem(url.slice(6)) || url;
+        if (!url) return '';
+        if (url.startsWith('local:')) {
+            const val = localStorage.getItem(url.slice(6));
+            if (val) return val;
         }
         return url;
     };

@@ -204,14 +204,15 @@ export function AdminStudentsPage() {
     if (!selectedFile || !editingPhotoStudent) return null;
 
     const fileExt = selectedFile.name.split('.').pop();
-    const fileName = `student-photos/${editingPhotoStudent.id}-${Date.now()}.${fileExt}`;
+    const fileName = `${editingPhotoStudent.id}-${Date.now()}.${fileExt}`;
 
     try {
       const { error: uploadError } = await supabase.storage
         .from('student-photos')
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
-          upsert: true
+          upsert: true,
+          contentType: selectedFile.type
         });
 
       if (uploadError) {

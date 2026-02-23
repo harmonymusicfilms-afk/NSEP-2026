@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Award,
@@ -19,8 +20,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { APP_CONFIG } from '@/constants/config';
 import gphdmLogo from '@/assets/gphdm-logo.png';
+import { useTeamStore } from '@/stores/teamStore';
 
 export function AboutPage() {
+  const { members, loadMembers } = useTeamStore();
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
+
   const stats = [
     { icon: Users, value: '50,000+', label: 'Students Registered' },
     { icon: Award, value: '10,000+', label: 'Scholarships Awarded' },
@@ -62,29 +70,6 @@ export function AboutPage() {
     'Secure payment gateway integration',
     'Student dashboard for tracking progress',
     'Email notifications and updates',
-  ];
-
-  const teamMembers = [
-    {
-      name: 'Dr. Rajendra Prasad',
-      role: 'Chairman',
-      description: 'Former education minister with 30+ years of experience in educational policy making.',
-    },
-    {
-      name: 'Mrs. Sunita Devi',
-      role: 'Director - Operations',
-      description: 'Educational administrator specializing in scholarship program management.',
-    },
-    {
-      name: 'Mr. Vikram Singh',
-      role: 'Head - Examination',
-      description: 'Expert in conducting large-scale examinations with integrity and transparency.',
-    },
-    {
-      name: 'Ms. Priya Sharma',
-      role: 'Student Relations',
-      description: 'Dedicated to ensuring smooth communication between students and the organization.',
-    },
   ];
 
   return (
@@ -279,12 +264,20 @@ export function AboutPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {teamMembers.map((member, index) => (
-              <Card key={index} className="text-center">
+            {members.map((member) => (
+              <Card key={member.id} className="text-center">
                 <CardContent className="p-6">
-                  <div className="size-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold">
-                    {member.name.split(' ').map(n => n[0]).join('')}
-                  </div>
+                  {member.imageUrl ? (
+                    <img
+                      src={member.imageUrl}
+                      alt={member.name}
+                      className="size-20 mx-auto mb-4 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="size-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold">
+                      {member.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                    </div>
+                  )}
                   <h3 className="font-semibold">{member.name}</h3>
                   <p className="text-sm text-primary font-medium mb-2">{member.role}</p>
                   <p className="text-xs text-muted-foreground">{member.description}</p>

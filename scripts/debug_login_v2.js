@@ -1,13 +1,15 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://uhcajmcdhovwuhxgnbes.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVoY2FqbWNkaG92d3VoeGduYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxODU2NDUsImV4cCI6MjA4MDc2MTY0NX0.euXpGasVgGQ2Qr7GxgeWx9-3GeAlpopjVpeHQDRZPCk';
+import 'dotenv/config';
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const email = 'grampanchayat023@gmail.com';
-const password = 'grampanchayat_admin';
+const email = process.env.DEBUG_EMAIL || 'admin@example.com';
+const password = process.env.DEBUG_PASSWORD || 'password123';
 
 async function debugLogin() {
     console.log('Attempting to sign in...');
