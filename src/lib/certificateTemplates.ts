@@ -773,329 +773,170 @@ export async function generateGPHDMCertificate(
   config: CertificateTemplateConfig
 ): Promise<jsPDF> {
   const { student, result, certificate, scholarship, totalStudents } = data;
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
 
-  // Colors from Design
-  const colors = {
-    navy: { r: 30, g: 58, b: 138 },      // #1e3a8a
-    gold: { r: 212, g: 175, b: 55 },     // #d4af37
-    saffron: { r: 255, g: 153, b: 51 },  // #FF9933
-    green: { r: 19, g: 136, b: 8 },      // #138808
-    slate: { r: 100, g: 116, b: 139 },   // #64748b
-  };
+  // Draw Header details
+  pdf.setFillColor(15, 23, 42); // slate-900 / navy
+  pdf.rect(0, 0, pageWidth, 40, 'F');
 
-  const margin = 10;
+  // Blue accent border under header
+  pdf.setDrawColor(59, 130, 246); // blue-500
+  pdf.setLineWidth(2);
+  pdf.line(0, 39, pageWidth, 39);
 
-  // 1. Draw Background & Border
-  // Safe printable area
-  const printX = margin;
-  const printY = margin;
-  // const printW = pageWidth - margin * 2; // Unused
-  const printW = pageWidth - margin * 2;
-  const printH = pageHeight - margin * 2;
-
-  // Outer Gold Rect
-  pdf.setDrawColor(colors.gold.r, colors.gold.g, colors.gold.b);
-  pdf.setLineWidth(1.5);
-  pdf.rect(printX, printY, printW, printH);
-
-  // Inner Gold Rect (creating the double border effect)
-  const innerOffset = 1.5;
-  pdf.setLineWidth(0.5);
-  pdf.rect(printX + innerOffset, printY + innerOffset, printW - innerOffset * 2, printH - innerOffset * 2);
-
-  // Corner Accents
-  pdf.setDrawColor(colors.gold.r, colors.gold.g, colors.gold.b);
-  pdf.setLineWidth(1.5);
-  const cornerSize = 10;
-
-  // Top Left
-  pdf.line(printX - 0.5, printY + cornerSize, printX - 0.5, printY - 0.5);
-  pdf.line(printX - 0.5, printY - 0.5, printX + cornerSize, printY - 0.5);
-
-  // Top Right
-  pdf.line(printX + printW + 0.5, printY + cornerSize, printX + printW + 0.5, printY - 0.5);
-  pdf.line(printX + printW + 0.5, printY - 0.5, printX + printW - cornerSize, printY - 0.5);
-
-  // Bottom Left
-  pdf.line(printX - 0.5, printY + printH - cornerSize, printX - 0.5, printY + printH + 0.5);
-  pdf.line(printX - 0.5, printY + printH + 0.5, printX + cornerSize, printY + printH + 0.5);
-
-  // Bottom Right
-  pdf.line(printX + printW + 0.5, printY + printH - cornerSize, printX + printW + 0.5, printY + printH + 0.5);
-  pdf.line(printX + printW + 0.5, printY + printH + 0.5, printX + printW - cornerSize, printY + printH + 0.5);
-
-
-  let yPos = printY + 15;
-
-  // 2. Header Info (Top Right)
-  pdf.setFont('times', 'bold');
-  pdf.setFontSize(8);
-  pdf.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  pdf.text(`CERTIFICATE ID: ${certificate.certificateId}`, printX + printW - 5, yPos, { align: 'right' });
-  yPos += 4;
-  pdf.text(`ISSUED ON: ${formatDateTime(certificate.issuedAt).split(',')[0]}`, printX + printW - 5, yPos, { align: 'right' });
-
-  // 3. Logo (Centered)
-  const logoUrl = '/images/gphdm_logo.png';
-  const logoBase64 = await loadImage(logoUrl).catch(() => '');
-
-  if (logoBase64) {
-    pdf.addImage(logoBase64, 'PNG', pageWidth / 2 - 20, yPos, 40, 40);
-    yPos += 45;
-  } else {
-    // Fallback Circle
-    yPos += 20;
-    pdf.setDrawColor(colors.navy.r, colors.navy.g, colors.navy.b);
-    pdf.circle(pageWidth / 2, yPos, 15);
-    pdf.text('GPHDM', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 25;
-  }
-
-  // 4. Main Titles
-  pdf.setFont('times', 'bold');
-  pdf.setFontSize(28);
-  pdf.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  pdf.text('GPHDM', pageWidth / 2, yPos, { align: 'center' });
-
-  yPos += 8;
-  pdf.setFontSize(16);
-  pdf.text('NATIONAL SCHOLARSHIP EXAM', pageWidth / 2, yPos, { align: 'center' });
-
-  yPos += 6;
-  // Decorative lines with text
-  const centerX = pageWidth / 2;
-  pdf.setDrawColor(colors.gold.r, colors.gold.g, colors.gold.b);
-  pdf.setLineWidth(0.5);
-  pdf.line(centerX - 45, yPos, centerX - 35, yPos); // Left dash
-  pdf.line(centerX + 35, yPos, centerX + 45, yPos); // Right dash
-
-  pdf.setFontSize(8);
-  pdf.setTextColor(100, 116, 139); // Slate 500
+  // Header Text
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(36);
   pdf.setFont('helvetica', 'bold');
-  const tagline = 'EMPOWERING RURAL EDUCATION';
-  pdf.text(tagline, centerX, yPos + 1, { align: 'center' });
+  pdf.text('CERTIFICATE', pageWidth / 2, 18, { align: 'center' });
 
-  yPos += 15;
-
-  // 5. "This is to certify that"
-  pdf.setFont('times', 'italic');
   pdf.setFontSize(12);
-  pdf.setTextColor(71, 85, 105); // Slate 600
-  pdf.text('This is to certify that', centerX, yPos, { align: 'center' });
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('Gram Panchayat Help Desk Mission', pageWidth / 2, 26, { align: 'center' });
 
-  yPos += 15;
+  pdf.setFontSize(10);
+  pdf.setTextColor(209, 213, 219); // gray-300
+  pdf.setFont('times', 'italic');
+  pdf.text('Empowering Future Leaders', pageWidth / 2, 33, { align: 'center' });
 
-  // 6. Student Details Section (Photo Left, Text Right)
-  const contentStartX = printX + 15;
+  // Body Content
+  pdf.setTextColor(100, 116, 139); // slate-500
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('This certifies that', pageWidth / 2, 60, { align: 'center' });
 
-  // Photo Box (Left)
-  const photoW = 30;
-  const photoH = 38; // approx passport ratio
-  const photoX = contentStartX + 10;
-  const photoY = yPos;
-
-  // Load student photo
-  const photoBase64 = student.photoUrl ? await loadImage(student.photoUrl).catch(() => '') : '';
-
-  pdf.setDrawColor(colors.gold.r, colors.gold.g, colors.gold.b);
-  pdf.setLineWidth(0.5);
-  pdf.rect(photoX, photoY, photoW, photoH); // Border
-
-  if (photoBase64) {
-    pdf.addImage(photoBase64, 'JPEG', photoX + 0.5, photoY + 0.5, photoW - 1, photoH - 1);
-  } else {
-    // Placeholder icon/text
-    pdf.setFontSize(8);
-    pdf.setTextColor(colors.gold.r, colors.gold.g, colors.gold.b);
-    pdf.text('PASSPORT', photoX + photoW / 2, photoY + photoH / 2 - 2, { align: 'center' });
-    pdf.text('PHOTO', photoX + photoW / 2, photoY + photoH / 2 + 2, { align: 'center' });
-  }
-
-  // Details (Right)
-  const detailsX = photoX + photoW + 15;
-  const detailsY = yPos + 2;
-
-  // Name
-  pdf.setFont('times', 'bold');
-  pdf.setFontSize(22);
-  pdf.setTextColor(15, 23, 42); // Slate 900
-  pdf.text(student.name, detailsX, detailsY + 6);
-
-  // Divider under name
-  pdf.setDrawColor(colors.gold.r, colors.gold.g, colors.gold.b);
-  pdf.setLineWidth(0.2);
-  pdf.line(detailsX, detailsY + 9, detailsX + 100, detailsY + 9);
-
-  let detailRowY = detailsY + 18;
-
-  // Grid for details
-  const labelStyle = { font: 'helvetica', style: 'bold', size: 7, color: colors.gold };
-  const valueStyle = { font: 'helvetica', style: 'bold', size: 10, color: colors.navy };
+  // Student Name
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(38);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(student.name, pageWidth / 2, 75, { align: 'center' });
 
   // Father Name
-  pdf.setFont(labelStyle.font, labelStyle.style);
-  pdf.setFontSize(labelStyle.size);
-  pdf.setTextColor(labelStyle.color.r, labelStyle.color.g, labelStyle.color.b);
-  pdf.text("FATHER'S NAME", detailsX, detailRowY);
-
-  pdf.setFont(valueStyle.font, valueStyle.style);
-  pdf.setFontSize(valueStyle.size);
-  pdf.setTextColor(valueStyle.color.r, valueStyle.color.g, valueStyle.color.b);
-  pdf.text(student.fatherName || 'N/A', detailsX, detailRowY + 4);
-
-  // Address/Location
-  const col2X = detailsX + 60;
-
-  pdf.setFont(labelStyle.font, labelStyle.style);
-  pdf.setFontSize(labelStyle.size);
-  pdf.setTextColor(labelStyle.color.r, labelStyle.color.g, labelStyle.color.b);
-  pdf.text("ACADEMIC LEVEL", col2X, detailRowY);
-
-  pdf.setFont(valueStyle.font, valueStyle.style);
-  pdf.setFontSize(valueStyle.size);
-  pdf.setTextColor(valueStyle.color.r, valueStyle.color.g, valueStyle.color.b);
-  pdf.text(`Class ${student.class}`, col2X, detailRowY + 4);
-
-  detailRowY += 12;
-
-  // Institution
-  pdf.setFont(labelStyle.font, labelStyle.style);
-  pdf.setFontSize(labelStyle.size);
-  pdf.setTextColor(labelStyle.color.r, labelStyle.color.g, labelStyle.color.b);
-  pdf.text("EDUCATIONAL INSTITUTION", detailsX, detailRowY);
-
-  pdf.setFont(valueStyle.font, valueStyle.style);
-  pdf.setFontSize(valueStyle.size);
-  pdf.setTextColor(valueStyle.color.r, valueStyle.color.g, valueStyle.color.b);
-  pdf.text(student.schoolName || 'N/A', detailsX, detailRowY + 4);
-
-  yPos += photoH + 15;
-
-  // 7. Success Text
-  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(100, 116, 139);
   pdf.setFontSize(9);
-  pdf.setTextColor(100, 116, 139); // Slate 500
-  const successText = 'Has successfully qualified in the national scholarship examination and is hereby awarded this certificate of academic excellence.';
-  const splitSuccess = pdf.splitTextToSize(successText, 140);
-  pdf.text(splitSuccess, centerX, yPos, { align: 'center' });
+  pdf.setFont('times', 'italic');
+  pdf.text(`Child of / Ward of ${student.fatherName}`, pageWidth / 2, 85, { align: 'center' });
 
-  yPos += 15;
+  // Achievement Text
+  pdf.setTextColor(51, 65, 85); // slate-700
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(`has achieved exceptional results in the Class ${student.class} Examination`, pageWidth / 2, 98, { align: 'center' });
+  pdf.text(`securing Rank ${result.rank || '-'} among ${totalStudents || 150} participants`, pageWidth / 2, 105, { align: 'center' });
 
-  // 8. Stats Box (3 Columns)
-  // Box Container
-  const statsBoxH = 20;
+  // --- STAT BOXES ---
+  const boxW = 55;
+  const boxH = 28;
+  const gap = 8;
+  const totalW = (boxW * 3) + (gap * 2);
+  const startX = (pageWidth - totalW) / 2;
+  const boxY = 118;
 
-  // Draw simplified boxes
-  const boxW = 50;
-  const boxGap = 5;
-  const totalStatsW = (boxW * 3) + (boxGap * 2);
-  const startStatsX = (pageWidth - totalStatsW) / 2;
-
-  const drawStatBox = (x: number, label: string, value: string) => {
-    // Bg
-    pdf.setFillColor(248, 250, 252); // Slate 50
-    pdf.setDrawColor(colors.navy.r, colors.navy.g, colors.navy.b); // Navy border with opacity?
-    pdf.setLineWidth(0.1);
-    pdf.rect(x, yPos, boxW, statsBoxH, 'FD'); // Fill and Draw
-
-    // Label
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(7);
-    pdf.setTextColor(100, 116, 139); // Slate 500
-    pdf.text(label, x + boxW / 2, yPos + 6, { align: 'center' });
-
-    // Value
-    pdf.setFont('times', 'bold'); // Font Display approx
-    pdf.setFontSize(14);
-    pdf.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-    pdf.text(value, x + boxW / 2, yPos + 14, { align: 'center' });
-  };
-
-  // Calculations
-  const percentage = ((result.totalScore / 240) * 100).toFixed(2) + '%';
-
-  drawStatBox(startStatsX, 'EXAM SCORE', `${result.totalScore}/240`);
-  drawStatBox(startStatsX + boxW + boxGap, 'NATIONAL RANK', `AIR ${result.rank || '-'}`);
-  drawStatBox(startStatsX + (boxW + boxGap) * 2, 'PERCENTAGE', percentage);
-
-  yPos += 35;
-
-  // 9. Signatures Area
-  const sigY = pageHeight - 55;
-
-  // Left: Director
-  const dirSigUrl = '/images/director_sig.png'; // Use downloaded
-  const dirSigBase64 = await loadImage(dirSigUrl).catch(() => '');
-
-  if (dirSigBase64) {
-    pdf.addImage(dirSigBase64, 'PNG', printX + 15, sigY - 10, 40, 15);
-  }
-  pdf.setDrawColor(colors.navy.r, colors.navy.g, colors.navy.b);
+  // Box 1: Rank
+  pdf.setFillColor(51, 51, 51); // #333
+  pdf.setDrawColor(75, 85, 99); // border
   pdf.setLineWidth(0.5);
-  pdf.line(printX + 15, sigY + 6, printX + 55, sigY + 6);
-  pdf.setFontSize(8);
+  pdf.roundedRect(startX, boxY, boxW, boxH, 2, 2, 'FD');
+
+  pdf.setTextColor(59, 130, 246); // blue-500
+  pdf.setFontSize(26);
   pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  pdf.text('DIRECTOR, GPHDM', printX + 35, sigY + 10, { align: 'center' });
+  pdf.text(getOrdinal(result.rank || 0), startX + boxW / 2, boxY + 16, { align: 'center' });
 
-  // Center: QR Code
+  pdf.setTextColor(156, 163, 175); // gray-400
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('CLASS RANK', startX + boxW / 2, boxY + 23, { align: 'center' });
+
+  // Box 2: Score
+  pdf.setFillColor(42, 47, 58); // #2a2f3a
+  pdf.setDrawColor(59, 130, 246); // blue-500 border
+  pdf.setLineWidth(0.8);
+  pdf.roundedRect(startX + boxW + gap, boxY, boxW, boxH, 2, 2, 'FD');
+
+  pdf.setTextColor(96, 165, 250); // blue-400
+  pdf.setFontSize(26);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(result.totalScore.toString(), startX + boxW + gap + boxW / 2, boxY + 16, { align: 'center' });
+
+  pdf.setTextColor(156, 163, 175);
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text('TOTAL SCORE', startX + boxW + gap + boxW / 2, boxY + 23, { align: 'center' });
+
+  // Box 3: Accuracy
+  pdf.setFillColor(33, 47, 39); // #212f27
+  pdf.setDrawColor(34, 197, 94); // green-500 border
+  pdf.setLineWidth(0.8);
+  pdf.roundedRect(startX + (boxW + gap) * 2, boxY, boxW, boxH, 2, 2, 'FD');
+
+  pdf.setTextColor(34, 197, 94); // green-500
+  pdf.setFontSize(26);
+  pdf.setFont('helvetica', 'bold');
+  const accuracy = Math.round((result.correctCount / (result.correctCount + result.wrongCount + result.unansweredCount || 1)) * 100);
+  pdf.text(accuracy + '%', startX + (boxW + gap) * 2 + boxW / 2, boxY + 16, { align: 'center' });
+
+  pdf.setFontSize(8);
+  pdf.text('ACCURACY', startX + (boxW + gap) * 2 + boxW / 2, boxY + 23, { align: 'center' });
+
+  // Distinction Text
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Distinction', pageWidth / 2, boxY + 40, { align: 'center' });
+
+  // --- FOOTER SECTION ---
+  const blueBarY = pageHeight - 25;
+  const whiteBarY = pageHeight - 15;
+
+  // Blue Bar
+  pdf.setFillColor(59, 130, 246); // blue-500
+  pdf.rect(0, blueBarY, pageWidth, 10, 'F');
+
+  // White Bar is just the page bg, no drawing needed
+
+  // QR Code
   const qrSize = 25;
-  const qrX = centerX - qrSize / 2;
-  const qrY = sigY - 12;
+  const qrX = 30;
+  const qrY = pageHeight - 33; // Intersects blue bar
+
+  pdf.setFillColor(255, 255, 255);
+  pdf.setDrawColor(209, 213, 219); // gray-300
+  pdf.setLineWidth(0.3);
+  pdf.rect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4, 'FD');
+
   const qrDataUrl = await generateQRCode(certificate.certificateId);
-
-  // Border for QR
-  pdf.setDrawColor(226, 232, 240); // Slate 200
-  pdf.setLineWidth(0.5);
-  pdf.rect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4);
-
   if (qrDataUrl) {
     pdf.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
   }
-  pdf.setFontSize(7);
-  pdf.setFont('courier', 'normal'); // Mono
-  pdf.setTextColor(148, 163, 184); // Slate 400
-  pdf.text(`ID: ${certificate.certificateId}`, centerX, qrY + qrSize + 6, { align: 'center' });
 
-  // Right: Chief Examiner
-  const exSigUrl = '/images/examiner_sig.png'; // Use downloaded
-  const exSigBase64 = await loadImage(exSigUrl).catch(() => '');
-
-  if (exSigBase64) {
-    pdf.addImage(exSigBase64, 'PNG', printX + printW - 55, sigY - 8, 30, 12);
-  }
-  pdf.line(printX + printW - 55, sigY + 6, printX + printW - 15, sigY + 6);
+  // Texts in Blue Bar
+  pdf.setTextColor(219, 234, 254); // blue-100
   pdf.setFontSize(8);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(colors.navy.r, colors.navy.g, colors.navy.b);
-  pdf.text('CHIEF EXAMINER', printX + printW - 35, sigY + 10, { align: 'center' });
+  pdf.setFont('courier', 'normal');
+  pdf.text(`Certificate ID: ${certificate.certificateId}`, qrX + qrSize + 10, blueBarY + 6);
 
-  // 10. Footer (Contacts + Flags)
-  const bottomY = pageHeight - margin - 15;
+  if (scholarship) {
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    const schText = scholarship.amount ? `₹${scholarship.amount}` : 'APPROVED';
+    pdf.text(`& SCHOLARSHIP AWARDED : ${schText} &`, pageWidth / 2 + 15, blueBarY + 6, { align: 'center' });
+  }
 
-  // Contact Line
-  pdf.setFontSize(7);
-  pdf.setTextColor(71, 85, 105); // Slate 600
-  pdf.setFont('helvetica', 'bold');
-  const contacts = 'CALL: 9120057559  |  MAIL: grampanchayat023@gmail.com  |  WEB: www.gphdm.org.in';
-  pdf.text(contacts, centerX, bottomY, { align: 'center' });
+  // Texts in White Bar
+  pdf.setTextColor(107, 114, 128); // gray-500
+  pdf.setFontSize(8);
+  pdf.setFont('helvetica', 'normal');
+  pdf.text(`Issue Date: ${formatDateTime(certificate.issuedAt).split(',')[0]}`, qrX + qrSize + 10, whiteBarY + 8);
 
-  // Flag Bars
-  const barH = 1.5; // mm
-  const barY = bottomY + 3;
-
-  pdf.setFillColor(colors.saffron.r, colors.saffron.g, colors.saffron.b);
-  pdf.rect(printX, barY, printW / 3, barH, 'F');
-
-  pdf.setFillColor(255, 255, 255); // White (border visible if bg is not white)
-  pdf.setDrawColor(241, 245, 249); // Slight slate border for white part
-  pdf.rect(printX + printW / 3, barY, printW / 3, barH, 'FD');
-
-  pdf.setFillColor(colors.green.r, colors.green.g, colors.green.b);
-  pdf.rect(printX + (printW / 3) * 2, barY, printW / 3, barH, 'F');
+  const sigX = pageWidth - 65;
+  pdf.setDrawColor(156, 163, 175);
+  pdf.setLineWidth(0.5);
+  pdf.line(sigX, whiteBarY + 5, sigX + 45, whiteBarY + 5);
+  pdf.text('Authorized Signature', sigX + 22.5, whiteBarY + 9, { align: 'center' });
 
   return pdf;
 }
