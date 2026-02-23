@@ -375,10 +375,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loginAdmin: async (email, password) => {
     set({ isLoading: true });
     try {
-      // ✅ SUPER ADMIN LOGIN - Credentials with fallbacks
+      // ✅ SUPER ADMIN LOGIN - Credentials with fallbacks and trim to prevent newline issues
       const superAdminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'grampanchayat023@gmail.com').toLowerCase().trim();
-      const superAdminLoginPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-      const superAdminSupabasePassword = import.meta.env.VITE_ADMIN_SUPABASE_PASSWORD || 'grampanchayat_admin';
+      const superAdminLoginPassword = (import.meta.env.VITE_ADMIN_PASSWORD || 'admin123').trim();
+      const superAdminSupabasePassword = (import.meta.env.VITE_ADMIN_SUPABASE_PASSWORD || 'grampanchayat_admin').trim();
 
       if (superAdminEmail && email.toLowerCase().trim() === superAdminEmail && password === superAdminLoginPassword) {
         // Force sign out first to clear any student session
