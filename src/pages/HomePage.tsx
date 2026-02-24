@@ -123,11 +123,11 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-background overflow-hidden font-sans">
       {/* Hero Section */}
-      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden">
-        {/* Modern animated background elements */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#0B0F19] via-[#111928] to-[#0A0B10] -z-20" />
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-glow-pulse -z-10" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[150px] mix-blend-screen animate-glow-pulse -z-10" style={{ animationDelay: '2s' }} />
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#030712]">
+        {/* Modern animated background elements - ensure they stay behind content but on top of base bg */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F19] via-[#111928] to-[#0A0B10] z-0" />
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-glow-pulse z-0" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[150px] mix-blend-screen animate-glow-pulse z-0" style={{ animationDelay: '2s' }} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pt-20 pb-16 z-10 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
