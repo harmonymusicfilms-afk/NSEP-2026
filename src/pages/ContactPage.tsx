@@ -127,8 +127,10 @@ export function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Construct WhatsApp message
+    const waMessage = `*New GPHDM Inquiry*%0A%0A*Name:* ${formData.name}%0A*Email:* ${formData.email}%0A*Phone:* ${formData.phone || 'N/A'}%0A*Subject:* ${formData.subject}%0A*Message:* ${formData.message}`;
+    const waNumber = APP_CONFIG.supportPhone.replace(/\D/g, '');
+    const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
 
     // Save to localStorage (in real app, this would be an API call)
     const submissions = JSON.parse(localStorage.getItem('gphdm_contact_submissions') || '[]');
@@ -144,9 +146,14 @@ export function ContactPage() {
     setIsSubmitted(true);
 
     toast({
-      title: 'Message Sent!',
-      description: 'We will get back to you within 24-48 hours.',
+      title: 'Message Ready!',
+      description: 'Opening WhatsApp to send your inquiry...',
     });
+
+    // Open WhatsApp
+    setTimeout(() => {
+      window.open(waUrl, '_blank');
+    }, 1000);
   };
 
   const filteredFAQs = faqCategory === 'all'
