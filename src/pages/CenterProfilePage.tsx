@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 
 export function CenterProfilePage() {
     const { currentCenter, setCenter } = useAuthStore();
@@ -45,7 +45,7 @@ export function CenterProfilePage() {
 
         setIsSaving(true);
         try {
-            const { data, error } = await supabase
+            const { data, error } = await backend
                 .from('centers')
                 .update({
                     name: formData.name,

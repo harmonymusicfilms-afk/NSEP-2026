@@ -46,7 +46,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore, useAdminLogStore } from '@/stores';
 import { useToast } from '@/hooks/use-toast';
 import { formatDate, generateId } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { REFERRAL_CONFIG, STORAGE_KEYS } from '@/constants/config';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 
@@ -108,14 +108,14 @@ export function AdminCentersPage() {
   const loadCenters = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('centers')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
         // RLS/recursion errors - just show empty list, don't crash
-        console.warn('Centers fetch error (check Supabase RLS):', error.message);
+        console.warn('Centers fetch error (check backend RLS):', error.message);
         setCenters([]);
         return;
       }
@@ -132,8 +132,8 @@ export function AdminCentersPage() {
     if (!selectedCenter || !currentAdmin) return;
 
     try {
-      // 1. Update center status in Supabase
-      const { error: updateError } = await supabase
+      // 1. Update center status in backend
+      const { error: updateError } = await backend
         .from('centers')
         .update({
           status: 'APPROVED',
@@ -144,8 +144,8 @@ export function AdminCentersPage() {
 
       if (updateError) throw updateError;
 
-      // 2. Create referral code in Supabase
-      const { error: refError } = await supabase
+      // 2. Create referral code in backend
+      const { error: refError } = await backend
         .from('referral_codes')
         .insert([{
           code: selectedCenter.centerCode,
@@ -196,7 +196,7 @@ export function AdminCentersPage() {
     if (!selectedCenter || !currentAdmin) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('centers')
         .update({
           status: 'BLOCKED',

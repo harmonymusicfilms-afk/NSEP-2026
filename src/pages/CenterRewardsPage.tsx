@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/table';
 import { useAuthStore } from '@/stores';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 
 export function CenterRewardsPage() {
     const { currentCenter } = useAuthStore();
@@ -43,7 +43,7 @@ export function CenterRewardsPage() {
         setIsLoading(true);
         try {
             // 1. Fetch individual student referral rewards
-            const { data: rewardData, error: rewardError } = await supabase
+            const { data: rewardData, error: rewardError } = await backend
                 .from('center_rewards')
                 .select(`
           *,
@@ -56,14 +56,14 @@ export function CenterRewardsPage() {
             setRewards(rewardData || []);
 
             // 2. Fetch wallet transactions for the center owner
-            const { data: walletData } = await supabase
+            const { data: walletData } = await backend
                 .from('wallets')
                 .select('id')
                 .eq('student_id', currentCenter?.id)
                 .single();
 
             if (walletData) {
-                const { data: transData, error: transError } = await supabase
+                const { data: transData, error: transError } = await backend
                     .from('wallet_transactions')
                     .select('*')
                     .eq('wallet_id', walletData.id)

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/table';
 import { useAuthStore } from '@/stores';
 import { formatDate } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { CLASSES } from '@/constants/config';
 
 export function CenterStudentsPage() {
@@ -44,7 +44,7 @@ export function CenterStudentsPage() {
     const loadStudents = async () => {
         setIsLoading(true);
         try {
-            const { data, error } = await supabase
+            const { data, error } = await backend
                 .from('students')
                 .select('*')
                 .eq('referred_by_center_code', currentCenter?.centerCode)

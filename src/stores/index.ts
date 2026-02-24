@@ -33,10 +33,10 @@ import { STORAGE_KEYS, EXAM_CONFIG, EXAM_FEES, CENTER_REWARD, DEFAULT_CERTIFICAT
 import { generateId, generateCenterCode, generateOrderId, generatePaymentId, generateCertificateId, generateStudentReferralCode } from '@/lib/utils';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 import { initializeMockData, mockExamQuestions } from '@/constants/mockData';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import type { DashboardStats, ClassWiseStats as ClassStats, ReferralCodeType, ReferralCode, ReferralLog, Center, GalleryItem } from '@/types';
 
-// Mapping Helpers for Supabase (snake_case) to Frontend (camelCase)
+// Mapping Helpers for backend (snake_case) to Frontend (camelCase)
 const mapStudent = (data: any): Student => ({
   id: data.id,
   name: data.name,
@@ -312,7 +312,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       // For students, we use email/mobile as "passwordless" or custom logic
       // But for now, let's just fetch the student record if it matches
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('students')
         .select('*')
         .eq('email', email)
@@ -333,14 +333,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logoutStudent: async () => {
-    await supabase.auth.signOut();
+    await backend.auth.signOut();
     set({ currentStudent: null, isStudentLoggedIn: false });
   },
 
   loginCenter: async (email, password) => {
     set({ isLoading: true });
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await backend.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -348,7 +348,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (authError) throw authError;
       if (!authData.user) throw new Error('Center authentication failed');
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('centers')
         .select('*')
         .eq('user_id', authData.user.id)
@@ -368,7 +368,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logoutCenter: async () => {
-    await supabase.auth.signOut();
+    await backend.auth.signOut();
     set({ currentCenter: null, isCenterLoggedIn: false });
   },
 
@@ -378,22 +378,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // ✅ SUPER ADMIN LOGIN - Credentials with fallbacks and trim to prevent newline issues
       const superAdminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'grampanchayat023@gmail.com').toLowerCase().trim();
       const superAdminLoginPassword = (import.meta.env.VITE_ADMIN_PASSWORD || 'admin123').trim();
-      const superAdminSupabasePassword = (import.meta.env.VITE_ADMIN_SUPABASE_PASSWORD || 'grampanchayat_admin').trim();
+      const superAdminBackendPassword = (import.meta.env.VITE_ADMIN_BACKEND_PASSWORD || 'grampanchayat_admin').trim();
 
       if (superAdminEmail && email.toLowerCase().trim() === superAdminEmail && password === superAdminLoginPassword) {
         // Force sign out first to clear any student session
-        await supabase.auth.signOut();
+        await backend.auth.signOut();
 
-        let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        let { data: authData, error: authError } = await backend.auth.signInWithPassword({
           email: email.trim(),
-          password: superAdminSupabasePassword,
+          password: superAdminBackendPassword,
         });
 
         // If not found or invalid, attempt to create/reset it
         if (authError && authError.message.toLowerCase().includes('invalid login credentials')) {
-          const signUpRes = await supabase.auth.signUp({
+          const signUpRes = await backend.auth.signUp({
             email: email.trim(),
-            password: superAdminSupabasePassword,
+            password: superAdminBackendPassword,
           });
           authData = signUpRes.data;
           authError = signUpRes.error;
@@ -404,7 +404,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         // Upsert admin_users row so RLS policies work
-        const { error: upsertError } = await supabase.from('admin_users').upsert([{
+        const { error: upsertError } = await backend.from('admin_users').upsert([{
           id: authData.user.id,
           name: 'Gram Panchayat Admin',
           email: email.trim(),
@@ -427,9 +427,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return admin;
       }
 
-      // Normal admin login via Supabase Auth
-      await supabase.auth.signOut();
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // Normal admin login via backend Auth
+      await backend.auth.signOut();
+      const { data: authData, error: authError } = await backend.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -441,7 +441,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       let admin: AdminUser | null = null;
 
       try {
-        const { data, error } = await supabase
+        const { data, error } = await backend
           .from('admin_users')
           .select('*')
           .eq('id', authData.user.id)
@@ -459,7 +459,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const currentAdmin = admin!;
 
       // Update last login (fire and forget)
-      supabase.from('admin_users').update({
+      backend.from('admin_users').update({
         last_login: new Date().toISOString()
       }).eq('id', currentAdmin.id).then();
 
@@ -476,7 +476,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setupAdmin: async (email, password) => {
     set({ isLoading: true });
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await backend.auth.signUp({
         email: email.trim(),
         password: password,
       });
@@ -486,7 +486,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // If user was already registered or just signed up, try to sign in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error: signInError } = await backend.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -505,7 +505,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       };
 
       // Ensure they exist in admin_users table (upsert is safest)
-      const { error: adminError } = await supabase
+      const { error: adminError } = await backend
         .from('admin_users')
         .upsert([{
           id: signInData.user.id,
@@ -557,7 +557,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({
   loadStudents: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('students').select('*').order('created_at', { ascending: false });
+      const { data, error } = await backend.from('students').select('*').order('created_at', { ascending: false });
       if (error) {
         // If table doesn't exist, try localStorage
         if (error.code === '42P01') {
@@ -608,14 +608,14 @@ export const useStudentStore = create<StudentState>((set, get) => ({
         status: 'PENDING',
       };
 
-      const { data: newStudent, error } = await supabase
+      const { data: newStudent, error } = await backend
         .from('students')
         .insert([studentData])
         .select()
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase students insert error:', error);
+        console.error('backend students insert error:', error);
         throw error;
       }
 
@@ -674,7 +674,7 @@ export const useStudentStore = create<StudentState>((set, get) => ({
       delete dbUpdate.referredByCenter;
       delete dbUpdate.referredByStudent;
 
-      const { data: updatedData, error } = await supabase
+      const { data: updatedData, error } = await backend
         .from('students')
         .update(dbUpdate)
         .eq('id', id)
@@ -697,31 +697,31 @@ export const useStudentStore = create<StudentState>((set, get) => ({
   },
 
   getStudentById: async (id) => {
-    const { data, error } = await supabase.from('students').select('*').eq('id', id).maybeSingle();
+    const { data, error } = await backend.from('students').select('*').eq('id', id).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByEmail: async (email) => {
-    const { data, error } = await supabase.from('students').select('*').eq('email', email).maybeSingle();
+    const { data, error } = await backend.from('students').select('*').eq('email', email).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByMobile: async (mobile) => {
-    const { data, error } = await supabase.from('students').select('*').eq('mobile', mobile).maybeSingle();
+    const { data, error } = await backend.from('students').select('*').eq('mobile', mobile).maybeSingle();
     if (error) return null;
     return data as Student;
   },
 
   getStudentByCenterCode: async (code) => {
-    const { data, error } = await supabase.from('students').select('*').eq('center_code', code).maybeSingle();
+    const { data, error } = await backend.from('students').select('*').eq('center_code', code).maybeSingle();
     if (error) return null;
     return mapStudent(data);
   },
 
   getStudentByReferralCode: async (code) => {
-    const { data, error } = await supabase.from('students').select('*').eq('referral_code', code).maybeSingle();
+    const { data, error } = await backend.from('students').select('*').eq('referral_code', code).maybeSingle();
     if (error) return null;
     return mapStudent(data);
   },
@@ -756,7 +756,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
   loadPayments: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('payments').select('*').order('created_at', { ascending: false });
+      const { data, error } = await backend.from('payments').select('*').order('created_at', { ascending: false });
       if (error) {
         // If table doesn't exist, try localStorage
         if (error.code === '42P01') {
@@ -783,7 +783,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
   createPayment: async (studentId, amount) => {
     console.log('Creating payment for student:', studentId, 'amount:', amount);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('payments')
         .insert([{
           student_id: studentId,
@@ -795,7 +795,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase payment insert error:', error);
+        console.error('backend payment insert error:', error);
         throw error;
       }
       const payment = mapPayment(data);
@@ -809,7 +809,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
 
   verifyPayment: async (paymentId, razorpayPaymentId, signature) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('payments')
         .update({
           razorpay_payment_id: razorpayPaymentId,
@@ -832,7 +832,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       });
 
       // Send payment receipt email
-      const { data: student } = await supabase
+      const { data: student } = await backend
         .from('students')
         .select('*')
         .eq('id', updatedPayment.studentId)
@@ -858,7 +858,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
 
   failPayment: async (paymentId) => {
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('payments')
         .update({ status: 'FAILED' })
         .eq('id', paymentId);
@@ -878,7 +878,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       const payment = get().payments.find(p => p.id === paymentId);
       if (!payment) return;
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('payments')
         .update({
           status: 'SUCCESS',
@@ -909,7 +909,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       const payment = get().payments.find(p => p.id === paymentId);
       if (!payment) return;
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('payments')
         .update({
           status: 'PENDING',
@@ -966,7 +966,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   loadWallets: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('wallets').select('*');
+      const { data, error } = await backend.from('wallets').select('*');
       if (error) throw error;
       set({ wallets: (data || []).map(mapWallet) });
     } catch (error) {
@@ -978,7 +978,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
 
   loadTransactions: async () => {
     try {
-      const { data, error } = await supabase.from('wallet_transactions').select('*').order('created_at', { ascending: false });
+      const { data, error } = await backend.from('wallet_transactions').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       set({ transactions: (data || []).map(mapWalletTransaction) });
     } catch (error) {
@@ -990,7 +990,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     let wallet = get().wallets.find((w) => w.studentId === studentId);
     if (!wallet) {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await backend
           .from('wallets')
           .insert([{ student_id: studentId, balance: 0 }])
           .select()
@@ -1012,14 +1012,14 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!wallet) return;
 
     try {
-      const { error: walletError } = await supabase
+      const { error: walletError } = await backend
         .from('wallets')
         .update({ balance: wallet.balance + amount })
         .eq('id', wallet.id);
 
       if (walletError) throw walletError;
 
-      const { data: transaction, error: transError } = await supabase
+      const { data: transaction, error: transError } = await backend
         .from('wallet_transactions')
         .insert([{
           wallet_id: wallet.id,
@@ -1062,7 +1062,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
   loadRewards: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('center_rewards').select('*');
+      const { data, error } = await backend.from('center_rewards').select('*');
       if (error) throw error;
       set({ rewards: data as CenterReward[] });
     } catch (error) {
@@ -1078,7 +1078,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
       console.log('Creating referral reward...', { centerOwnerStudentId, newStudentId });
 
       // Check for existing reward to prevent duplicates
-      const { data: existingReward } = await supabase
+      const { data: existingReward } = await backend
         .from('center_rewards')
         .select('*')
         .eq('new_student_id', newStudentId)
@@ -1089,7 +1089,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('center_rewards')
         .insert([{
           center_owner_student_id: centerOwnerStudentId,
@@ -1102,7 +1102,7 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase center_rewards insert error:', error);
+        console.error('backend center_rewards insert error:', error);
         throw error;
       }
 
@@ -1157,9 +1157,9 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
       };
 
       const [{ data: codes }, { data: logs }, { data: centers }] = await Promise.all([
-        safeFetch(supabase.from('referral_codes').select('*').order('created_at', { ascending: false })),
-        safeFetch(supabase.from('referral_logs').select('*').order('created_at', { ascending: false })),
-        safeFetch(supabase.from('centers').select('*').order('created_at', { ascending: false }))
+        safeFetch(backend.from('referral_codes').select('*').order('created_at', { ascending: false })),
+        safeFetch(backend.from('referral_logs').select('*').order('created_at', { ascending: false })),
+        safeFetch(backend.from('centers').select('*').order('created_at', { ascending: false }))
       ]);
 
       // Also load locally stored codes (saved when DB insert is blocked by RLS)
@@ -1210,13 +1210,13 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
     let resolvedOwnerId = ownerId;
     const isValidUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(ownerId);
     if (!isValidUUID) {
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData } = await backend.auth.getSession();
       resolvedOwnerId = sessionData?.session?.user?.id || '00000000-0000-0000-0000-000000000001';
     }
 
-    // Try Supabase insert first
+    // Try backend insert first
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('referral_codes')
         .insert([{
           code: codeStr,
@@ -1254,7 +1254,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
 
   createCenter: async (data) => {
     try {
-      const { data: newCenter, error } = await supabase
+      const { data: newCenter, error } = await backend
         .from('centers')
         .insert([{
           name: data.name,
@@ -1294,7 +1294,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
 
     try {
       // 1. Approve center
-      const { error: centerError } = await supabase
+      const { error: centerError } = await backend
         .from('centers')
         .update({
           status: 'APPROVED',
@@ -1325,7 +1325,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
     if (!code) return;
 
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('referral_codes')
         .update({ is_active: !code.isActive })
         .eq('id', codeId);
@@ -1344,7 +1344,7 @@ export const useReferralStore = create<ReferralState>((set, get) => ({
 
   deleteCenter: async (centerId) => {
     try {
-      const { error } = await supabase.from('centers').delete().eq('id', centerId);
+      const { error } = await backend.from('centers').delete().eq('id', centerId);
       if (error) throw error;
       set({ centers: get().centers.filter(c => c.id !== centerId) });
     } catch (error) {
@@ -1394,7 +1394,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
   loadQuestions: async (classLevel) => {
     set({ isLoading: true });
     try {
-      let query = supabase.from('exam_questions').select('*');
+      let query = backend.from('exam_questions').select('*');
 
       if (classLevel !== undefined) {
         query = query.eq('class_level', classLevel);
@@ -1425,10 +1425,10 @@ export const useExamStore = create<ExamState>((set, get) => ({
   loadExamData: async () => {
     set({ isLoading: true });
     try {
-      // Load Supabase Data - with error handling for missing tables
+      // Load backend Data - with error handling for missing tables
       let configData = null;
       try {
-        const { data } = await supabase.from('exam_config').select('*').limit(1);
+        const { data } = await backend.from('exam_config').select('*').limit(1);
         configData = data;
       } catch (configError) {
         console.warn('exam_config table might not exist, using default config:', configError);
@@ -1438,14 +1438,14 @@ export const useExamStore = create<ExamState>((set, get) => ({
       let resultData = [];
 
       try {
-        const { data: sData } = await supabase.from('exam_sessions').select('*');
+        const { data: sData } = await backend.from('exam_sessions').select('*');
         sessionData = sData || [];
       } catch (sessionError) {
         console.warn('exam_sessions table query failed:', sessionError);
       }
 
       try {
-        const { data: rData } = await supabase.from('exam_results').select('*');
+        const { data: rData } = await backend.from('exam_results').select('*');
         resultData = rData || [];
       } catch (resultError) {
         console.warn('exam_results table query failed:', resultError);
@@ -1473,7 +1473,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
       });
     } catch (error) {
       console.error('Error loading exam data:', error);
-      // Fallback to minimal localStorage load if Supabase fails
+      // Fallback to minimal localStorage load if backend fails
       const localResultsStr = localStorage.getItem('exam_results');
       const localResults: ExamResult[] = localResultsStr ? JSON.parse(localResultsStr) : [];
       set({ results: localResults });
@@ -1494,7 +1494,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
         marks_per_wrong: config.marksPerWrong,
         scholarship_prizes: config.scholarshipPrizes,
       };
-      const { error } = await supabase.from('exam_config').upsert([dbConfig]);
+      const { error } = await backend.from('exam_config').upsert([dbConfig]);
       if (error) throw error;
       set({ config });
     } catch (error) {
@@ -1504,7 +1504,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
 
   addQuestion: async (question) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('exam_questions')
         .insert([{
           class_level: question.class,
@@ -1537,7 +1537,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
       if (question.subject) dbUpdate.subject = question.subject;
       if (question.questionFileUrl !== undefined) dbUpdate.question_file_url = question.questionFileUrl;
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('exam_questions')
         .update(dbUpdate)
         .eq('id', id)
@@ -1558,7 +1558,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
 
   deleteQuestion: async (id) => {
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('exam_questions')
         .delete()
         .eq('id', id);
@@ -1577,7 +1577,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
   startExam: async (studentId, classNum, ipAddress, userAgent) => {
     try {
       // 1. Check if exam already completed
-      const { count } = await supabase
+      const { count } = await backend
         .from('exam_results')
         .select('*', { count: 'exact', head: true })
         .eq('student_id', studentId);
@@ -1587,7 +1587,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
       }
 
       // 2. Check if a session is already in progress
-      const { data: existingSession } = await supabase
+      const { data: existingSession } = await backend
         .from('exam_sessions')
         .select('*')
         .eq('student_id', studentId)
@@ -1602,7 +1602,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
         return session;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('exam_sessions')
         .insert([{
           student_id: studentId,
@@ -1643,7 +1643,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
     const nextTime = session.totalTimeSpent + timeTaken;
 
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('exam_sessions')
         .update({
           answers: updatedAnswers,
@@ -1695,7 +1695,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
     const totalScore = correctCount * get().config.marksPerCorrect + wrongCount * get().config.marksPerWrong;
 
     try {
-      const { data: resultData, error: resultError } = await supabase
+      const { data: resultData, error: resultError } = await backend
         .from('exam_results')
         .insert([{
           student_id: session.studentId,
@@ -1712,7 +1712,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
 
       if (resultError) throw resultError;
 
-      const { error: sessionError } = await supabase
+      const { error: sessionError } = await backend
         .from('exam_sessions')
         .update({ status: 'COMPLETED' })
         .eq('id', sessionId);
@@ -1767,7 +1767,7 @@ export const useExamStore = create<ExamState>((set, get) => ({
     try {
       const promises = classResults.map((r, index) => {
         const rank = index + 1;
-        return supabase
+        return backend
           .from('exam_results')
           .update({ rank, result_status: 'PUBLISHED' })
           .eq('id', r.id);
@@ -1808,7 +1808,7 @@ export const useScholarshipStore = create<ScholarshipState>((set, get) => ({
   loadScholarships: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('scholarships').select('*');
+      const { data, error } = await backend.from('scholarships').select('*');
       if (error) throw error;
       set({ scholarships: (data || []).map(mapScholarship) });
     } catch (error) {
@@ -1820,7 +1820,7 @@ export const useScholarshipStore = create<ScholarshipState>((set, get) => ({
 
   createScholarship: async (studentId, classLevel, rank) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('scholarships')
         .insert([{
           student_id: studentId,
@@ -1844,7 +1844,7 @@ export const useScholarshipStore = create<ScholarshipState>((set, get) => ({
 
   approveScholarship: async (id, adminId, type, amount) => {
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('scholarships')
         .update({
           scholarship_type: type,
@@ -1890,7 +1890,7 @@ export const useScholarshipStore = create<ScholarshipState>((set, get) => ({
 
   rejectScholarship: async (id, adminId, reason) => {
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('scholarships')
         .update({
           approval_status: 'REJECTED',
@@ -1947,7 +1947,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
   loadCertificates: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('certificates').select('*');
+      const { data, error } = await backend.from('certificates').select('*');
       if (error) throw error;
 
       const mappedCertificates = (data || []).map((c: any) => ({
@@ -1974,7 +1974,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
 
   loadSettings: async () => {
     try {
-      const { data, error } = await supabase.from('certificate_settings').select('*').limit(1);
+      const { data, error } = await backend.from('certificate_settings').select('*').limit(1);
       if (error) throw error;
       if (data?.[0]) {
         const row = data[0];
@@ -1998,7 +1998,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
   updateSettings: async (settings) => {
     try {
       set({ settings }); // Setup optimist update
-      const { data: existingData } = await supabase.from('certificate_settings').select('id').limit(1);
+      const { data: existingData } = await backend.from('certificate_settings').select('id').limit(1);
 
       const payload: any = {
         default_template: settings.defaultTemplate,
@@ -2011,13 +2011,13 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
 
       let error;
       if (existingData && existingData.length > 0) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await backend
           .from('certificate_settings')
           .update(payload)
           .eq('id', existingData[0].id);
         error = updateError;
       } else {
-        const { error: insertError } = await supabase
+        const { error: insertError } = await backend
           .from('certificate_settings')
           .insert([payload]);
         error = insertError;
@@ -2057,7 +2057,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
   generateCertificate: async (studentId, examResultId, type) => {
     const certId = generateCertificateId();
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('certificates')
         .insert([{
           student_id: studentId,
@@ -2075,8 +2075,8 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
       set({ certificates: [...get().certificates, certificate] });
 
       // Send certificate issued email
-      const { data: student } = await supabase.from('students').select('*').eq('id', studentId).maybeSingle();
-      const { data: result } = await supabase.from('exam_results').select('*').eq('id', examResultId).maybeSingle();
+      const { data: student } = await backend.from('students').select('*').eq('id', studentId).maybeSingle();
+      const { data: result } = await backend.from('exam_results').select('*').eq('id', examResultId).maybeSingle();
 
       if (student && result) {
         sendEmailNotification('CERTIFICATE_ISSUED', student.email, {
@@ -2103,7 +2103,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
   verifyCertificate: async (term) => {
     try {
       // Try finding by Certificate ID first
-      let { data: certData, error } = await supabase
+      let { data: certData, error } = await backend
         .from('certificates')
         .select('*')
         .eq('certificate_id', term)
@@ -2111,7 +2111,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
 
       // If not found, try searching by Student ID
       if (!certData) {
-        const { data: certByStudent } = await supabase
+        const { data: certByStudent } = await backend
           .from('certificates')
           .select('*')
           .eq('student_id', term)
@@ -2139,7 +2139,7 @@ export const useCertificateStore = create<CertificateState>((set, get) => ({
       };
 
       // Fetch student details
-      const { data: studentData } = await supabase
+      const { data: studentData } = await backend
         .from('students')
         .select('*')
         .eq('id', certificate.studentId)
@@ -2188,7 +2188,7 @@ export const useAdminLogStore = create<AdminLogState>((set, get) => ({
 
   addLog: async (adminId, action, referenceId, details) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('admin_logs')
         .insert([{
           admin_id: adminId,
@@ -2241,8 +2241,8 @@ export const useEmailStore = create<EmailState>((set, get) => ({
   loadEmailData: async () => {
     set({ isLoading: true });
     try {
-      const { data: templates } = await supabase.from('email_templates').select('*');
-      const { data: deliveries } = await supabase.from('email_deliveries').select('*');
+      const { data: templates } = await backend.from('email_templates').select('*');
+      const { data: deliveries } = await backend.from('email_deliveries').select('*');
 
       set({
         templates: (templates as EmailTemplate[]) || [],
@@ -2258,7 +2258,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
   createTemplate: async (name, subject, bodyHtml) => {
     const variables = extractVariables(bodyHtml);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('email_templates')
         .insert([{
           name,
@@ -2286,7 +2286,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
       if (data.bodyHtml) {
         updateData.variables = extractVariables(data.bodyHtml);
       }
-      const { error } = await supabase.from('email_templates').update(updateData).eq('id', id);
+      const { error } = await backend.from('email_templates').update(updateData).eq('id', id);
       if (error) throw error;
       set({
         templates: get().templates.map((t) => (t.id === id ? { ...t, ...updateData } : t)),
@@ -2298,7 +2298,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
 
   deleteTemplate: async (id) => {
     try {
-      const { error } = await supabase.from('email_templates').delete().eq('id', id);
+      const { error } = await backend.from('email_templates').delete().eq('id', id);
       if (error) throw error;
       set({ templates: get().templates.filter((t) => t.id !== id) });
     } catch (error) {
@@ -2309,8 +2309,8 @@ export const useEmailStore = create<EmailState>((set, get) => ({
   setDefaultTemplate: async (id) => {
     try {
       // Set all to false, then one to true
-      await supabase.from('email_templates').update({ is_default: false }).neq('id', id);
-      await supabase.from('email_templates').update({ is_default: true }).eq('id', id);
+      await backend.from('email_templates').update({ is_default: false }).neq('id', id);
+      await backend.from('email_templates').update({ is_default: true }).eq('id', id);
       set({
         templates: get().templates.map((t) => ({ ...t, isDefault: t.id === id })),
       });
@@ -2330,7 +2330,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
     const status: EmailDelivery['status'] = success ? 'SENT' : 'FAILED';
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await backend
         .from('email_deliveries')
         .insert([{
           student_id: studentId,
@@ -2372,7 +2372,7 @@ export const useEmailStore = create<EmailState>((set, get) => ({
     const status: EmailDelivery['status'] = success ? 'SENT' : 'RETRY';
 
     try {
-      const { error } = await supabase
+      const { error } = await backend
         .from('email_deliveries')
         .update({
           status,
@@ -2419,7 +2419,7 @@ export const useAdminStore = create<AdminState>((set) => ({
   fetchDashboardStats: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.rpc('get_admin_dashboard_stats');
+      const { data, error } = await backend.rpc('get_admin_dashboard_stats');
       if (error) throw error;
       set({ stats: data as DashboardStats });
     } catch (error) {
@@ -2431,7 +2431,7 @@ export const useAdminStore = create<AdminState>((set) => ({
 
   fetchClassWiseStats: async () => {
     try {
-      const { data, error } = await supabase.rpc('get_class_wise_stats');
+      const { data, error } = await backend.rpc('get_class_wise_stats');
       if (error) throw error;
       set({ classStats: data as ClassStats[] });
     } catch (error) {
@@ -2462,7 +2462,7 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
 
       // Try to also load from DB and merge (DB items take priority by id)
       try {
-        const { data, error } = await supabase
+        const { data, error } = await backend
           .from('gallery_items')
           .select('*')
           .order('created_at', { ascending: false });
@@ -2527,7 +2527,7 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
 
     // Try saving to DB in background (won't block UI)
     try {
-      await supabase.from('gallery_items').insert([{
+      await backend.from('gallery_items').insert([{
         title: item.title,
         description: item.description,
         image_url: resolvedImageUrl,
@@ -2559,7 +2559,7 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
       if (item.isPublished !== undefined) updateData.is_published = item.isPublished;
       if (item.year !== undefined) updateData.year = item.year;
       if (item.featured !== undefined) updateData.featured = item.featured;
-      await supabase.from('gallery_items').update(updateData).eq('id', id);
+      await backend.from('gallery_items').update(updateData).eq('id', id);
     } catch {
       // DB update failed - localStorage updated
     }
@@ -2574,7 +2574,7 @@ export const useGalleryStore = create<GalleryState>((set, get) => ({
 
     // Try DB delete
     try {
-      await supabase.from('gallery_items').delete().eq('id', id);
+      await backend.from('gallery_items').delete().eq('id', id);
     } catch {
       // DB delete failed - localStorage updated
     }
@@ -2633,9 +2633,9 @@ export const useAutomationStore = create<AutomationState>((set, get) => ({
     set({ isLoading: true });
     try {
       const [{ data: schedules }, { data: aiReports }, { data: notifLogs }] = await Promise.all([
-        supabase.from('exam_schedules').select('*').order('exam_date', { ascending: true }),
-        supabase.from('ai_generation_reports').select('*').order('created_at', { ascending: false }),
-        supabase.from('notification_dispatch_logs').select('*').order('sent_at', { ascending: false }).limit(100)
+        backend.from('exam_schedules').select('*').order('exam_date', { ascending: true }),
+        backend.from('ai_generation_reports').select('*').order('created_at', { ascending: false }),
+        backend.from('notification_dispatch_logs').select('*').order('sent_at', { ascending: false }).limit(100)
       ]);
 
       set({

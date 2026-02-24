@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { Syllabus, ExamQuestion } from '@/types';
 import { generateId } from '@/lib/utils';
 
@@ -15,7 +15,7 @@ export const AIExamService = {
     async generateQuestionsFromSyllabus(classLevel: number, count: number = 60): Promise<{ success: boolean; questions: ExamQuestion[]; reportId: string }> {
         try {
             // 1. Fetch approved syllabus for this class
-            const { data: syllabusData, error: syllabusError } = await supabase
+            const { data: syllabusData, error: syllabusError } = await backend
                 .from('syllabuses')
                 .select('*')
                 .eq('class_level', classLevel)
@@ -30,7 +30,7 @@ export const AIExamService = {
             const topicsList = syllabus.topics.map(t => `${t.title}: ${t.description}`).join('\n');
 
             // 2. Log the start of AI generation
-            const { data: reportData, error: reportError } = await supabase
+            const { data: reportData, error: reportError } = await backend
                 .from('ai_generation_reports')
                 .insert([{
                     class_level: classLevel,
@@ -61,14 +61,14 @@ export const AIExamService = {
                 syllabus_topic: q.syllabusTopic // Track which topic this question maps to
             }));
 
-            const { error: insertError } = await supabase
+            const { error: insertError } = await backend
                 .from('exam_questions')
                 .insert(dbQuestions);
 
             if (insertError) throw insertError;
 
             // 5. Update report status
-            await supabase
+            await backend
                 .from('ai_generation_reports')
                 .update({
                     status: 'SUCCESS',

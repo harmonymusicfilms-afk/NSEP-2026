@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { isValidEmail } from '@/lib/utils';
 import { APP_CONFIG } from '@/constants/config';
 
@@ -29,7 +29,7 @@ export function ForgotPasswordPage() {
         setIsLoading(true);
 
         try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            const { error } = await backend.auth.resetPasswordForEmail(email, {
                 redirectTo: `${window.location.origin}/update-password`,
             });
 

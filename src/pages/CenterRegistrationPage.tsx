@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { INDIAN_STATES, APP_CONFIG, REFERRAL_CONFIG } from '@/constants/config';
 import { isValidEmail, isValidMobile, generateId, formatCurrency, generateCenterCode, compressImage, generateUUID } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import logoImg from '@/assets/gphdm-logo.png';
 
 type Step = 'details' | 'owner' | 'payment' | 'address' | 'documents' | 'review' | 'success';
@@ -258,12 +258,12 @@ export function CenterRegistrationPage() {
     };
     console.log("NSEP Debug - Center Object created:", center);
 
-    // 4. Save to Supabase (Real Database)
+    // 4. Save to backend (Real Database)
     try {
       console.log("NSEP Debug - Process started for:", formData.ownerEmail);
 
       // Step A: Attempt Auth SignUp (Fire and Forget if already exists)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await backend.auth.signUp({
         email: formData.ownerEmail,
         password: formData.password || 'password123',
         options: { data: { full_name: formData.ownerName, role: 'CENTER' } }
@@ -298,13 +298,13 @@ export function CenterRegistrationPage() {
         payment_screenshot_url: formData.paymentScreenshotUrl,
       };
 
-      const { error: insertError } = await supabase.from('centers').insert([centerData]);
+      const { error: insertError } = await backend.from('centers').insert([centerData]);
 
       if (insertError) {
         // If it's a duplicate, it's actually a success for the user
         if (insertError.message.toLowerCase().includes('duplicate') || insertError.code === '23505') {
           console.log("Duplicate detected, fetching existing code...");
-          const { data: existing } = await supabase
+          const { data: existing } = await backend
             .from('centers')
             .select('center_code')
             .eq('email', formData.ownerEmail)
@@ -323,7 +323,7 @@ export function CenterRegistrationPage() {
       // Step C: Create referral code record in DB so center can start referring immediately
       try {
         console.log("NSEP Debug - Creating referral code for:", center.centerCode);
-        await supabase.from('referral_codes').insert([{
+        await backend.from('referral_codes').insert([{
           code: center.centerCode,
           type: 'CENTER_CODE',
           owner_id: center.id,
@@ -345,7 +345,7 @@ export function CenterRegistrationPage() {
       console.error('Final Registration Catch:', err);
 
       // Attempt recovery one last time before showing error
-      const { data: finalCheck } = await supabase
+      const { data: finalCheck } = await backend
         .from('centers')
         .select('center_code')
         .eq('email', formData.ownerEmail)
@@ -404,13 +404,13 @@ export function CenterRegistrationPage() {
 
         // Upload to center-documents bucket
         const fileName = `center-${field}-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await backend.storage
           .from('center-documents')
           .upload(fileName, compressedFile, { contentType: compressedFile.type });
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage
+        const { data } = backend.storage
           .from('center-documents')
           .getPublicUrl(fileName);
 

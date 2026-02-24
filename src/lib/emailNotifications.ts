@@ -1,6 +1,6 @@
 import { APP_CONFIG } from '@/constants/config';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 
 // Email notification types
 export type EmailNotificationType =
@@ -495,12 +495,12 @@ export async function sendEmailNotification(
   data: EmailTemplateData,
   language: 'en' | 'hi' = 'en'
 ): Promise<{ success: boolean; emailId: string }> {
-  // Try to fetch custom template from Supabase
+  // Try to fetch custom template from backend
   let customSubject: string | undefined;
   let customBodyHtml: string | undefined;
 
   try {
-    const { data: templates } = await supabase
+    const { data: templates } = await backend
       .from('email_templates')
       .select('*')
       .eq('name', type)
@@ -517,9 +517,9 @@ export async function sendEmailNotification(
 
   const email = generateEmail(type, data, language, customSubject, customBodyHtml);
 
-  // Log to Supabase (primary)
+  // Log to backend (primary)
   try {
-    const { data: delivery, error } = await supabase
+    const { data: delivery, error } = await backend
       .from('email_deliveries')
       .insert([{
         recipient_email: recipientEmail,
@@ -539,7 +539,7 @@ export async function sendEmailNotification(
     return { success: true, emailId: delivery.id };
 
   } catch (dbError) {
-    console.error('Failed to log email to Supabase, falling back to localStorage:', dbError);
+    console.error('Failed to log email to backend, falling back to localStorage:', dbError);
 
     // Fallback to localStorage
     const emailLogs = JSON.parse(localStorage.getItem('gphdm_email_notifications') || '[]');

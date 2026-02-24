@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { Syllabus, SyllabusTopic } from '@/types';
 
 export const SyllabusService = {
@@ -6,7 +6,7 @@ export const SyllabusService = {
      * Fetches the syllabus for all classes or a specific one
      */
     async getSyllabuses(classLevel?: number): Promise<Syllabus[]> {
-        let query = supabase.from('syllabuses').select('*');
+        let query = backend.from('syllabuses').select('*');
         if (classLevel) {
             query = query.eq('class_level', classLevel);
         }
@@ -27,7 +27,7 @@ export const SyllabusService = {
      * Updates or creates a syllabus for a class
      */
     async saveSyllabus(classLevel: number, subject: string, topics: SyllabusTopic[]): Promise<void> {
-        const { error } = await supabase
+        const { error } = await backend
             .from('syllabuses')
             .upsert({
                 class_level: classLevel,
@@ -43,7 +43,7 @@ export const SyllabusService = {
      * Toggles syllabus active status
      */
     async toggleSyllabusStatus(id: string, isActive: boolean): Promise<void> {
-        const { error } = await supabase
+        const { error } = await backend
             .from('syllabuses')
             .update({ is_active: isActive })
             .eq('id', id);

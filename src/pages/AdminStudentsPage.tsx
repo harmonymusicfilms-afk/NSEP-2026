@@ -32,7 +32,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthStore, useStudentStore, usePaymentStore, useAdminLogStore } from '@/stores';
 import { formatDate, getStatusColorClass, compressImage } from '@/lib/utils';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import type { Student } from '@/types';
 
 // Maximum file size: 2MB
@@ -207,7 +207,7 @@ export function AdminStudentsPage() {
     const fileName = `${editingPhotoStudent.id}-${Date.now()}.${fileExt}`;
 
     try {
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await backend.storage
         .from('student-photos')
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
@@ -221,7 +221,7 @@ export function AdminStudentsPage() {
       }
 
       // Get public URL
-      const { data } = supabase.storage
+      const { data } = backend.storage
         .from('student-photos')
         .getPublicUrl(fileName);
 

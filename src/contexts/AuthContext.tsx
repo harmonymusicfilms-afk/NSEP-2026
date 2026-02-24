@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { AuthSession as Session, UserSchema as User } from '@insforge/sdk';
+import { client as backend } from '@/lib/backend';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/stores';
 import { Student } from '@/types';
@@ -25,7 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Get initial session
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        backend.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
             if (session?.user) {
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
         // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = backend.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
 
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchStudentProfile = async (userId: string) => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await backend
                 .from('students')
                 .select('*')
                 .eq('id', userId)
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setStudent(null); // Ensure student is null on error
                 setStoreStudent(null); // Ensure store student is null on error
             } else {
-                // Map Supabase fields to Student type
+                // Map backend fields to Student type
                 if (data) {
                     const studentData: Student = {
                         id: data.id,
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const signOut = async () => {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await backend.auth.signOut();
         if (error) {
             toast({
                 title: 'Error signing out',

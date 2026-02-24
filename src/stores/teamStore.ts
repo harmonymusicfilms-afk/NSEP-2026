@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { generateId } from '@/lib/utils';
 import { APP_CONFIG } from '@/constants/config';
 
@@ -60,7 +60,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
     loadMembers: async () => {
         set({ isLoading: true });
         try {
-            const { data, error } = await supabase
+            const { data, error } = await backend
                 .from('team_members')
                 .select('*')
                 .order('display_order', { ascending: true });
@@ -109,7 +109,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         });
 
         try {
-            await supabase.from('team_members').insert([{
+            await backend.from('team_members').insert([{
                 id: newMember.id,
                 name: newMember.name,
                 role: newMember.role,
@@ -118,7 +118,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
                 display_order: newMember.displayOrder,
             }]);
         } catch (e) {
-            console.error('Failed to save team member to Supabase', e);
+            console.error('Failed to save team member to backend', e);
         }
     },
 
@@ -137,9 +137,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
             if (updates.imageUrl !== undefined) dbUpdates.image_url = updates.imageUrl;
             if (updates.displayOrder !== undefined) dbUpdates.display_order = updates.displayOrder;
 
-            await supabase.from('team_members').update(dbUpdates).eq('id', id);
+            await backend.from('team_members').update(dbUpdates).eq('id', id);
         } catch (e) {
-            console.error('Failed to update team member in Supabase', e);
+            console.error('Failed to update team member in backend', e);
         }
     },
 
@@ -151,9 +151,9 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         });
 
         try {
-            await supabase.from('team_members').delete().eq('id', id);
+            await backend.from('team_members').delete().eq('id', id);
         } catch (e) {
-            console.error('Failed to delete team member from Supabase', e);
+            console.error('Failed to delete team member from backend', e);
         }
     },
 
@@ -164,7 +164,7 @@ export const useTeamStore = create<TeamState>((set, get) => ({
         try {
             // Batch update using loop
             for (const m of members) {
-                await supabase.from('team_members').update({ display_order: m.displayOrder }).eq('id', m.id);
+                await backend.from('team_members').update({ display_order: m.displayOrder }).eq('id', m.id);
             }
         } catch (e) {
             console.error('Failed to reorder team members', e);

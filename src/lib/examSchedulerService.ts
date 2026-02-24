@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { ExamSchedule, Student, NotificationLogType } from '@/types';
 import { sendEmailNotification } from '@/lib/emailNotifications';
 
@@ -14,7 +14,7 @@ export const ExamSchedulerService = {
         await this.ensureMonthlyExamScheduled();
 
         // 2. Fetch all active schedules
-        const { data: schedules, error } = await supabase
+        const { data: schedules, error } = await backend
             .from('exam_schedules')
             .select('*')
             .in('status', ['SCHEDULED', 'NOTIFYING']);
@@ -58,7 +58,7 @@ export const ExamSchedulerService = {
             await this.dispatchBulkNotifications(schedule.id, 'EXAM_DAY', schedule.exam_date);
 
             // Update status to LIVE
-            await supabase.from('exam_schedules').update({ status: 'LIVE' }).eq('id', schedule.id);
+            await backend.from('exam_schedules').update({ status: 'LIVE' }).eq('id', schedule.id);
         }
     },
 
@@ -78,7 +78,7 @@ export const ExamSchedulerService = {
         const targetDate = new Date(year, month, 5);
         const dateStr = targetDate.toISOString().split('T')[0];
 
-        const { data } = await supabase
+        const { data } = await backend
             .from('exam_schedules')
             .select('id')
             .eq('exam_date', dateStr)
@@ -86,7 +86,7 @@ export const ExamSchedulerService = {
 
         if (!data || data.length === 0) {
             console.log(`[Scheduler] Auto-scheduling recurring exam for ${dateStr}`);
-            await supabase.from('exam_schedules').insert([{
+            await backend.from('exam_schedules').insert([{
                 exam_date: dateStr,
                 status: 'SCHEDULED',
                 recurring: true,
@@ -100,7 +100,7 @@ export const ExamSchedulerService = {
      */
     async dispatchBulkNotifications(scheduleId: string, type: NotificationLogType, examDate: string): Promise<void> {
         // 1. Get all active students
-        const { data: students } = await supabase
+        const { data: students } = await backend
             .from('students')
             .select('*')
             .eq('status', 'ACTIVE');
@@ -111,7 +111,7 @@ export const ExamSchedulerService = {
 
         for (const student of students) {
             // Check if already sent today (avoid duplicates)
-            const { data: existing } = await supabase
+            const { data: existing } = await backend
                 .from('notification_dispatch_logs')
                 .select('id')
                 .eq('schedule_id', scheduleId)
@@ -133,7 +133,7 @@ export const ExamSchedulerService = {
             await this.sendWhatsAppMessage(student.mobile, `Namaste ${student.name}, this is a reminder for your upcoming GPHDM Scholarship Exam on ${examDate}. Prep well!`);
 
             // 4. Log the dispatch
-            await supabase.from('notification_dispatch_logs').insert([{
+            await backend.from('notification_dispatch_logs').insert([{
                 schedule_id: scheduleId,
                 student_id: student.id,
                 channel: 'WHATSAPP',
@@ -142,7 +142,7 @@ export const ExamSchedulerService = {
                 sent_at: new Date().toISOString()
             }]);
 
-            await supabase.from('notification_dispatch_logs').insert([{
+            await backend.from('notification_dispatch_logs').insert([{
                 schedule_id: scheduleId,
                 student_id: student.id,
                 channel: 'EMAIL',

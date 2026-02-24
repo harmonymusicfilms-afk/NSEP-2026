@@ -26,7 +26,7 @@ import {
 import { useAuthStore } from '@/stores';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { Link } from 'react-router-dom';
 
 export function CenterDashboardPage() {
@@ -48,7 +48,7 @@ export function CenterDashboardPage() {
         setIsLoading(true);
         try {
             // Fetch students referred by this center
-            const { data, error } = await supabase
+            const { data, error } = await backend
                 .from('students')
                 .select('*')
                 .eq('referred_by_center_code', currentCenter?.centerCode)

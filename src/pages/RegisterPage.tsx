@@ -12,7 +12,7 @@ import { useStudentStore, useAuthStore, useReferralStore, usePaymentStore, useCe
 import { CLASSES, INDIAN_STATES, getExamFee, APP_CONFIG, POLICY_CONFIG, REFERRAL_CONFIG, RAZORPAY_CONFIG } from '@/constants/config';
 import { isValidEmail, isValidMobile, formatCurrency, generateId, generateCenterCode, compressImage } from '@/lib/utils';
 import { STATE_DISTRICTS } from '@/constants/districts';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // MASTER_REFERRAL_CODE moved to config.ts as APP_CONFIG.masterReferralCode
@@ -191,7 +191,7 @@ export function RegisterPage() {
 
     // Check if it's a student referral code (STU prefix)
     if (normalizedCode.startsWith('STU') && normalizedCode.length >= 8) {
-      // Due to Supabase RLS policies, unauthenticated users cannot read `students` table
+      // Due to backend RLS policies, unauthenticated users cannot read `students` table
       // to fetch the referrer's name. We'll accept valid-looking STU codes here.
       // The backend/payment processor will securely handle the actual reward mapping.
       setReferralInfo({
@@ -284,8 +284,8 @@ export function RegisterPage() {
           newErrors.email = 'This email is already registered. Please use a different email or login.';
         }
       } catch (e) {
-        // If RLS blocks the check, Supabase auth.signUp will catch duplicate anyway
-        console.warn('Email duplicate check failed (RLS), will rely on Supabase auth:', e);
+        // If RLS blocks the check, backend auth.signUp will catch duplicate anyway
+        console.warn('Email duplicate check failed (RLS), will rely on backend auth:', e);
       }
     }
 
@@ -358,8 +358,8 @@ export function RegisterPage() {
   const processIdentityAndMoveToPayment = async () => {
     setIsSubmitting(true);
     try {
-      // 1. SignUp with Supabase
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 1. SignUp with backend
+      const { data: authData, error: authError } = await backend.auth.signUp({
         email: formData.email,
         password: formData.password || 'password123',
         options: {
@@ -375,7 +375,7 @@ export function RegisterPage() {
       if (authError) {
         // If user already exists, try to sign in instead to resume
         if (authError.message.includes('already registered')) {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          const { data: signInData, error: signInError } = await backend.auth.signInWithPassword({
             email: formData.email,
             password: formData.password || 'password123',
           });
@@ -558,13 +558,13 @@ export function RegisterPage() {
 
       const fileName = `${pendingStudentId}_${Date.now()}.${fileExt}`;
       const filePath = fileName;
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await backend.storage
         .from('student-photos')
         .upload(filePath, compressedFile, { contentType: compressedFile.type });
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = backend.storage
         .from('student-photos')
         .getPublicUrl(filePath);
 
@@ -589,7 +589,7 @@ export function RegisterPage() {
     try {
       const urlMatches = formData.photoUrl.match(/student-photos\/(.+)$/);
       if (urlMatches && urlMatches[1]) {
-        await supabase.storage.from('student-photos').remove([urlMatches[1]]);
+        await backend.storage.from('student-photos').remove([urlMatches[1]]);
       }
 
       updateField('photoUrl', '');
@@ -906,13 +906,13 @@ export function RegisterPage() {
 
                                 // Upload to student-photos bucket
                                 const fileName = `student-temp-${Date.now()}.${fileExt}`;
-                                const { error: uploadError } = await supabase.storage
+                                const { error: uploadError } = await backend.storage
                                   .from('student-photos')
                                   .upload(fileName, compressedFile, { contentType: compressedFile.type });
 
                                 if (uploadError) throw uploadError;
 
-                                const { data: { publicUrl } } = supabase.storage
+                                const { data: { publicUrl } } = backend.storage
                                   .from('student-photos')
                                   .getPublicUrl(fileName);
 

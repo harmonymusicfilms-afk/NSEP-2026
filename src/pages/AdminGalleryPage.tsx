@@ -81,17 +81,17 @@ export function AdminGalleryPage() {
             const blob = await res.blob();
             const compressedFile = new File([blob], file.name, { type: 'image/jpeg' });
 
-            // Upload to Supabase student-photos bucket (we reuse this bucket to avoid creating new ones)
+            // Upload to backend student-photos bucket (we reuse this bucket to avoid creating new ones)
             const fileExt = file.name.split('.').pop() || 'jpg';
             const fileName = `gallery-${Date.now()}.${fileExt}`;
 
-            const { error: uploadError } = await supabase.storage
+            const { error: uploadError } = await backend.storage
                 .from('student-photos')
                 .upload(fileName, compressedFile, { contentType: 'image/jpeg' });
 
             if (uploadError) throw uploadError;
 
-            const { data } = supabase.storage
+            const { data } = backend.storage
                 .from('student-photos')
                 .getPublicUrl(fileName);
 

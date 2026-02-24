@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 import { APP_CONFIG } from '@/constants/config';
 
 export function UpdatePasswordPage() {
@@ -25,13 +25,13 @@ export function UpdatePasswordPage() {
         // Handle password reset flow
         const handlePasswordReset = async () => {
             // Check if we have a session (user clicked email link)
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await backend.auth.getSession();
 
             if (session) {
                 setIsSessionValid(true);
             } else {
                 // Check if we just landed here from a recovery link
-                supabase.auth.onAuthStateChange(async (event, session) => {
+                backend.auth.onAuthStateChange(async (event, session) => {
                     if (event === "PASSWORD_RECOVERY") {
                         setIsSessionValid(true);
                     } else if (session) {
@@ -66,7 +66,7 @@ export function UpdatePasswordPage() {
         setIsLoading(true);
 
         try {
-            const { error } = await supabase.auth.updateUser({
+            const { error } = await backend.auth.updateUser({
                 password: password
             });
 

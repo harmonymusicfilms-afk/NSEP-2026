@@ -10,7 +10,7 @@ import { useAuthStore, useStudentStore } from '@/stores';
 import { APP_CONFIG } from '@/constants/config';
 import { isValidEmail, isValidMobile } from '@/lib/utils';
 
-import { supabase } from '@/lib/supabase';
+import { client as backend } from '@/lib/backend';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -55,7 +55,7 @@ export function LoginPage() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await backend.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
@@ -64,7 +64,7 @@ export function LoginPage() {
       if (!data.user) throw new Error('No user found');
 
       // Fetch student details to sync with local store (Legacy)
-      const { data: studentData, error: studentError } = await supabase
+      const { data: studentData, error: studentError } = await backend
         .from('students')
         .select('*')
         .eq('id', data.user.id)
@@ -75,7 +75,7 @@ export function LoginPage() {
         let loggedIn = await loginStudent(email.toLowerCase().trim(), studentData.mobile);
 
         if (!loggedIn) {
-          // Hydrate local store from Supabase data
+          // Hydrate local store from backend data
           await addStudent({
             name: studentData.name,
             fatherName: studentData.father_name,
