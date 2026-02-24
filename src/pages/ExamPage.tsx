@@ -33,7 +33,7 @@ import {
   useCenterRewardStore,
   useStudentStore,
 } from '@/stores';
-import { getExamFee, EXAM_CONFIG } from '@/constants/config';
+import { getExamFee, EXAM_CONFIG, REFERRAL_CONFIG } from '@/constants/config';
 import { formatCurrency, formatTime, generatePaymentId } from '@/lib/utils';
 
 type ExamPhase = 'approval' | 'payment' | 'ready' | 'exam' | 'gap' | 'completed';
@@ -57,7 +57,7 @@ export function ExamPage() {
   const { hasSuccessfulPayment, createPayment, verifyPayment, loadPayments } = usePaymentStore();
   const { config, isLoading, hasCompletedExam, completeExam, startExam, loadExamData, loadQuestions, questions: storeQuestions, sessions } = useExamStore();
   const { createReward } = useCenterRewardStore();
-  const { getStudentByCenterCode, loadStudents } = useStudentStore();
+  const { getStudentByCenterCode, getStudentByReferralCode, loadStudents } = useStudentStore();
 
   useEffect(() => {
     loadPayments();
@@ -178,11 +178,22 @@ export function ExamPage() {
             );
 
             if (verifiedPayment) {
-              // Determine if referral reward applies
-              if (currentStudent.referredByCenter) {
-                const referrer = await getStudentByCenterCode(currentStudent.referredByCenter);
+              // Apply referral rewards
+              const refCode = currentStudent.referredByCenter || currentStudent.referredByStudent;
+              if (refCode) {
+                let referrer = null;
+                let rewardAmount = 0;
+
+                if (currentStudent.referredByCenter) {
+                  referrer = await getStudentByCenterCode(currentStudent.referredByCenter);
+                  rewardAmount = REFERRAL_CONFIG.centerCodeReward;
+                } else if (currentStudent.referredByStudent) {
+                  referrer = await getStudentByReferralCode(currentStudent.referredByStudent);
+                  rewardAmount = REFERRAL_CONFIG.studentReferralReward;
+                }
+
                 if (referrer && referrer.id !== currentStudent.id) {
-                  await createReward(referrer.id, currentStudent.id, payment.id);
+                  await createReward(referrer.id, currentStudent.id, payment.id, rewardAmount);
                 }
               }
 

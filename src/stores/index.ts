@@ -1051,7 +1051,7 @@ interface CenterRewardState {
   rewards: CenterReward[];
   isLoading: boolean;
   loadRewards: () => Promise<void>;
-  createReward: (centerOwnerStudentId: string, newStudentId: string, paymentId: string) => Promise<void>;
+  createReward: (centerOwnerStudentId: string, newStudentId: string, paymentId: string, amount?: number) => Promise<void>;
   getRewardsByOwner: (ownerId: string) => CenterReward[];
 }
 
@@ -1072,8 +1072,8 @@ export const useCenterRewardStore = create<CenterRewardState>((set, get) => ({
     }
   },
 
-  createReward: async (centerOwnerStudentId, newStudentId, paymentId) => {
-    const rewardAmount = CENTER_REWARD.amount;
+  createReward: async (centerOwnerStudentId, newStudentId, paymentId, amount?: number) => {
+    const rewardAmount = amount || CENTER_REWARD.amount;
     try {
       console.log('Creating referral reward...', { centerOwnerStudentId, newStudentId });
 

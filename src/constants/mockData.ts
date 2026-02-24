@@ -17,7 +17,7 @@ import { STORAGE_KEYS } from './config';
 // Generate unique center code
 const generateCenterCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'NSE';
+  let code = 'GPHDM';
   for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -28,7 +28,7 @@ const generateCenterCode = () => {
 const generateCertificateId = () => {
   const year = new Date().getFullYear();
   const random = Math.random().toString(36).substring(2, 10).toUpperCase();
-  return `NSEP${year}${random}`;
+  return `GPHDM${year}${random}`;
 };
 
 // Mock Students (20+)
@@ -104,9 +104,9 @@ export const mockStudents: Student[] = [
     schoolContact: '9876500004',
     addressVillage: 'Vasant Kunj',
     addressBlock: 'South Delhi',
-    addressTahsil: 'New Delhi',
-    addressDistrict: 'South Delhi',
-    addressState: 'Delhi',
+    addressTahsil: 'Lucknow',
+    addressDistrict: 'Lucknow',
+    addressState: 'Uttar Pradesh',
     centerCode: generateCenterCode(),
     status: 'ACTIVE',
     createdAt: '2025-01-12T11:45:00Z',
@@ -403,10 +403,10 @@ export const mockStudents: Student[] = [
     schoolName: 'Springdales School',
     schoolContact: '9876500019',
     addressVillage: 'Pusa Road',
-    addressBlock: 'New Delhi',
-    addressTahsil: 'New Delhi',
+    addressBlock: 'Lucknow',
+    addressTahsil: 'Lucknow',
     addressDistrict: 'Central Delhi',
-    addressState: 'Delhi',
+    addressState: 'Uttar Pradesh',
     centerCode: generateCenterCode(),
     status: 'ACTIVE',
     createdAt: '2024-12-28T16:30:00Z',
@@ -546,7 +546,7 @@ export const mockCertificates: Certificate[] = mockScholarships
     examResultId: mockExamResults.find((r) => r.studentId === scholarship.studentId)?.id || '',
     certificateId: generateCertificateId(),
     certificateType: scholarship.rank <= 3 ? 'SCHOLARSHIP' : 'MERIT',
-    qrCode: `https://nsep.edu.in/verify/${generateCertificateId()}`,
+    qrCode: `https://gphdm.edu.in/verify/${generateCertificateId()}`,
     issuedAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString(),
     isValid: true,
   }));
@@ -623,7 +623,7 @@ const subjects = ['Mathematics', 'Science', 'English', 'Social Studies', 'Genera
 const questionTemplates = [
   { q: 'What is the result of {a} + {b}?', type: 'math' },
   { q: 'Which planet is known as the Red Planet?', options: ['Earth', 'Mars', 'Venus', 'Jupiter'], correct: 1 },
-  { q: 'What is the capital of India?', options: ['Mumbai', 'Kolkata', 'New Delhi', 'Chennai'], correct: 2 },
+  { q: 'What is the capital of Uttar Pradesh?', options: ['Kanpur', 'Kolkata', 'Lucknow', 'Chennai'], correct: 2 },
   { q: 'H2O is the chemical formula for:', options: ['Salt', 'Sugar', 'Water', 'Oxygen'], correct: 2 },
   { q: 'Who wrote the Indian National Anthem?', options: ['Bankim Chandra', 'Rabindranath Tagore', 'Sarojini Naidu', 'Mahatma Gandhi'], correct: 1 },
   { q: 'Which is the largest mammal?', options: ['Elephant', 'Blue Whale', 'Giraffe', 'Hippopotamus'], correct: 1 },

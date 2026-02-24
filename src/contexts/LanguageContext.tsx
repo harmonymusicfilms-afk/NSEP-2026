@@ -11,9 +11,9 @@ interface LanguageContextType {
 const translations: Record<Language, Record<string, string>> = {
   en: {
     // Common
-    'app.name': 'S.V. MEDIA FILMS PRODUCTION',
+    'app.name': 'GPHDM National Scholarship Certificate',
     'app.shortName': 'GPHDM',
-    'app.tagline': 'Empowering Students Across India',
+    'app.tagline': 'GPHDM National Scholarship Examination Certificate',
 
     // Navigation
     'nav.home': 'Home',
@@ -28,10 +28,10 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.admin': 'Admin',
 
     // Home Page
-    'home.hero.title': 'GPHDM National Scholarship Certificate',
+    'home.hero.title': 'GPHDM National Scholarship Examination Certificate',
     'home.hero.missionLine': 'Through Gram Panchayat Help Mission',
-    'home.hero.production': 'S.V. MEDIA FILMS PRODUCTION',
-    'home.hero.subtitle': 'Empowering students across India through merit-based scholarships. Register now for Class 1-12 examinations.',
+    'home.hero.production': 'Official Scholarship Portal',
+    'home.hero.subtitle': 'Empowering students across India through the GPHDM National Scholarship. Register now for Class 1-12 examinations.',
     'home.hero.registerBtn': 'Register Now',
     'home.hero.learnMore': 'Learn More',
     'home.registration.open': 'Registration Open for',
@@ -227,9 +227,9 @@ const translations: Record<Language, Record<string, string>> = {
   },
   hi: {
     // Common
-    'app.name': 'S.V. MEDIA FILMS PRODUCTION',
+    'app.name': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति प्रमाणपत्र',
     'app.shortName': 'जीपीएचडीएम',
-    'app.tagline': 'भारत भर के छात्रों को सशक्त बनाना',
+    'app.tagline': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति परीक्षा प्रमाणपत्र',
 
     // Navigation
     'nav.home': 'होम',
@@ -244,10 +244,10 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.admin': 'एडमिन',
 
     // Home Page
-    'home.hero.title': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति प्रमाणपत्र',
+    'home.hero.title': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति परीक्षा प्रमाणपत्र',
     'home.hero.missionLine': 'ग्राम पंचायत हेल्प मिशन के माध्यम से',
-    'home.hero.production': 'S.V. MEDIA FILMS PRODUCTION',
-    'home.hero.subtitle': 'योग्यता-आधारित छात्रवृत्ति के माध्यम से भारत भर के छात्रों को सशक्त बनाना। कक्षा 1-12 परीक्षाओं के लिए अभी पंजीकरण करें।',
+    'home.hero.production': 'आधिकारिक छात्रवृत्ति पोर्टल',
+    'home.hero.subtitle': 'जीपीएचडीएम राष्ट्रीय छात्रवृत्ति के माध्यम से भारत भर के छात्रों को सशक्त बनाना। कक्षा 1-12 परीक्षाओं के लिए अभी पंजीकरण करें।',
     'home.hero.registerBtn': 'अभी पंजीकरण करें',
     'home.hero.learnMore': 'और जानें',
     'home.registration.open': 'पंजीकरण खुला है',

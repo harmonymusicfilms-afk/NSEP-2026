@@ -59,7 +59,7 @@ export function StudentLayout() {
           <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="size-6 text-foreground" />
           </Button>
-          <span className="font-serif font-bold text-primary">NSEP Portal</span>
+          <span className="font-serif font-bold text-primary">GPHDM Portal</span>
           <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20 text-primary font-bold">
             {useAuthStore.getState().currentStudent?.name.charAt(0) || 'S'}
           </div>
@@ -181,4 +181,3 @@ export function AuthLayout() {
     </div>
   );
 }
-

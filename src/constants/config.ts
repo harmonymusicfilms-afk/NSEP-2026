@@ -1,14 +1,14 @@
 // Application Configuration
 export const APP_CONFIG = {
-  name: 'S.V. MEDIA FILMS PRODUCTION',
+  name: 'GPHDM National Scholarship Certificate',
   shortName: 'GPHDM',
-  fullName: 'Gram Panchayat Help Desk Mission Scholarship Examination',
+  fullName: 'GPHDM National Scholarship Examination Certificate',
   year: 2026,
-  organization: 'Gram Panchayat Help Desk Mission',
+  organization: 'GPHDM National Scholarship Foundation',
   supportEmail: 'grampanchayat023@gmail.com',
   supportPhone: '+91 9120057559',
-  notificationGroupUrl: 'https://whatsapp.com/channel/0029ValXkYtK5cDDTyK3Mh0c',
-  masterReferralCode: 'NSEP2026',
+  notificationGroupUrl: 'https://wa.me/919120057559',
+  masterReferralCode: 'GPHDM2026',
 } as const;
 
 // Class-wise Exam Fees (Admin Configurable)
@@ -38,7 +38,7 @@ export const EXAM_CONFIG = {
 
 // Center Code Reward
 export const CENTER_REWARD = {
-  amount: 50,
+  amount: 25,
   currency: 'INR',
 } as const;
 
@@ -167,9 +167,9 @@ export const STORAGE_KEYS = {
 
 // Referral Configuration
 export const REFERRAL_CONFIG = {
-  adminCenterReward: 75, // ₹75 per referral for Admin
-  centerCodeReward: 75, // ₹75 per referral for Centers
-  studentReferralReward: 25, // ₹25 per referral for students
+  adminCenterReward: 50, // Updated from 75
+  centerCodeReward: 25, // Updated from 75
+  studentReferralReward: 50, // Updated from 25
   adminCodePrefix: 'ADM',
   centerCodePrefix: 'CC',
   studentCodePrefix: 'STU',

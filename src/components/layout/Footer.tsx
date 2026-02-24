@@ -88,7 +88,7 @@ export function Footer() {
                 <MapPin className="size-4 text-white/60 mt-0.5 shrink-0" />
                 <span className="text-white/70">
                   {APP_CONFIG.organization}<br />
-                  New Delhi, India
+                  Uttar Pradesh, India
                 </span>
               </li>
             </ul>

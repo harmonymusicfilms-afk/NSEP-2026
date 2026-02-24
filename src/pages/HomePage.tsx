@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import {
   GraduationCap,
   Award,
@@ -27,7 +27,7 @@ import { useExamStore } from '@/stores';
 
 import heroImg from '@/assets/hero-scholarship.jpg';
 
-const containerVariants = {
+const containerVariants: any = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -36,16 +36,16 @@ const containerVariants = {
       delayChildren: 0.2
     }
   }
-};
+} as const;
 
-const itemVariants = {
+const itemVariants: any = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100 }
+    transition: { type: 'spring' as const, stiffness: 100 }
   }
-};
+} as const;
 
 export function HomePage() {
   const { t, language } = useLanguage();
@@ -172,7 +172,7 @@ export function HomePage() {
                   size="lg"
                   variant="outline"
                   className="h-16 px-8 border-white/10 bg-white/5 hover:bg-white/10 text-white text-lg font-bold backdrop-blur-md rounded-full gap-3 transition-all"
-                  onClick={handleNotify}
+                  onClick={() => window.open(APP_CONFIG.notificationGroupUrl, '_blank')}
                 >
                   <Bell className="size-5 text-accent" />
                   {language === 'hi' ? 'अपडेट प्राप्त करें' : 'Get Updates'}

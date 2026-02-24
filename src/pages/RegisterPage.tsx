@@ -469,12 +469,22 @@ export function RegisterPage() {
 
             if (verified) {
               setPaymentVerified(true);
-              // Apply reward if center referral
-              if (formData.referredByCenter && referralType === 'CENTER') {
-                const { getStudentByCenterCode } = useStudentStore.getState();
-                const referrer = await getStudentByCenterCode(formData.referredByCenter);
-                if (referrer) {
-                  await createReward(referrer.id, pendingStudentId, payment.id);
+              // Apply referral rewards
+              if (formData.referredByCenter) {
+                const studentStore = useStudentStore.getState();
+                let referrer = null;
+                let rewardAmount = 0;
+
+                if (referralType === 'CENTER') {
+                  referrer = await studentStore.getStudentByCenterCode(formData.referredByCenter);
+                  rewardAmount = REFERRAL_CONFIG.centerCodeReward;
+                } else if (referralType === 'STUDENT') {
+                  referrer = await studentStore.getStudentByReferralCode(formData.referredByCenter);
+                  rewardAmount = REFERRAL_CONFIG.studentReferralReward;
+                }
+
+                if (referrer && referrer.id !== pendingStudentId) {
+                  await createReward(referrer.id, pendingStudentId, payment.id, rewardAmount);
                 }
               }
               toast({ title: 'Payment Verified! ✅', description: 'Proceed with finishing your profile.' });

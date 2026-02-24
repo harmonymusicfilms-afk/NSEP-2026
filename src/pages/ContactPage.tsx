@@ -149,8 +149,8 @@ export function ContactPage() {
     });
   };
 
-  const filteredFAQs = faqCategory === 'all' 
-    ? faqData 
+  const filteredFAQs = faqCategory === 'all'
+    ? faqData
     : faqData.filter(faq => faq.category === faqCategory);
 
   const faqCategories = ['all', ...new Set(faqData.map(faq => faq.category))];
@@ -412,7 +412,7 @@ export function ContactPage() {
           <CardContent>
             <div className="aspect-video bg-muted rounded-lg overflow-hidden">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d224345.83923192776!2d77.06889754725782!3d28.52758200617607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d227748.3825624747!2d80.77769943260427!3d26.8486230!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399bfd991f32b16b%3A0x93ccba8909978be7!2sLucknow%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
