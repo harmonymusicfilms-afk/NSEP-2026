@@ -1,6 +1,6 @@
 -- =============================================================================
 -- CRITICAL FIX: Infinite Recursion in admin_users RLS Policy (V2)
--- Run this in Supabase SQL Editor
+-- Run this in Backend SQL Editor
 -- =============================================================================
 
 -- 1. Create robust helper functions with SECURITY DEFINER

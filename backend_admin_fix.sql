@@ -1,5 +1,5 @@
 -- ===================================================================
--- COMPLETE ADMIN FIX - Run in Supabase SQL Editor
+-- COMPLETE ADMIN FIX - Run in Backend SQL Editor
 -- This script fixing the 500 Errors (RLS Recursion) and 404 Errors (Missing RPCs)
 -- ===================================================================
 

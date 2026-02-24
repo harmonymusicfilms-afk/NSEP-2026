@@ -1,6 +1,6 @@
 -- =============================================================================
 -- CRITICAL FIX: Infinite Recursion in admin_users RLS Policy
--- Run this in Supabase SQL Editor
+-- Run this in Backend SQL Editor
 -- =============================================================================
 
 -- STEP 1: Create a SECURITY DEFINER function to check admin status

@@ -1,5 +1,5 @@
--- Setup Supabase Storage for Student Photos
--- Run this in your Supabase SQL Editor
+-- Setup Backend Storage for Student Photos
+-- Run this in your Backend SQL Editor
 
 -- 1. Create the storage bucket for student photos
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

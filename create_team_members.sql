@@ -1,4 +1,4 @@
--- Run this script in your Supabase SQL Editor to create the Team Members table
+-- Run this script in your Backend SQL Editor to create the Team Members table
 
 create table if not exists public.team_members (
     id text primary key,

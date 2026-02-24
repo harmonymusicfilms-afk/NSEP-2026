@@ -1,5 +1,5 @@
 -- ===================================================================
--- FINAL FIX v4 - Run in Supabase SQL Editor
+-- FINAL FIX v4 - Run in Backend SQL Editor
 -- Uses SET LOCAL row_security = off inside function to stop recursion
 -- ===================================================================
 

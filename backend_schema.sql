@@ -1,5 +1,5 @@
 -- NSEP (National Standard Examination in Physics) Database Schema
--- Supabase / PostgreSQL
+-- Backend / PostgreSQL
 
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";

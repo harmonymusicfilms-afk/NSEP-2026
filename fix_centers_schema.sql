@@ -1,5 +1,5 @@
 -- Fix centers table schema to match frontend requirements
--- Run this in Supabase SQL Editor
+-- Run this in Backend SQL Editor
 
 ALTER TABLE public.centers ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES auth.users(id);
 ALTER TABLE public.centers ADD COLUMN IF NOT EXISTS center_type text;
