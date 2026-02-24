@@ -402,17 +402,19 @@ export function CenterRegistrationPage() {
         const fileExt = file.name.split('.').pop() || 'jpg';
         const compressedFile = new File([blob], file.name, { type: blob.type || 'image/jpeg' });
 
-        // Upload to student-photos bucket
+        // Upload to center-documents bucket
         const fileName = `center-${field}-${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage
-          .from('student-photos')
+          .from('center-documents')
           .upload(fileName, compressedFile, { contentType: compressedFile.type });
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('student-photos')
+        const { data } = supabase.storage
+          .from('center-documents')
           .getPublicUrl(fileName);
+
+        const publicUrl = data?.publicUrl || '';
 
         setFormData(prev => ({
           ...prev,

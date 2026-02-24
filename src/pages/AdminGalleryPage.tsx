@@ -91,11 +91,11 @@ export function AdminGalleryPage() {
 
             if (uploadError) throw uploadError;
 
-            const { data: urlData } = supabase.storage
+            const { data } = supabase.storage
                 .from('student-photos')
                 .getPublicUrl(fileName);
 
-            const publicUrl = urlData.publicUrl;
+            const publicUrl = data?.publicUrl || '';
 
             if (isEdit) {
                 setEditForm(prev => ({ ...prev, imageUrl: publicUrl }));

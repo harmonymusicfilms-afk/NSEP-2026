@@ -221,11 +221,11 @@ export function AdminStudentsPage() {
       }
 
       // Get public URL
-      const { data: urlData } = supabase.storage
+      const { data } = supabase.storage
         .from('student-photos')
         .getPublicUrl(fileName);
 
-      return urlData.publicUrl;
+      return data?.publicUrl || null;
     } catch (error) {
       console.error('Error uploading photo:', error);
       return null;
