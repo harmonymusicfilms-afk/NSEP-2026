@@ -99,7 +99,7 @@ export function Footer() {
         <div className="mt-10 pt-8 border-t border-white/10">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-sm text-white/50">
-              © {new Date().getFullYear()} {APP_CONFIG.organization}. {t('footer.rights')}.
+              © {new Date().getFullYear()} {APP_CONFIG.organization}. {t('footer.rights')}. v1.0.1
             </p>
             <div className="flex items-center gap-6 text-sm">
               <Link to="/terms" className="text-white/50 hover:text-white transition-colors">
