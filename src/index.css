@@ -238,26 +238,121 @@
   .animate-bounce-subtle-delayed {
     animation: bounce-subtle 3s ease-in-out infinite 1.5s;
   }
+
+  .premium-dark-bg {
+    @apply relative overflow-hidden bg-[#030712];
+  }
+
+  .premium-dark-bg::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-[#0B0F19] via-[#111928] to-[#0A0B10] -z-10;
+  }
+
+  .premium-glow-1 {
+    @apply absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-glow-pulse -z-10;
+  }
+
+  .premium-glow-2 {
+    @apply absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[150px] mix-blend-screen animate-glow-pulse -z-10;
+  }
+
+  @keyframes glow-pulse {
+
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.6;
+      transform: scale(1.1);
+    }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 8s ease-in-out infinite;
+  }
+
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl transition-all;
+  }
+
+  .glass-card-heavy {
+    @apply bg-[#0B0F19]/80 backdrop-blur-xl border border-white/10 shadow-2xl transition-all;
+  }
+
+  .premium-card {
+    @apply glass-card hover:bg-white/10 hover:border-primary/30 hover:shadow-primary/10 transition-all duration-500 rounded-[2.5rem];
+  }
+
+  .premium-text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-light to-accent;
+  }
+
+  .premium-text-glow {
+    text-shadow: 0 0 20px hsl(var(--color-primary) / 0.4);
+  }
+
+  .premium-text-glow-white {
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+  }
+
+  .premium-button {
+    @apply relative overflow-hidden transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20 hover:shadow-primary/40;
+  }
+
+  .premium-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .premium-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent);
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .premium-badge {
+    @apply inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 text-primary border border-primary/20;
+  }
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: 4px;
+  background: #030712;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
+  background: white/10;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--color-primary) / 0.5);
 }
 
 /* Print styles for certificates */

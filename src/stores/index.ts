@@ -68,6 +68,8 @@ const mapPayment = (data: any): Payment => ({
   razorpayOrderId: data.razorpay_order_id,
   razorpayPaymentId: data.razorpay_payment_id,
   razorpaySignature: data.razorpay_signature,
+  proofUrl: data.proof_url,
+  transactionId: data.transaction_id,
   amount: Number(data.amount),
   status: data.status,
   paidAt: data.paid_at,
@@ -395,7 +397,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: email.trim(),
             password: superAdminBackendPassword,
           });
-          authData = signUpRes.data;
+          authData = signUpRes.data as any;
           authError = signUpRes.error;
         }
 
@@ -742,6 +744,7 @@ interface PaymentState {
   loadPayments: () => Promise<void>;
   createPayment: (studentId: string, amount: number) => Promise<Payment | null>;
   verifyPayment: (paymentId: string, razorpayPaymentId: string, signature: string) => Promise<Payment | null>;
+  submitManualPayment: (paymentId: string, transactionId: string, proofUrl: string) => Promise<Payment | null>;
   failPayment: (paymentId: string) => Promise<void>;
   approvePayment: (paymentId: string) => Promise<void>;
   markPaymentPending: (paymentId: string) => Promise<void>;
@@ -852,6 +855,34 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
       return updatedPayment;
     } catch (error) {
       console.error('Error verifying payment:', error);
+      return null;
+    }
+  },
+
+  submitManualPayment: async (paymentId, transactionId, proofUrl) => {
+    try {
+      const { data, error } = await backend
+        .from('payments')
+        .update({
+          transaction_id: transactionId,
+          proof_url: proofUrl,
+          status: 'PENDING', // Awaiting admin approval
+          paid_at: new Date().toISOString(),
+        })
+        .eq('id', paymentId)
+        .select()
+        .maybeSingle();
+
+      if (error) throw error;
+      const updatedPayment = mapPayment(data);
+
+      set({
+        payments: get().payments.map((p) => (p.id === paymentId ? updatedPayment : p)),
+      });
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error submitting manual payment:', error);
       return null;
     }
   },

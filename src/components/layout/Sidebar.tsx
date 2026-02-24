@@ -1,4 +1,4 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   motion,
   AnimatePresence,
@@ -97,38 +97,43 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
   };
 
   const renderSidebarContent = (idSuffix: string) => (
-    <aside className="w-[260px] bg-card border-r border-border flex flex-col h-full overflow-hidden">
+    <aside className="w-[280px] bg-[#030712]/80 backdrop-blur-3xl border-r border-white/10 flex flex-col h-full overflow-hidden shadow-2xl relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img src={logoImg} alt="GPHDM Logo" className="h-10 w-auto" />
+      <div className="p-6 border-b border-white/5 flex items-center justify-between relative z-10">
+        <Link to="/" className="flex items-center gap-4 group">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-md group-hover:bg-primary/40 transition-colors" />
+            <img src={logoImg} alt="GPHDM Logo" className="h-12 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,165,0,0.3)] transition-transform group-hover:scale-105" />
+          </div>
           <div>
-            <h1 className="font-serif text-base font-bold text-foreground">
+            <h1 className="text-lg font-black text-white tracking-tighter leading-none">
               {APP_CONFIG.shortName}
             </h1>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">
-              {variant === 'admin' ? 'Admin Portal' : variant === 'center' ? 'Center Portal' : 'Student Portal'}
+            <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-1.5 opacity-80">
+              {variant === 'admin' ? 'Admin Node' : variant === 'center' ? 'Center Hub' : 'Scholar Portal'}
             </p>
           </div>
-        </div>
+        </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={onClose}>
-            <X className="size-5" />
+          <Button variant="ghost" size="icon" className="md:hidden text-white/40 hover:text-white" onClick={onClose}>
+            <X className="size-6" />
           </Button>
         )}
       </div>
 
       {/* User Info */}
       {user && (
-        <div className="p-4 border-b border-border bg-muted/30">
-          <div className="flex items-center gap-3">
-            <div className="size-9 bg-primary/10 rounded-full flex items-center justify-center">
-              <Users className="size-5 text-primary" />
+        <div className="p-6 border-b border-white/5 bg-white/5 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="size-11 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
+              <Users className="size-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{user.name}</p>
-              <p className="text-[11px] text-muted-foreground truncate italic">
-                {(user as any).email || (user as any).ownerEmail}
+              <p className="text-sm font-black text-white truncate tracking-tight">{user.name}</p>
+              <p className="text-[10px] text-white/40 font-bold italic truncate mt-0.5">
+                {(user as any).email || (user as any).ownerEmail || 'Scholar'}
               </p>
             </div>
           </div>
@@ -136,7 +141,7 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar relative z-10">
         {navItems.map((item) => {
           const isActive = item.exact
             ? location.pathname === item.href
@@ -148,22 +153,30 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
               to={item.href}
               onClick={() => onClose?.()}
               className={cn(
-                "group flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 outline-none",
+                "group flex items-center gap-4 px-4 py-4 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-300 outline-none",
                 isActive
                   ? variant === 'admin'
-                    ? 'bg-red-50 text-red-700 shadow-sm border border-red-100/50'
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.1)]'
                     : variant === 'center'
-                      ? 'bg-amber-50 text-amber-700 shadow-sm border border-amber-100/50'
-                      : 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95'
+                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]'
+                      : 'bg-primary text-white border border-primary/20 shadow-[0_0_30px_rgba(251,191,36,0.3)]'
+                  : 'text-white/40 hover:text-white hover:bg-white/5 active:scale-95'
               )}
             >
-              <item.icon className={cn("size-5 transition-transform group-hover:scale-110", isActive && "animate-pulse")} />
+              <item.icon className={cn(
+                "size-5 transition-transform duration-300 group-hover:scale-110",
+                isActive ? "text-inherit" : "text-white/30 group-hover:text-white"
+              )} />
               <span>{item.label}</span>
               {isActive && (
                 <motion.div
-                  layoutId={`active-pill-${idSuffix}`}
-                  className={cn("ml-auto w-1.5 h-6 rounded-full", variant === 'admin' ? 'bg-red-500' : variant === 'center' ? 'bg-amber-500' : 'bg-white/30')}
+                  layoutId={`active-indicator-${idSuffix}`}
+                  className={cn(
+                    "ml-auto w-1.5 h-6 rounded-full",
+                    variant === 'admin' ? 'bg-red-500' : variant === 'center' ? 'bg-amber-500' : 'bg-white shadow-[0_0_10px_white]'
+                  )}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
                 />
               )}
             </NavLink>
@@ -172,14 +185,14 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border bg-muted/20">
+      <div className="p-6 border-t border-white/5 bg-white/5 relative z-10">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 h-12 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-300"
+          className="w-full justify-start gap-4 h-14 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all duration-300 font-black uppercase tracking-widest text-xs"
           onClick={handleLogout}
         >
           <LogOut className="size-5" />
-          <span className="font-semibold">Logout</span>
+          <span>Logout</span>
         </Button>
       </div>
     </aside>

@@ -108,9 +108,9 @@ export function HomePage() {
   ];
 
   const feeStructure = [
-    { classes: '1-5', label: 'Primary', fee: getExamFee(1) },
-    { classes: '6-8', label: 'Middle', fee: getExamFee(6) },
-    { classes: '9-12', label: 'Senior', fee: getExamFee(9) },
+    { classes: '1-5', label: 'Primary', fee: getExamFee(1), color: 'from-blue-500/20 to-indigo-500/20' },
+    { classes: '6-8', label: 'Middle', fee: getExamFee(6), color: 'from-primary/20 to-accent/20' },
+    { classes: '9-12', label: 'Senior', fee: getExamFee(9), color: 'from-purple-500/20 to-pink-500/20' },
   ];
 
   const steps = [
@@ -121,105 +121,87 @@ export function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background overflow-hidden font-sans">
+    <div className="min-h-screen overflow-hidden">
       {/* Hero Section */}
-      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden bg-[#030712]">
-        {/* Modern animated background elements - ensure they stay behind content but on top of base bg */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0B0F19] via-[#111928] to-[#0A0B10] z-0" />
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-glow-pulse z-0" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[150px] mix-blend-screen animate-glow-pulse z-0" style={{ animationDelay: '2s' }} />
-
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pt-20 pb-16 z-10 w-full">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-
             <motion.div
               initial="hidden"
               animate="visible"
               variants={containerVariants}
-              className="flex flex-col gap-8 text-center lg:text-left"
+              className="flex flex-col gap-10 text-center lg:text-left"
             >
-              <motion.div variants={itemVariants} className="inline-flex items-center justify-center lg:justify-start gap-2 self-center lg:self-start rounded-full bg-white/5 border border-white/10 px-5 py-2 backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-                <Sparkles className="size-4 text-accent animate-pulse" />
-                <span className="text-xs font-bold uppercase tracking-[0.2em] bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-accent">
+              <motion.div variants={itemVariants} className="inline-flex items-center justify-center lg:justify-start gap-3 self-center lg:self-start rounded-full bg-primary/10 border border-primary/20 px-6 py-3 backdrop-blur-xl shadow-[0_0_20px_rgba(255,165,0,0.2)]">
+                <Sparkles className="size-5 text-primary animate-pulse" />
+                <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">
                   {t('home.registration.open')} {APP_CONFIG.year}
                 </span>
               </motion.div>
 
-              <motion.h1 variants={itemVariants} className="font-serif text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight text-white drop-shadow-2xl">
+              <motion.h1 variants={itemVariants} className="text-6xl sm:text-7xl lg:text-8xl font-black leading-[1.05] tracking-tighter text-white overflow-visible">
                 {t('home.hero.title')}
               </motion.h1>
 
-              <motion.div variants={itemVariants}>
-                <p className="inline-block text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent mb-4 tracking-wide">
+              <motion.div variants={itemVariants} className="space-y-6">
+                <p className="text-2xl sm:text-3xl font-black premium-text-gradient tracking-wide">
                   {t('home.hero.missionLine')}
                 </p>
-                <p className="text-lg sm:text-xl font-medium text-white/50 uppercase tracking-[0.3em] mb-4">
+                <p className="text-xl sm:text-2xl font-bold text-white/40 uppercase tracking-[0.4em]">
                   {t('home.hero.production')}
                 </p>
-                <p className="text-lg sm:text-xl text-white/80 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
+                <p className="text-xl text-white/60 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium italic">
                   {t('home.hero.subtitle')}
                 </p>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-5 mt-6 justify-center lg:justify-start">
+              <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-6 mt-6 justify-center lg:justify-start">
                 <Link to="/register">
-                  <Button size="lg" className="h-16 px-10 bg-gradient-to-r from-primary to-accent hover:from-primary-light hover:to-accent-light text-white text-lg font-bold group shadow-[0_0_30px_rgba(80,80,255,0.3)] hover:shadow-[0_0_40px_rgba(80,80,255,0.5)] transition-all rounded-full border-0">
+                  <Button size="lg" className="h-18 px-12 institutional-gradient text-white text-xl font-black group shadow-[0_0_40px_rgba(255,165,0,0.4)] hover:scale-105 transition-all rounded-full border-0">
                     {t('home.hero.registerBtn')}
-                    <ArrowRight className="ml-3 size-5 group-hover:translate-x-2 transition-transform" />
+                    <ArrowRight className="ml-4 size-6 group-hover:translate-x-3 transition-transform" />
                   </Button>
                 </Link>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-16 px-8 border-white/10 bg-white/5 hover:bg-white/10 text-white text-lg font-bold backdrop-blur-md rounded-full gap-3 transition-all"
+                  className="h-18 px-10 border-white/10 bg-white/5 hover:bg-white/10 text-white text-xl font-black backdrop-blur-xl rounded-full gap-4 transition-all"
                   onClick={() => window.open(APP_CONFIG.notificationGroupUrl, '_blank')}
                 >
-                  <Bell className="size-5 text-accent" />
-                  {language === 'hi' ? 'अपडेट प्राप्त करें' : 'Get Updates'}
+                  <Bell className="size-6 text-primary" />
+                  {language === 'hi' ? 'अपडेट' : 'Updates'}
                 </Button>
-              </motion.div>
-
-              {/* Mobile Stats */}
-              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 mt-8 lg:hidden">
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl">
-                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-1">50K+</div>
-                  <div className="text-xs font-semibold text-white/40 uppercase tracking-widest">Students</div>
-                </div>
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/5 shadow-2xl">
-                  <div className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-emerald-400 mb-1">₹25L+</div>
-                  <div className="text-xs font-semibold text-white/40 uppercase tracking-widest">Scholarships</div>
-                </div>
               </motion.div>
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1, delay: 0.4, type: "spring" }}
+              initial={{ opacity: 0, scale: 0.8, x: 50 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
               className="hidden lg:block relative"
             >
-              <div className="relative z-10 aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
+              <div className="relative z-10 aspect-[4/5] rounded-[3rem] overflow-hidden border border-white/10 group">
                 <img
                   src={heroImg}
                   alt="National Scholarship Excellence"
-                  className="w-full h-full object-cover transform hover:scale-105 transition-transform duration-1000"
+                  className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-[2000ms] grayscale-[0.2] group-hover:grayscale-0"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent opacity-60" />
               </div>
 
-              {/* Floating Elements */}
+              {/* Floating Cards */}
               <motion.div
                 animate={{ y: [0, -20, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -left-16 top-1/4 bg-white/10 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl z-20"
+                className="absolute -left-20 top-1/4 glass-card-heavy rounded-3xl p-8 border border-white/20 shadow-2xl z-20"
               >
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Users className="size-6 text-primary-light" />
+                <div className="flex items-center gap-6">
+                  <div className="size-16 rounded-2xl bg-primary/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,165,0,0.3)]">
+                    <Users className="size-8 text-primary" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">50K+</div>
-                    <div className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">Students Joined</div>
+                    <div className="text-3xl font-black text-white">50K+</div>
+                    <div className="text-xs text-white/40 uppercase tracking-[0.2em] font-black">Students</div>
                   </div>
                 </div>
               </motion.div>
@@ -227,77 +209,51 @@ export function HomePage() {
               <motion.div
                 animate={{ y: [0, -15, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -right-12 bottom-1/4 bg-white/10 backdrop-blur-2xl rounded-2xl p-6 border border-emerald-500/20 shadow-2xl z-20"
+                className="absolute -right-16 bottom-1/4 glass-card-heavy rounded-3xl p-8 border border-emerald-500/20 shadow-2xl z-20"
               >
-                <div className="flex items-center gap-4">
-                  <div className="size-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                    <Trophy className="size-6 text-emerald-400" />
+                <div className="flex items-center gap-6">
+                  <div className="size-16 rounded-2xl bg-emerald-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+                    <Trophy className="size-8 text-emerald-400" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">₹25L+</div>
-                    <div className="text-[10px] text-white/50 uppercase tracking-widest font-semibold">Rewards Distributed</div>
+                    <div className="text-3xl font-black text-white">₹25L+</div>
+                    <div className="text-xs text-white/40 uppercase tracking-[0.2em] font-black">Rewards</div>
                   </div>
                 </div>
               </motion.div>
             </motion.div>
           </div>
-
-          {/* Desktop Stats Strip */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="hidden lg:grid grid-cols-3 gap-8 mt-28 max-w-5xl mx-auto"
-          >
-            {[
-              { icon: Users, label: 'Students Registered', value: '50,000+', color: 'text-primary-light' },
-              { icon: GraduationCap, label: 'States Covered', value: '28', color: 'text-accent' },
-              { icon: Shield, label: 'Center Partners', value: '500+', color: 'text-emerald-400' },
-            ].map((stat, i) => (
-              <div key={i} className="flex items-center gap-5 bg-white/[0.03] hover:bg-white/[0.08] transition-colors backdrop-blur-lg rounded-3xl p-6 border border-white/5 cursor-default relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className={`size-14 rounded-2xl bg-white/5 flex items-center justify-center ${stat.color} shadow-inner`}>
-                  <stat.icon className="size-7" />
-                </div>
-                <div>
-                  <div className="text-3xl font-extrabold text-white tracking-tight">{stat.value}</div>
-                  <div className="text-[11px] font-bold text-white/40 uppercase tracking-[0.2em]">{stat.label}</div>
-                </div>
-              </div>
-            ))}
-          </motion.div>
         </div>
       </section>
 
-      {/* Modern Features Section */}
-      <section className="py-28 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="font-serif text-4xl sm:text-5xl font-extrabold text-[#0B0F19] mb-6">
+      {/* Features Section */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter">
               {t('home.features.title')}
             </h2>
-            <p className="text-gray-500 text-lg max-w-2xl mx-auto font-medium">
-              {t('home.features.subtitle')} Experience a next-generation platform designed for massive scale and perfect accuracy.
+            <p className="text-white/40 text-xl max-w-2xl mx-auto font-medium italic">
+              {t('home.features.subtitle')} Experience a next-generation platform designed for excellence.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
             {features.map((feature, i) => (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
                 className="group relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative p-8 rounded-[2rem] border border-gray-100 bg-white shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 z-10 h-full flex flex-col">
-                  <div className="size-16 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                    <feature.icon className="size-8 text-primary" />
+                <div className="glass-card-heavy p-10 rounded-[3rem] border border-white/5 hover:border-primary/30 transition-all duration-700 h-full flex flex-col group-hover:-translate-y-4">
+                  <div className="size-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-8 group-hover:rotate-12 transition-transform duration-500 shadow-xl">
+                    <feature.icon className="size-10 text-primary" />
                   </div>
-                  <h3 className="font-bold text-2xl mb-4 text-gray-900">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed text-[15px]">{feature.description}</p>
+                  <h3 className="font-black text-2xl mb-4 text-white group-hover:text-primary transition-colors">{feature.title}</h3>
+                  <p className="text-white/40 leading-relaxed text-lg">{feature.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -305,46 +261,41 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Futuristic Fee Structure */}
-      <section className="py-28 relative bg-[#020817] text-white overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-          <div className="absolute top-[0%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px]" />
-        </div>
-
+      {/* Fee Structure */}
+      <section className="py-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="font-serif text-4xl sm:text-5xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-white to-white/60">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl lg:text-7xl font-black mb-8 premium-text-gradient tracking-tighter">
               {t('home.fees.title')}
             </h2>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+            <p className="text-white/40 text-xl max-w-2xl mx-auto font-medium">
               {t('home.fees.subtitle')} Accessible intelligence assessment for everyone.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
             {feeStructure.map((item, i) => (
               <motion.div
                 key={item.classes}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-10 text-center relative group hover:border-primary/50 transition-colors duration-500 overflow-hidden"
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                className="glass-card rounded-[3.5rem] p-12 text-center border-white/5 relative group hover:scale-105 transition-all duration-500"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-100 transition-opacity rounded-[3.5rem]`} />
                 <div className="relative z-10">
-                  <div className="inline-flex items-center justify-center size-20 rounded-2xl bg-white/5 border border-white/10 mb-8 group-hover:rotate-12 transition-transform duration-500">
-                    <IndianRupee className="size-10 text-primary-light" />
+                  <div className="inline-flex size-24 rounded-3xl bg-white/5 border border-white/10 mb-10 items-center justify-center group-hover:scale-110 transition-transform">
+                    <IndianRupee className="size-12 text-primary" />
                   </div>
-                  <div className="text-sm font-bold text-accent uppercase tracking-[0.2em] mb-3">
+                  <div className="text-sm font-black text-primary uppercase tracking-[0.4em] mb-4">
                     {item.label}
                   </div>
-                  <div className="text-xl font-medium text-white/80 mb-6">
+                  <div className="text-3xl font-black text-white mb-8">
                     Class {item.classes}
                   </div>
-                  <div className="flex justify-center items-baseline gap-1">
-                    <span className="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-white to-white/50">{formatCurrency(item.fee)}</span>
+                  <div className="text-6xl font-black text-white premium-text-glow">
+                    {formatCurrency(item.fee)}
                   </div>
                 </div>
               </motion.div>
@@ -353,37 +304,34 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* How It Works - Glass Steps */}
-      <section className="py-28 bg-gray-50">
+      {/* Steps Section */}
+      <section className="py-32 relative overflow-hidden bg-white/5 backdrop-blur-3xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <h2 className="font-serif text-4xl sm:text-5xl font-extrabold text-[#0B0F19] mb-6">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 tracking-tighter">
               {t('home.howItWorks.title')}
             </h2>
-            <p className="text-gray-500 text-lg max-w-2xl mx-auto">
+            <p className="text-white/40 text-xl max-w-2xl mx-auto font-medium italic">
               {t('home.howItWorks.subtitle')} Start your journey to excellence in 4 simple steps.
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-12">
             {steps.map((item, index) => (
               <motion.div
                 key={item.step}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 className="relative"
               >
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-10 left-1/2 w-full h-[2px] bg-gradient-to-r from-primary/50 to-transparent border-dashed z-0" />
-                )}
-                <div className="relative z-10 flex flex-col items-center text-center">
-                  <div className="size-20 rounded-[2rem] bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-3xl font-black mb-8 shadow-xl shadow-primary/30 ring-8 ring-white transform rotate-3 hover:rotate-6 transition-transform">
+                <div className="glass-card-heavy rounded-[3rem] p-10 text-center h-full border-white/5 group hover:border-primary/40 transition-all">
+                  <div className="size-24 rounded-3xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-4xl font-black mb-10 mx-auto shadow-2xl shadow-primary/40 group-hover:rotate-6 transition-transform">
                     {item.step}
                   </div>
-                  <h3 className="font-bold text-2xl mb-3 text-gray-900">{item.title}</h3>
-                  <p className="text-gray-600 text-[15px] leading-relaxed px-4">{item.description}</p>
+                  <h3 className="font-black text-2xl mb-4 text-white">{item.title}</h3>
+                  <p className="text-white/40 text-lg leading-relaxed">{item.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -391,67 +339,57 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Rewards - Neon Blocks */}
-      <section className="py-28 bg-white relative overflow-hidden">
-        <div className="absolute top-1/2 right-0 w-[800px] h-[800px] bg-orange-500/10 rounded-full blur-[150px] -z-10 transform -translate-y-1/2" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+      {/* Rewards Section */}
+      <section className="py-32 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center gap-2 bg-orange-500/10 rounded-full px-5 py-2 text-orange-600 font-bold tracking-wide text-sm mb-8 border border-orange-500/20">
-                <Share2 className="size-4" />
+              <div className="inline-flex items-center gap-3 bg-primary/10 rounded-full px-8 py-4 text-primary font-black tracking-widest text-xs mb-10 border border-primary/20">
+                <Share2 className="size-5" />
                 <span>PARTNERSHIP PROGRAM</span>
               </div>
 
-              <h2 className="font-serif text-4xl sm:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">
+              <h2 className="text-5xl lg:text-7xl font-black text-white mb-8 leading-none tracking-tighter">
                 {t('home.centerCode.title')}
               </h2>
 
-              <p className="text-lg text-gray-600 mb-10 leading-relaxed font-medium">
+              <p className="text-xl text-white/50 mb-12 leading-relaxed font-bold italic">
                 {t('home.centerCode.subtitle')} Transform your institute into an excellence hub.
               </p>
 
-              <div className="space-y-6 mb-10">
-                <div className="flex items-center gap-6 bg-white border border-gray-100 rounded-3xl p-6 shadow-xl hover:border-orange-500/30 transition-colors">
-                  <div className="size-16 bg-orange-500/10 rounded-[1.5rem] flex items-center justify-center flex-shrink-0">
-                    <IndianRupee className="size-8 text-orange-600" />
+              <div className="space-y-8 mb-16">
+                {[
+                  { icon: IndianRupee, title: 'Center Rewards', val: REFERRAL_CONFIG.centerCodeReward, text: 'text-primary', bg: 'bg-primary/10' },
+                  { icon: Shield, title: 'Admin Rewards', val: REFERRAL_CONFIG.adminCenterReward, text: 'text-accent', bg: 'bg-accent/10' }
+                ].map((reward, i) => (
+                  <div key={i} className="flex items-center gap-8 glass-card rounded-[2.5rem] p-8 border-white/5 hover:border-white/10 transition-all">
+                    <div className={`size-20 ${reward.bg} rounded-3xl flex items-center justify-center flex-shrink-0 shadow-2xl`}>
+                      <reward.icon className={`size-10 ${reward.text}`} />
+                    </div>
+                    <div>
+                      <h4 className="font-black text-2xl text-white mb-2">{reward.title}</h4>
+                      <p className="text-white/40 text-lg">
+                        Earn <strong className={`${reward.text} text-3xl font-black px-2`}>{formatCurrency(reward.val)}</strong> per referral
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-xl mb-1 text-gray-900">Center Code Rewards</h3>
-                    <p className="text-gray-500 font-medium">
-                      Earn <strong className="text-orange-600 text-lg px-1">{formatCurrency(REFERRAL_CONFIG.centerCodeReward)}</strong> for every student you refer
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-6 bg-white border border-gray-100 rounded-3xl p-6 shadow-xl hover:border-blue-500/30 transition-colors">
-                  <div className="size-16 bg-blue-500/10 rounded-[1.5rem] flex items-center justify-center flex-shrink-0">
-                    <Shield className="size-8 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xl mb-1 text-gray-900">Admin Center Rewards</h3>
-                    <p className="text-gray-500 font-medium">
-                      Admin codes earn <strong className="text-blue-600 text-lg px-1">{formatCurrency(REFERRAL_CONFIG.adminCenterReward)}</strong> per referral
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="flex flex-wrap gap-5">
+              <div className="flex flex-wrap gap-6">
                 <Link to="/center-registration">
-                  <Button size="lg" className="h-14 px-8 bg-orange-600 hover:bg-orange-700 text-white rounded-full font-bold gap-2 shadow-[0_0_20px_rgba(2ea3f2,0.3)] border-0">
-                    <Gift className="size-5" />
-                    {language === 'hi' ? 'अपना केंद्र पंजीकृत करें' : 'Register Your Center'}
+                  <Button size="lg" className="h-18 px-10 institutional-gradient text-white rounded-full font-black text-xl shadow-2xl hover:scale-105 transition-transform">
+                    <Gift className="size-7 mr-3" />
+                    {language === 'hi' ? 'रजिस्टर करें' : 'Register Center'}
                   </Button>
                 </Link>
                 <Link to="/about">
-                  <Button size="lg" variant="outline" className="h-14 px-8 rounded-full font-bold border-2 text-gray-900">
-                    Learn More
+                  <Button size="lg" variant="outline" className="h-18 px-10 rounded-full font-black text-xl border-white/10 text-white hover:bg-white/5">
+                    Details
                   </Button>
                 </Link>
               </div>
@@ -461,24 +399,24 @@ export function HomePage() {
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="bg-gradient-to-br from-[#1E293B] to-[#0F172A] rounded-[3rem] shadow-2xl p-10 lg:p-12 text-white border border-white/10"
+              className="glass-card-heavy rounded-[4rem] p-12 lg:p-16 text-white border-white/10 relative overflow-hidden"
             >
-              <h3 className="font-serif font-bold text-3xl mb-10 text-center">How CenterCode Works</h3>
-              <div className="space-y-8">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[100px] -z-10" />
+              <h3 className="text-3xl font-black mb-12 text-center premium-text-glow uppercase tracking-tighter">How it works</h3>
+              <div className="space-y-12">
                 {[
-                  { step: 1, title: 'Register as Center', desc: 'Apply to become an approved center partner' },
-                  { step: 2, title: 'Get Your Code', desc: 'Receive unique CC referral identification' },
-                  { step: 3, title: 'Share & Refer', desc: 'Share code securely with students' },
-                  { step: 4, title: 'Earn Rewards', desc: 'Get paid instantly for each registration' },
+                  { step: 1, title: 'Apply Now', desc: 'Become an approved partner' },
+                  { step: 2, title: 'Access Code', desc: 'Get your unique CC ID' },
+                  { step: 3, title: 'Share & Grow', desc: 'Refer students securely' },
+                  { step: 4, title: 'Earn Legacy', desc: 'Instant payouts per student' },
                 ].map((item) => (
-                  <div key={item.step} className="flex items-center gap-6">
-                    <div className="size-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-xl flex-shrink-0">
+                  <div key={item.step} className="flex items-center gap-8 group">
+                    <div className="size-18 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all shadow-xl">
                       {item.step}
                     </div>
                     <div>
-                      <h4 className="font-bold text-xl mb-1">{item.title}</h4>
-                      <p className="text-white/60 font-medium">{item.desc}</p>
+                      <h4 className="font-black text-2xl mb-1 text-white">{item.title}</h4>
+                      <p className="text-white/40 text-lg font-medium">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -488,89 +426,85 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Scholarship Prizes Highlights (Animated Cards) */}
-      <section className="py-28 bg-[#0B0F19] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl sm:text-5xl font-extrabold mb-6">
+      {/* Prize Pool */}
+      <section className="py-32 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-24">
+            <h2 className="text-5xl lg:text-7xl font-black mb-8 text-white tracking-tighter">
               {t('home.scholarship.title')}
             </h2>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+            <p className="text-white/40 text-xl max-w-2xl mx-auto font-medium italic">
               {t('home.scholarship.subtitle')} Our elite scholars are deeply rewarded.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-            {SCHOLARSHIP_CONFIG.eligibleRanks.slice(0, 5).map((rank) => (
-              <motion.div
-                key={rank}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className={`bg-white/5 backdrop-blur-md rounded-[2rem] p-6 text-center border transition-all ${rank <= 3 ? 'border-yellow-500/50 shadow-[0_0_30px_rgba(234,179,8,0.2)]' : 'border-white/10'}`}
-              >
-                <div className={`inline-flex items-center justify-center size-16 rounded-2xl mb-4 ${rank === 1 ? 'gold-gradient shadow-lg shadow-yellow-500/50' :
-                  rank === 2 ? 'silver-gradient shadow-lg shadow-gray-400/50' :
-                    rank === 3 ? 'bronze-gradient shadow-lg shadow-orange-700/50' : 'bg-white/10'
-                  }`}>
-                  <Trophy className={`size-8 ${rank <= 3 ? 'text-white' : 'text-white/60'}`} />
-                </div>
-                <div className="text-sm font-bold text-white/50 uppercase tracking-widest mb-2">
-                  {getOrdinal(rank)} Rank
-                </div>
-                <div className="text-2xl font-black text-white">
-                  {formatCurrency(prizes[rank] || 0)}
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+            {SCHOLARSHIP_CONFIG.eligibleRanks.slice(0, 5).map((rank) => {
+              const gradients = {
+                1: 'from-yellow-400 to-yellow-600 shadow-[0_0_30px_rgba(234,179,8,0.3)]',
+                2: 'from-gray-300 to-gray-500 shadow-[0_0_30px_rgba(209,213,219,0.3)]',
+                3: 'from-orange-400 to-orange-600 shadow-[0_0_30px_rgba(249,115,22,0.3)]',
+                others: 'from-white/10 to-white/5'
+              };
+              const grad = rank === 1 ? gradients[1] : rank === 2 ? gradients[2] : rank === 3 ? gradients[3] : gradients.others;
+
+              return (
+                <motion.div
+                  key={rank}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: rank * 0.1 }}
+                  className="glass-card-heavy rounded-[3rem] p-10 text-center border-white/5 hover:-translate-y-4 transition-all duration-500"
+                >
+                  <div className={`inline-flex size-24 rounded-3xl bg-gradient-to-br ${grad} items-center justify-center mb-8 shadow-2xl`}>
+                    <Trophy className="size-12 text-white" />
+                  </div>
+                  <div className="text-sm font-black text-white/30 uppercase tracking-[0.3em] mb-4">
+                    {getOrdinal(rank)} Rank
+                  </div>
+                  <div className="text-4xl font-black text-white premium-text-glow">
+                    {formatCurrency(prizes[rank] || 0)}
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Epic Gradient */}
-      <section className="py-32 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-accent to-emerald-400" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 mask-image:linear-gradient(to_bottom,white,transparent)" />
-        <div className="absolute inset-0 backdrop-blur-[2px]" />
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="font-serif text-4xl sm:text-6xl font-black text-white mb-8 leading-tight drop-shadow-xl"
-          >
-            {t('home.cta.title')}
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-xl text-white/90 mb-12 max-w-2xl mx-auto font-medium"
-          >
-            {t('home.cta.subtitle')} Join millions of students participating nationwide.
-          </motion.p>
+      {/* CTA Section */}
+      <section className="py-40 relative">
+        <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2, type: "spring" }}
-            className="flex flex-wrap justify-center gap-6"
+            className="glass-card rounded-[4rem] p-20 lg:p-32 border-white/10 relative overflow-hidden group"
           >
-            <Link to="/register">
-              <Button size="lg" className="h-16 px-10 bg-white text-primary hover:bg-white/90 gap-3 rounded-full text-lg font-bold shadow-2xl hover:scale-105 transition-transform">
-                {t('home.hero.registerBtn')}
-                <ArrowRight className="size-6" />
-              </Button>
-            </Link>
-            <Link to="/verify">
-              <Button size="lg" variant="outline" className="h-16 px-10 border-2 border-white/40 text-white hover:bg-white/20 gap-3 rounded-full text-lg font-bold backdrop-blur-md transition-all">
-                <CheckCircle className="size-6" />
-                {t('nav.verify')}
-              </Button>
-            </Link>
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[150px] -z-10 group-hover:bg-primary/30 transition-all duration-1000" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[150px] -z-10 group-hover:bg-accent/30 transition-all duration-1000" />
+
+            <h2 className="text-6xl lg:text-8xl font-black text-white mb-10 leading-none tracking-tighter">
+              {t('home.cta.title')}
+            </h2>
+            <p className="text-2xl text-white/50 mb-16 max-w-3xl mx-auto font-bold italic leading-relaxed">
+              {t('home.cta.subtitle')} Join millions of students participating nationwide.
+            </p>
+            <div className="flex flex-wrap justify-center gap-8">
+              <Link to="/register">
+                <Button size="lg" className="h-20 px-16 bg-white text-black hover:bg-white/90 rounded-full text-2xl font-black shadow-[0_0_50px_rgba(255,255,255,0.2)] hover:scale-110 transition-all">
+                  {t('home.hero.registerBtn')}
+                  <ArrowRight className="size-10 ml-4" />
+                </Button>
+              </Link>
+              <Link to="/verify">
+                <Button size="lg" variant="outline" className="h-20 px-16 border-white/20 text-white hover:bg-white/5 backdrop-blur-xl rounded-full text-2xl font-black">
+                  <CheckCircle className="size-10 mr-4" />
+                  {t('nav.verify')}
+                </Button>
+              </Link>
+            </div>
           </motion.div>
         </div>
       </section>

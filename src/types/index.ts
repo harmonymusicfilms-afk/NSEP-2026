@@ -28,9 +28,11 @@ export interface Student {
 export interface Payment {
   id: string;
   studentId: string;
-  razorpayOrderId: string;
+  razorpayOrderId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
+  proofUrl?: string;
+  transactionId?: string;
   amount: number;
   status: 'PENDING' | 'SUCCESS' | 'FAILED';
   paidAt?: string;

@@ -20,10 +20,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Categories for filtering
 const categoryConfig: Record<string, { label: string; icon: any; color: string }> = {
-  CEREMONY: { label: 'Ceremonies', icon: Award, color: 'text-yellow-600 bg-yellow-100' },
-  TOPPERS: { label: 'Toppers', icon: Sparkles, color: 'text-purple-600 bg-purple-100' },
-  EVENTS: { label: 'Events', icon: Calendar, color: 'text-blue-600 bg-blue-100' },
-  OTHER: { label: 'Other', icon: Users, color: 'text-gray-600 bg-gray-100' },
+  CEREMONY: { label: 'Ceremonies', icon: Award, color: 'text-yellow-400 bg-yellow-500/10' },
+  TOPPERS: { label: 'Toppers', icon: Sparkles, color: 'text-purple-400 bg-purple-500/10' },
+  EVENTS: { label: 'Events', icon: Calendar, color: 'text-blue-400 bg-blue-500/10' },
+  OTHER: { label: 'Other', icon: Users, color: 'text-white/60 bg-white/5' },
 };
 
 export function GalleryPage() {
@@ -41,8 +41,7 @@ export function GalleryPage() {
     ? items
     : items.filter(item => item.category === selectedCategory);
 
-  const featuredItems = items.filter(item => (item as any).featured); // featured isn't in DB yet, but let's keep it for UI
-
+  const featuredItems = items.filter(item => (item as any).featured);
 
   const openLightbox = (item: GalleryItem) => {
     setLightboxImage(item);
@@ -65,7 +64,6 @@ export function GalleryPage() {
     setLightboxImage(filteredItems[newIndex]);
   };
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!lightboxImage) return;
@@ -83,217 +81,255 @@ export function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary/80 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6">
-            <ArrowLeft className="size-4" />
-            Back to Home
-          </Link>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="size-14 rounded-full bg-white/20 flex items-center justify-center">
-              <Image className="size-7 text-white" />
+      <section className="relative py-20 lg:py-24 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Link to="/" className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all mb-8 bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
+              <ArrowLeft className="size-4" />
+              Back to Home
+            </Link>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-8 lg:justify-between">
+              <div className="flex items-center gap-6">
+                <div className="size-20 rounded-3xl bg-primary/20 flex items-center justify-center shadow-[0_0_30px_rgba(255,165,0,0.2)]">
+                  <Image className="size-10 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-5xl lg:text-7xl font-bold mb-2 premium-text-gradient">Photo Gallery</h1>
+                  <p className="text-xl text-white/50 italic tracking-widest font-bold">फोटो गैलरी</p>
+                </div>
+              </div>
+              <p className="text-lg text-white/70 max-w-xl leading-relaxed">
+                Celebrating academic excellence through memorable moments from our scholarship programs,
+                certificate distribution ceremonies, and events.
+              </p>
             </div>
-            <div>
-              <h1 className="font-serif text-4xl font-bold">Photo Gallery</h1>
-              <p className="text-white/80">फोटो गैलरी</p>
-            </div>
-          </div>
-          <p className="text-xl text-white/80 max-w-2xl">
-            Celebrating academic excellence through memorable moments from our scholarship programs,
-            certificate distribution ceremonies, and events.
-          </p>
+          </motion.div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-12 relative z-10">
         {/* Featured Section */}
         {featuredItems.length > 0 && selectedCategory === 'all' && (
-          <div className="mb-12">
-            <h2 className="font-serif text-2xl font-bold mb-6 flex items-center gap-2">
-              <Sparkles className="size-6 text-yellow-500" />
+          <div className="mb-20">
+            <h2 className="text-3xl font-bold mb-10 flex items-center gap-4 text-white">
+              <Sparkles className="size-8 text-yellow-500" />
               Featured Highlights
             </h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              {featuredItems.map((item) => (
-                <Card
+            <div className="grid md:grid-cols-3 gap-8">
+              {featuredItems.map((item, idx) => (
+                <motion.div
                   key={item.id}
-                  className="overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: idx * 0.1 }}
                   onClick={() => openLightbox(item)}
+                  className="group cursor-pointer"
                 >
-                  <div className="aspect-video relative overflow-hidden bg-muted">
-                    {!imagesLoaded[item.id] && (
-                      <div className="absolute inset-0 bg-muted animate-pulse" />
-                    )}
+                  <div className="aspect-[16/10] relative rounded-[2rem] overflow-hidden glass-card border border-white/10">
                     <img
                       src={item.imageUrl}
                       alt={item.title}
-                      className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 ${imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
-                        }`}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
-                      onLoad={() => handleImageLoad(item.id)}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <h3 className="font-semibold">{item.title}</h3>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                      <h3 className="text-xl font-bold text-white mb-1">{item.title}</h3>
                       {item.description && (
-                        <p className="text-sm text-white/80 line-clamp-1">{item.description}</p>
+                        <p className="text-white/60 text-sm line-clamp-1">{item.description}</p>
                       )}
                     </div>
-                    <span className="absolute top-2 right-2 bg-yellow-500 text-yellow-900 text-xs font-bold px-2 py-1 rounded">
+                    <div className="absolute top-4 right-4 px-3 py-1 bg-yellow-500 text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
                       Featured
-                    </span>
+                    </div>
                   </div>
-                </Card>
+                </motion.div>
               ))}
             </div>
           </div>
         )}
 
         {/* Category Filter */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Filter className="size-4" />
-            <span className="text-sm font-medium">Filter:</span>
+        <div className="flex flex-wrap items-center gap-4 mb-16 pb-8 border-b border-white/5">
+          <div className="flex items-center gap-3 text-white/30 mr-4">
+            <Filter className="size-5" />
+            <span className="text-sm font-black uppercase tracking-widest">Filter:</span>
           </div>
-          <Button
-            size="sm"
-            variant={selectedCategory === 'all' ? 'default' : 'outline'}
+          <button
+            className={`px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${selectedCategory === 'all'
+                ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]'
+                : 'bg-white/5 text-white/40 hover:bg-white/10'
+              }`}
             onClick={() => setSelectedCategory('all')}
           >
             All Photos ({items.length})
-          </Button>
+          </button>
           {Object.entries(categoryConfig).map(([key, config]) => {
             const count = items.filter(i => i.category === key).length;
             const IconComponent = config.icon;
             return (
-              <Button
+              <button
                 key={key}
-                size="sm"
-                variant={selectedCategory === key ? 'default' : 'outline'}
+                className={`flex items-center gap-2 px-6 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${selectedCategory === key
+                    ? 'bg-primary text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]'
+                    : 'bg-white/5 text-white/40 hover:bg-white/10'
+                  }`}
                 onClick={() => setSelectedCategory(key)}
-                className="gap-2"
               >
                 <IconComponent className="size-4" />
                 {config.label} ({count})
-              </Button>
+              </button>
             );
           })}
         </div>
 
         {/* Gallery Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredItems.map((item) => {
-            const CategoryIcon = categoryConfig[item.category].icon;
-            return (
-              <Card
-                key={item.id}
-                className="overflow-hidden cursor-pointer group hover:shadow-lg transition-all"
-                onClick={() => openLightbox(item)}
-              >
-                <div className="aspect-square relative overflow-hidden bg-muted">
-                  {!imagesLoaded[item.id] && (
-                    <div className="absolute inset-0 bg-muted animate-pulse" />
-                  )}
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    loading="lazy"
-                    onLoad={() => handleImageLoad(item.id)}
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors" />
-                  <div className="absolute top-2 left-2">
-                    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded ${categoryConfig[item.category].color}`}>
-                      <CategoryIcon className="size-3" />
-                      {categoryConfig[item.category].label}
-                    </span>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <AnimatePresence mode="popLayout">
+            {filteredItems.map((item, idx) => {
+              const CategoryIcon = categoryConfig[item.category].icon;
+              return (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="group cursor-pointer"
+                  onClick={() => openLightbox(item)}
+                >
+                  <div className="glass-card-heavy rounded-[2.5rem] overflow-hidden border border-white/5 transition-all group-hover:border-primary/30 group-hover:shadow-[0_0_40px_rgba(255,165,0,0.1)]">
+                    <div className="aspect-square relative overflow-hidden bg-[#030712]">
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className={`w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 ${imagesLoaded[item.id] ? 'opacity-100' : 'opacity-0'}`}
+                        loading="lazy"
+                        onLoad={() => handleImageLoad(item.id)}
+                      />
+                      <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/10 transition-colors duration-500" />
+                      <div className="absolute top-4 left-4">
+                        <span className={`inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter px-3 py-1.5 rounded-xl backdrop-blur-md shadow-2xl ${categoryConfig[item.category].color} border border-white/5`}>
+                          <CategoryIcon className="size-3" />
+                          {categoryConfig[item.category].label}
+                        </span>
+                      </div>
+                      {item.year && (
+                        <span className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-white/80 text-[10px] font-black px-3 py-1.5 rounded-xl border border-white/10 tracking-widest">
+                          {item.year}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <h3 className="font-bold text-white text-lg leading-tight mb-2 group-hover:text-primary transition-colors">{item.title}</h3>
+                      {item.description && (
+                        <p className="text-white/40 text-xs leading-relaxed line-clamp-2">{item.description}</p>
+                      )}
+                    </div>
                   </div>
-                  {item.year && (
-                    <span className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                      {item.year}
-                    </span>
-                  )}
-                </div>
-                <CardContent className="p-3">
-                  <h3 className="font-medium text-sm line-clamp-1">{item.title}</h3>
-                  {item.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{item.description}</p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
 
         {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div className="text-center py-16">
-            <Image className="size-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No photos found</h3>
-            <p className="text-muted-foreground">
-              No photos available in this category yet.
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-32"
+          >
+            <div className="size-32 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8">
+              <Image className="size-16 text-white/20" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-4">No photos found</h3>
+            <p className="text-white/40 text-lg max-w-md mx-auto">
+              We haven't uploaded any photos to this category yet. Please check back later!
             </p>
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* Lightbox Modal */}
-      {lightboxImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
-          onClick={closeLightbox}
-        >
-          {/* Close Button */}
-          <button
-            className="absolute top-4 right-4 text-white/80 hover:text-white z-10"
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#030712]/98 backdrop-blur-2xl flex items-center justify-center"
             onClick={closeLightbox}
           >
-            <X className="size-8" />
-          </button>
+            {/* Close Button */}
+            <button
+              className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors z-[110] bg-white/5 p-4 rounded-full"
+              onClick={closeLightbox}
+            >
+              <X className="size-8" />
+            </button>
 
-          {/* Navigation Buttons */}
-          <button
-            className="absolute left-4 text-white/80 hover:text-white z-10 p-2"
-            onClick={(e) => { e.stopPropagation(); prevImage(); }}
-          >
-            <ChevronLeft className="size-10" />
-          </button>
-          <button
-            className="absolute right-4 text-white/80 hover:text-white z-10 p-2"
-            onClick={(e) => { e.stopPropagation(); nextImage(); }}
-          >
-            <ChevronRight className="size-10" />
-          </button>
-
-          {/* Image */}
-          <div
-            className="max-w-5xl max-h-[85vh] mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={lightboxImage.imageUrl}
-              alt={lightboxImage.title}
-              className="max-w-full max-h-[75vh] object-contain"
-            />
-            <div className="text-white text-center mt-4">
-              <h3 className="text-xl font-semibold">{lightboxImage.title}</h3>
-              {lightboxImage.description && (
-                <p className="text-white/70 mt-1">{lightboxImage.description}</p>
-              )}
-              <div className="flex items-center justify-center gap-4 mt-2 text-sm text-white/60">
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded ${categoryConfig[lightboxImage.category].color}`}>
-                  {categoryConfig[lightboxImage.category].label}
-                </span>
-                {lightboxImage.year && <span>{lightboxImage.year}</span>}
-                <span>{currentIndex + 1} / {filteredItems.length}</span>
-              </div>
+            {/* Navigation Buttons */}
+            <div className="absolute inset-x-8 top-1/2 -translate-y-1/2 flex justify-between z-[110] pointer-events-none">
+              <button
+                className="size-20 bg-white/5 hover:bg-white/10 text-white p-4 rounded-full transition-all pointer-events-auto flex items-center justify-center"
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+              >
+                <ChevronLeft className="size-12" />
+              </button>
+              <button
+                className="size-20 bg-white/5 hover:bg-white/10 text-white p-4 rounded-full transition-all pointer-events-auto flex items-center justify-center"
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+              >
+                <ChevronRight className="size-12" />
+              </button>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Image Container */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="max-w-7xl w-full mx-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative glass-card border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+                <img
+                  src={lightboxImage.imageUrl}
+                  alt={lightboxImage.title}
+                  className="w-full max-h-[75vh] object-contain bg-[#030712]/50"
+                />
+                <div className="p-10 border-t border-white/10 bg-black/60 backdrop-blur-xl">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                      <h3 className="text-3xl font-bold text-white mb-2">{lightboxImage.title}</h3>
+                      {lightboxImage.description && (
+                        <p className="text-white/60 text-lg leading-relaxed">{lightboxImage.description}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 flex items-center gap-6">
+                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-widest ${categoryConfig[lightboxImage.category].color}`}>
+                        {categoryConfig[lightboxImage.category].label}
+                      </span>
+                      {lightboxImage.year && (
+                        <span className="text-white/30 font-black tracking-tighter text-2xl">{lightboxImage.year}</span>
+                      )}
+                      <div className="text-white/20 font-mono text-xl">
+                        {currentIndex + 1} <span className="opacity-50 mx-1">/</span> {filteredItems.length}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

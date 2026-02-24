@@ -249,7 +249,7 @@ export function CenterRegistrationPage() {
       state: formData.state,
       pincode: formData.pincode,
       centerCode,
-      status: 'APPROVED',
+      status: 'PENDING',
       totalStudents: 0,
       totalEarnings: 0,
       createdAt: new Date().toISOString(),
@@ -270,7 +270,7 @@ export function CenterRegistrationPage() {
       });
 
       const userId = authData?.user?.id;
-      if (authError && !authError.message.toLowerCase().includes('already registered')) {
+      if (authError && !authError.message?.toLowerCase().includes('already registered')) {
         console.warn("Auth signup error (non-critical):", authError.message);
       }
 
@@ -291,7 +291,7 @@ export function CenterRegistrationPage() {
         state: center.state,
         pincode: center.pincode,
         center_code: center.centerCode,
-        status: 'APPROVED',
+        status: 'PENDING',
         id_proof_url: center.idProofUrl,
         center_photo_url: center.centerPhotoUrl,
         transaction_id: formData.transactionId,
@@ -1280,15 +1280,15 @@ export function CenterRegistrationPage() {
                 </div>
 
                 <div className="pt-6 space-y-3">
-                  <div className="text-sm text-green-700 bg-green-50 p-4 rounded-lg border border-green-200 shadow-sm transition-all duration-300 hover:shadow-md">
+                  <div className="text-sm text-amber-700 bg-amber-50 p-4 rounded-lg border border-amber-200 shadow-sm transition-all duration-300 hover:shadow-md">
                     <p className="font-bold flex items-center gap-2 mb-1">
-                      <CheckCircle className="size-4" />
-                      {language === 'hi' ? 'खाता सक्रिय है!' : 'Account is Active!'}
+                      <Clock className="size-4" />
+                      {language === 'hi' ? 'आवेदन की समीक्षा' : 'Application Under Review'}
                     </p>
                     <p>
                       {language === 'hi'
-                        ? 'आपका केंद्र खाता सफलतापूर्वक सक्रिय हो गया है। अब आप अपने पंजीकृत ईमेल और पासवर्ड का उपयोग करके लॉगिन कर सकते हैं।'
-                        : 'Your center account has been successfully activated. You can now login using your registered email and password.'}
+                        ? 'आपका केंद्र आवेदन प्राप्त हो गया है। एक एडमिन आपके द्वारा प्रदान किए गए दस्तावेजों और भुगतान की समीक्षा करेगा। अनुमोदन के बाद आपको ईमेल प्राप्त होगा।'
+                        : 'Your center application has been received. An admin will review your documents and payment. You will receive an email once your center is approved.'}
                     </p>
                   </div>
                   <Link to="/">

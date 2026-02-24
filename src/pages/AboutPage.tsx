@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { APP_CONFIG } from '@/constants/config';
 import gphdmLogo from '@/assets/gphdm-logo.png';
 import { useTeamStore } from '@/stores/teamStore';
+import { motion } from 'framer-motion';
 
 export function AboutPage() {
   const { members, loadMembers } = useTeamStore();
@@ -73,293 +74,319 @@ export function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-primary to-primary/80 text-white py-16 lg:py-24">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-8">
+      <section className="relative py-20 lg:py-32 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-12">
             <div className="flex-1 text-center lg:text-left">
-              <h1 className="font-serif text-3xl lg:text-5xl font-bold mb-4">
-                हमारे बारे में
-              </h1>
-              <h2 className="text-xl lg:text-2xl font-semibold mb-4 opacity-90">
-                About {APP_CONFIG.organization}
-              </h2>
-              <p className="text-lg opacity-80 mb-6 max-w-2xl">
-                ग्राम पंचायत हेल्प डेस्क मिशन एक गैर-लाभकारी संगठन है जो ग्रामीण और शहरी क्षेत्रों के
-                मेधावी छात्रों को छात्रवृत्ति प्रदान करके शिक्षा को बढ़ावा देने के लिए समर्पित है।
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/register">
-                  <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                    <GraduationCap className="mr-2 size-5" />
-                    Register Now
-                  </Button>
-                </Link>
-                <Link to="/verify">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 border-white/30 hover:bg-white/20">
-                    Verify Certificate
-                  </Button>
-                </Link>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h1 className="text-4xl lg:text-7xl font-bold mb-6 premium-text-gradient">
+                  हमारे बारे में
+                </h1>
+                <h2 className="text-2xl lg:text-3xl font-bold mb-6 text-white opacity-90">
+                  About {APP_CONFIG.organization}
+                </h2>
+                <p className="text-xl text-white/70 mb-8 max-w-2xl leading-relaxed">
+                  ग्राम पंचायत हेल्प डेस्क मिशन एक गैर-लाभकारी संगठन है जो ग्रामीण और शहरी क्षेत्रों के
+                  मेधावी छात्रों को छात्रवृत्ति प्रदान करके शिक्षा को बढ़ावा देने के लिए समर्पित है।
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <Link to="/register">
+                    <Button size="lg" className="h-14 px-8 institutional-gradient text-white rounded-full font-bold shadow-[0_0_20px_rgba(255,165,0,0.4)] hover:scale-105 transition-transform">
+                      <GraduationCap className="mr-2 size-6" />
+                      Register Now
+                    </Button>
+                  </Link>
+                  <Link to="/verify">
+                    <Button size="lg" variant="outline" className="h-14 px-8 rounded-full border-white/20 text-white hover:bg-white/10 transition-all font-bold">
+                      Verify Certificate
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
             </div>
-            <div className="flex-shrink-0">
-              <div className="size-40 lg:size-56 bg-white rounded-full p-4 shadow-2xl">
-                <img src={gphdmLogo} alt="GPHDM Logo" className="w-full h-full object-contain" />
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="flex-shrink-0"
+            >
+              <div className="size-48 lg:size-72 p-1 rounded-full bg-gradient-to-br from-primary via-accent to-primary shadow-[0_0_50px_rgba(255,165,0,0.3)]">
+                <div className="w-full h-full bg-[#030712] rounded-full p-8 flex items-center justify-center overflow-hidden">
+                  <img src={gphdmLogo} alt="GPHDM Logo" className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-muted">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <Card key={index} className="text-center">
-                <CardContent className="p-6">
-                  <div className="size-14 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <stat.icon className="size-7 text-primary" />
-                  </div>
-                  <p className="text-3xl font-bold text-primary">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card rounded-3xl p-8 text-center hover:bg-white/10 transition-all group"
+              >
+                <div className="size-16 mx-auto mb-6 rounded-2xl bg-primary/20 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,165,0,0.2)]">
+                  <stat.icon className="size-8 text-primary" />
+                </div>
+                <p className="text-4xl font-bold premium-text-gradient mb-2">{stat.value}</p>
+                <p className="text-sm text-white/60 font-medium uppercase tracking-widest">{stat.label}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8">
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary">
-                  <Target className="size-6" />
-                  हमारा मिशन (Our Mission)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="glass-card rounded-[2rem] p-10 border-l-8 border-l-primary"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-primary/20 rounded-2xl">
+                  <Target className="size-10 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">हमारा मिशन</h2>
+              </div>
+              <div className="space-y-6">
+                <p className="text-lg text-white/80 leading-relaxed font-hindi">
                   भारत के हर कोने से प्रतिभाशाली छात्रों की पहचान करना और उन्हें उचित मान्यता एवं
-                  वित्तीय सहायता प्रदान करना। हम मानते हैं कि हर बच्चे में सफल होने की क्षमता है,
-                  और हमारा लक्ष्य उन्हें अपनी पूरी क्षमता हासिल करने में मदद करना है।
+                  वित्तीय सहायता प्रदान करना। हम मानते हैं कि हर बच्चे में सफल होने की क्षमता है।
                 </p>
-                <p className="text-muted-foreground leading-relaxed mt-4">
+                <p className="text-lg text-white/60 leading-relaxed italic border-l-2 border-primary/30 pl-6">
                   To identify talented students from every corner of India and provide them with
-                  appropriate recognition and financial assistance. We believe every child has
-                  the potential to succeed, and our goal is to help them achieve their full potential.
+                  appropriate recognition and financial assistance.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
 
-            <Card className="border-l-4 border-l-accent">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-accent">
-                  <Star className="size-6" />
-                  हमारा विज़न (Our Vision)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground leading-relaxed">
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="glass-card rounded-[2rem] p-10 border-l-8 border-l-accent"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-accent/20 rounded-2xl">
+                  <Star className="size-10 text-accent" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">हमारा विज़न</h2>
+              </div>
+              <div className="space-y-6">
+                <p className="text-lg text-white/80 leading-relaxed font-hindi">
                   एक ऐसा भारत बनाना जहां कोई भी प्रतिभाशाली छात्र आर्थिक बाधाओं के कारण
-                  शिक्षा से वंचित न रहे। हम एक समावेशी शिक्षा प्रणाली की कल्पना करते हैं
-                  जहां योग्यता ही सफलता का एकमात्र मापदंड हो।
+                  शिक्षा से वंचित न रहे। हम एक समावेशी शिक्षा प्रणाली की कल्पना करते हैं।
                 </p>
-                <p className="text-muted-foreground leading-relaxed mt-4">
+                <p className="text-lg text-white/60 leading-relaxed italic border-l-2 border-accent/30 pl-6">
                   To create an India where no talented student is deprived of education due to
-                  financial barriers. We envision an inclusive education system where merit
-                  is the only criterion for success.
+                  financial barriers.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Objectives */}
-      <section className="py-16 bg-muted">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl font-bold mb-4">हमारे उद्देश्य (Our Objectives)</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+      <section className="py-24 relative">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white premium-text-glow">हमारे उद्देश्य</h2>
+            <p className="text-xl text-white/60 max-w-3xl mx-auto">
               GPHDM छात्रवृत्ति परीक्षा के माध्यम से शैक्षिक उत्कृष्टता को बढ़ावा देने के लिए प्रतिबद्ध है।
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {objectives.map((objective, index) => (
-              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="size-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                    <objective.icon className="size-8 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">{objective.title}</h3>
-                  <p className="text-sm text-muted-foreground">{objective.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card rounded-3xl p-8 text-center hover:border-primary/50 transition-all group"
+              >
+                <div className="size-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:rotate-12 transition-transform">
+                  <objective.icon className="size-10 text-primary" />
+                </div>
+                <h3 className="font-bold text-xl text-white mb-4">{objective.title}</h3>
+                <p className="text-sm text-white/60 leading-relaxed">{objective.description}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Features */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-serif text-3xl font-bold mb-4">
-                परीक्षा की विशेषताएं (Examination Features)
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl font-bold mb-8 text-white">
+                परीक्षा की विशेषताएं
               </h2>
-              <p className="text-muted-foreground mb-8">
-                GPHDM छात्रवृत्ति परीक्षा एक पारदर्शी और निष्पक्ष मूल्यांकन प्रणाली प्रदान करती है
-                जो छात्रों को उनकी योग्यता के आधार पर पुरस्कृत करती है।
-              </p>
-              <div className="grid gap-3">
+              <div className="space-y-4">
                 {features.map((feature, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="size-5 text-accent flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </div>
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-4 glass-card-heavy p-4 rounded-2xl hover:bg-white/10 transition-all"
+                  >
+                    <div className="size-8 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="size-5 text-accent" />
+                    </div>
+                    <span className="text-white/80 font-medium">{feature}</span>
+                  </motion.div>
                 ))}
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Card className="p-6 text-center bg-primary text-white">
-                <BookOpen className="size-10 mx-auto mb-3" />
-                <p className="text-3xl font-bold">60</p>
-                <p className="text-sm opacity-80">Questions Per Exam</p>
-              </Card>
-              <Card className="p-6 text-center bg-accent text-white">
-                <Award className="size-10 mx-auto mb-3" />
-                <p className="text-3xl font-bold">₹10K</p>
-                <p className="text-sm opacity-80">Max Scholarship</p>
-              </Card>
-              <Card className="p-6 text-center bg-orange-500 text-white">
-                <Users className="size-10 mx-auto mb-3" />
-                <p className="text-3xl font-bold">1-12</p>
-                <p className="text-sm opacity-80">All Classes</p>
-              </Card>
-              <Card className="p-6 text-center bg-purple-600 text-white">
-                <Shield className="size-10 mx-auto mb-3" />
-                <p className="text-3xl font-bold">100%</p>
-                <p className="text-sm opacity-80">Secure & Fair</p>
-              </Card>
-            </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="grid grid-cols-2 gap-6"
+            >
+              {[
+                { icon: BookOpen, value: '60', label: 'Questions', color: 'from-blue-500/20 to-blue-600/20', text: 'text-blue-400' },
+                { icon: Award, value: '₹10K', label: 'Max Reward', color: 'from-accent/20 to-orange-600/20', text: 'text-accent' },
+                { icon: Users, value: '1-12', label: 'All Classes', color: 'from-primary/20 to-yellow-600/20', text: 'text-primary' },
+                { icon: Shield, value: '100%', label: 'Secure', color: 'from-purple-500/20 to-purple-600/20', text: 'text-purple-400' }
+              ].map((item, idx) => (
+                <div key={idx} className={`glass-card p-10 text-center rounded-[2.5rem] bg-gradient-to-br ${item.color} border-white/5`}>
+                  <item.icon className={`size-12 mx-auto mb-4 ${item.text}`} />
+                  <p className="text-4xl font-bold text-white mb-2">{item.value}</p>
+                  <p className="text-sm text-white/50 uppercase tracking-widest font-bold">{item.label}</p>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Team Section */}
-      <section className="py-16 bg-muted">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl font-bold mb-4">हमारी टीम (Our Team)</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+      <section className="py-24 relative">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6 text-white">हमारी टीम (Our Team)</h2>
+            <p className="text-xl text-white/60 max-w-2xl mx-auto">
               अनुभवी शिक्षाविदों और प्रशासकों की हमारी टीम छात्रों को सर्वोत्तम सेवा प्रदान करने के लिए समर्पित है।
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {members.map((member) => (
-              <Card key={member.id} className="text-center">
-                <CardContent className="p-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {members.map((member, index) => (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass-card rounded-[2.5rem] p-8 text-center hover:scale-[1.02] transition-all"
+              >
+                <div className="relative group mb-6">
+                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   {member.imageUrl ? (
                     <img
                       src={member.imageUrl}
                       alt={member.name}
-                      className="size-20 mx-auto mb-4 rounded-full object-cover"
+                      className="size-24 mx-auto rounded-full object-cover border-4 border-white/10 relative z-10"
                     />
                   ) : (
-                    <div className="size-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-white text-2xl font-bold">
+                    <div className="size-24 mx-auto rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-3xl font-bold border-4 border-white/10 relative z-10">
                       {member.name.split(' ').map(n => n[0]).slice(0, 2).join('')}
                     </div>
                   )}
-                  <h3 className="font-semibold">{member.name}</h3>
-                  <p className="text-sm text-primary font-medium mb-2">{member.role}</p>
-                  <p className="text-xs text-muted-foreground">{member.description}</p>
-                </CardContent>
-              </Card>
+                </div>
+                <h3 className="font-bold text-xl text-white mb-1">{member.name}</h3>
+                <p className="text-sm text-primary font-bold uppercase tracking-widest mb-4">{member.role}</p>
+                <p className="text-sm text-white/50 leading-relaxed line-clamp-3">{member.description}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl font-bold mb-4">संपर्क करें (Contact Us)</h2>
-            <p className="text-muted-foreground">
-              किसी भी प्रश्न या सहायता के लिए हमसे संपर्क करें।
-            </p>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="size-14 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Phone className="size-6 text-blue-600" />
+      {/* Contact Grid Section */}
+      <section className="py-24 relative">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <div className="grid sm:grid-cols-3 gap-8">
+            {[
+              { icon: Phone, title: 'Phone', value: APP_CONFIG.supportPhone, href: `tel:${APP_CONFIG.supportPhone}`, color: 'text-blue-400' },
+              { icon: Mail, title: 'Email', value: APP_CONFIG.supportEmail, href: `mailto:${APP_CONFIG.supportEmail}`, color: 'text-green-400' },
+              { icon: MapPin, title: 'Address', value: 'Uttar Pradesh, India', href: '#', color: 'text-purple-400' }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -5 }}
+                className="glass-card-heavy rounded-3xl p-10 text-center"
+              >
+                <div className="size-16 mx-auto mb-6 rounded-2xl bg-white/5 flex items-center justify-center">
+                  <item.icon className={`size-8 ${item.color}`} />
                 </div>
-                <h3 className="font-semibold mb-1">Phone</h3>
-                <a href={`tel:${APP_CONFIG.supportPhone}`} className="text-primary hover:underline">
-                  {APP_CONFIG.supportPhone}
+                <h3 className="font-bold text-xl text-white mb-2">{item.title}</h3>
+                <a href={item.href} className="text-white/70 hover:text-primary transition-colors block text-lg font-medium break-all">
+                  {item.value}
                 </a>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="size-14 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
-                  <Mail className="size-6 text-green-600" />
-                </div>
-                <h3 className="font-semibold mb-1">Email</h3>
-                <a href={`mailto:${APP_CONFIG.supportEmail}`} className="text-primary hover:underline text-sm">
-                  {APP_CONFIG.supportEmail}
-                </a>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="size-14 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
-                  <MapPin className="size-6 text-purple-600" />
-                </div>
-                <h3 className="font-semibold mb-1">Address</h3>
-                <p className="text-sm text-muted-foreground">
-                  Uttar Pradesh, India
-                </p>
-              </CardContent>
-            </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-primary/80 text-white">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="font-serif text-3xl font-bold mb-4">
-            आज ही रजिस्टर करें! (Register Today!)
-          </h2>
-          <p className="text-lg opacity-90 mb-8 max-w-2xl mx-auto">
-            GPHDM छात्रवृत्ति परीक्षा में भाग लें और अपनी प्रतिभा को पहचान दिलाएं।
-            छात्रवृत्ति जीतने का सुनहरा अवसर पाएं!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                <GraduationCap className="mr-2 size-5" />
-                Register for Exam
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 border-white/30 hover:bg-white/20">
-                Already Registered? Login
-              </Button>
-            </Link>
+      <section className="py-24 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto px-4 relative z-10">
+          <div className="glass-card rounded-[3rem] p-12 lg:p-20 text-center relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -z-10 group-hover:bg-primary/30 transition-all" />
+            <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/20 rounded-full blur-[100px] -z-10 group-hover:bg-accent/30 transition-all" />
+
+            <h2 className="text-4xl lg:text-6xl font-bold mb-8 text-white premium-text-glow">
+              आज ही रजिस्टर करें!
+            </h2>
+            <p className="text-xl text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed font-bold">
+              GPHDM छात्रवृत्ति परीक्षा में भाग लें और अपनी प्रतिभा को पहचान दिलाएं।
+              छात्रवृत्ति जीतने का सुनहरा अवसर पाएं!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Link to="/register">
+                <Button size="lg" className="h-16 px-10 institutional-gradient text-white rounded-full font-bold shadow-2xl hover:scale-105 transition-transform text-lg">
+                  <GraduationCap className="mr-3 size-6" />
+                  Register for Exam
+                </Button>
+              </Link>
+              <Link to="/login">
+                <Button size="lg" variant="outline" className="h-16 px-10 rounded-full border-white/20 text-white hover:bg-white/10 transition-all font-bold text-lg">
+                  Already Registered? Login
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>

@@ -14,6 +14,7 @@ import {
   Calendar,
   Filter,
   Download,
+  RotateCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -194,6 +195,14 @@ export function AdminCentersPage() {
 
   const handleReject = async () => {
     if (!selectedCenter || !currentAdmin) return;
+    if (!rejectionReason.trim()) {
+      toast({
+        title: 'Reason Required',
+        description: 'Please provide a reason for rejection/blocking.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     try {
       const { error } = await backend
@@ -254,6 +263,51 @@ export function AdminCentersPage() {
         <div>
           <h1 className="font-serif text-2xl font-bold text-foreground">Center Management</h1>
           <p className="text-muted-foreground">Manage examination center applications</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={loadCenters}
+            title="Refresh Data"
+          >
+            <RotateCw className={`size-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const headers = ['Center Name', 'Owner', 'Email', 'Phone', 'District', 'State', 'Code', 'Status', 'Applied Date'];
+              const data = filteredCenters.map(c => [
+                c.name,
+                c.ownerName,
+                c.email,
+                c.phone,
+                c.district,
+                c.state,
+                c.centerCode,
+                c.status,
+                formatDate(c.createdAt)
+              ]);
+
+              const csvContent = [
+                headers.join(','),
+                ...data.map(row => row.join(','))
+              ].join('\n');
+
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement('a');
+              const url = URL.createObjectURL(blob);
+              link.setAttribute('href', url);
+              link.setAttribute('download', `centers_report_${new Date().toISOString().split('T')[0]}.csv`);
+              link.style.visibility = 'hidden';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+          >
+            <Download className="size-4 mr-2" />
+            Download Report
+          </Button>
         </div>
       </div>
 
@@ -415,7 +469,7 @@ export function AdminCentersPage() {
                           >
                             <Eye className="size-4" />
                           </Button>
-                          {center.status === 'PENDING' && (
+                          {center.status === 'PENDING' ? (
                             <>
                               {(currentAdmin?.role === 'SUPER_ADMIN' || currentAdmin?.role === 'ADMIN') && (
                                 <Button
@@ -426,6 +480,7 @@ export function AdminCentersPage() {
                                     setSelectedCenter(center);
                                     setIsApproveDialogOpen(true);
                                   }}
+                                  title="Approve"
                                 >
                                   <CheckCircle className="size-4" />
                                 </Button>
@@ -439,11 +494,38 @@ export function AdminCentersPage() {
                                     setSelectedCenter(center);
                                     setIsRejectDialogOpen(true);
                                   }}
+                                  title="Reject"
                                 >
                                   <XCircle className="size-4" />
                                 </Button>
                               )}
                             </>
+                          ) : center.status === 'APPROVED' ? (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedCenter(center);
+                                setIsRejectDialogOpen(true);
+                              }}
+                              title="Block Center"
+                            >
+                              <XCircle className="size-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => {
+                                setSelectedCenter(center);
+                                setIsApproveDialogOpen(true);
+                              }}
+                              title="Unblock/Approve"
+                            >
+                              <CheckCircle className="size-4" />
+                            </Button>
                           )}
                         </div>
                       </TableCell>
@@ -564,6 +646,22 @@ export function AdminCentersPage() {
                     )}
                   </div>
                 </div>
+
+                <div className="col-span-2 border-t pt-2 mt-2">
+                  <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Payment Information</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Transaction ID</p>
+                  <p className="font-medium">{selectedCenter.transactionId || 'N/A'}</p>
+                </div>
+                {selectedCenter.paymentScreenshotUrl && (
+                  <div className="col-span-2">
+                    <p className="text-sm text-muted-foreground mb-1">Payment Screenshot</p>
+                    <a href={selectedCenter.paymentScreenshotUrl} target="_blank" rel="noreferrer" className="block w-full max-w-[200px] aspect-video border rounded overflow-hidden hover:opacity-80 transition-opacity">
+                      <img src={selectedCenter.paymentScreenshotUrl} alt="Payment Screenshot" className="w-full h-full object-cover" />
+                    </a>
+                  </div>
+                )}
 
                 <div className="col-span-2 border-t pt-2 mt-2">
                   <p className="text-xs font-bold uppercase text-muted-foreground mb-2">Statistics & Dates</p>

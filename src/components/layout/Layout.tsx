@@ -9,16 +9,29 @@ import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { useAuthStore } from '@/stores';
 
+// Premium Background Wrapper for all pages
+function PremiumWrapper({ children, className = "" }: { children: React.ReactNode, className?: string }) {
+  return (
+    <div className={`premium-dark-bg min-h-screen relative ${className}`}>
+      <div className="premium-glow-1" />
+      <div className="premium-glow-2" />
+      <div className="relative z-10">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // Public layout with header and footer
 export function PublicLayout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <PremiumWrapper className="flex flex-col">
       <Header />
       <main className="flex-1">
         <Outlet />
       </main>
       <Footer />
-    </div>
+    </PremiumWrapper>
   );
 }
 
@@ -32,7 +45,7 @@ export function StudentLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background pb-16 md:pb-0">
+    <PremiumWrapper className="flex pb-16 md:pb-0 overflow-hidden">
       <Sidebar variant="student" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Edge Swipe Trigger for Mobile */}
@@ -55,9 +68,9 @@ export function StudentLayout() {
 
       <main className="flex-1 relative flex flex-col overflow-x-hidden">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 bg-card border-b border-border sticky top-0 z-40">
+        <div className="md:hidden flex items-center justify-between p-4 bg-white/5 backdrop-blur-md border-b border-white/10 sticky top-0 z-40">
           <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
-            <Menu className="size-6 text-foreground" />
+            <Menu className="size-6 text-white" />
           </Button>
           <span className="font-serif font-bold text-primary">GPHDM Portal</span>
           <div className="size-10 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20 text-primary font-bold">
@@ -71,7 +84,7 @@ export function StudentLayout() {
       </main>
 
       <MobileNav onMenuClick={() => setIsSidebarOpen(true)} />
-    </div>
+    </PremiumWrapper>
   );
 }
 
@@ -85,21 +98,23 @@ export function AdminLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <PremiumWrapper className="flex">
       <Sidebar variant="admin" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 overflow-x-hidden relative flex flex-col">
 
         {/* Mobile Admin Toggle */}
-        <div className="md:hidden p-4 bg-red-900 text-white flex items-center gap-4">
+        <div className="md:hidden p-4 bg-red-950/80 backdrop-blur-md text-white flex items-center gap-4">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="size-6" />
           </Button>
-          <span className="font-bold">ADMIN PANEL</span>
+          <span className="font-bold tracking-widest text-xs">ADMIN CENTRAL</span>
         </div>
-        <Outlet />
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
-    </div>
+    </PremiumWrapper>
   );
 }
 
@@ -153,31 +168,33 @@ export function CenterLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <PremiumWrapper className="flex">
       <Sidebar variant="center" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       <main className="flex-1 overflow-x-hidden relative flex flex-col">
         {/* Mobile Center Toggle */}
-        <div className="md:hidden p-4 bg-amber-600 text-white flex items-center gap-4">
+        <div className="md:hidden p-4 bg-amber-600/80 backdrop-blur-md text-white flex items-center gap-4">
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setIsSidebarOpen(true)}>
             <Menu className="size-6" />
           </Button>
-          <span className="font-bold">CENTER PANEL</span>
+          <span className="font-bold tracking-widest text-xs">CENTER CENTRAL</span>
         </div>
-        <Outlet />
+        <div className="flex-1 overflow-y-auto">
+          <Outlet />
+        </div>
       </main>
-    </div>
+    </PremiumWrapper>
   );
 }
 
 // Simple centered layout for auth pages
 export function AuthLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-muted">
+    <PremiumWrapper className="flex flex-col">
       <Header />
       <main className="flex-1 flex items-center justify-center p-4">
         <Outlet />
       </main>
-    </div>
+    </PremiumWrapper>
   );
 }

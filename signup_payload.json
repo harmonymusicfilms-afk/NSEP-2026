@@ -1,0 +1,8 @@
+{
+    "email": "grampanchayat023@gmail.com",
+    "password": "grampanchayat_admin",
+    "data": {
+        "full_name": "Gram Panchayat Admin",
+        "role": "SUPER_ADMIN"
+    }
+}

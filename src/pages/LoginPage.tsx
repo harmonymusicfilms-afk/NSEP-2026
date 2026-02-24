@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, LogIn, AlertCircle, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -63,7 +64,6 @@ export function LoginPage() {
       if (error) throw error;
       if (!data.user) throw new Error('No user found');
 
-      // Fetch student details to sync with local store (Legacy)
       const { data: studentData, error: studentError } = await backend
         .from('students')
         .select('*')
@@ -71,11 +71,9 @@ export function LoginPage() {
         .maybeSingle();
 
       if (studentData) {
-        // Attempt to login to local store
         let loggedIn = await loginStudent(email.toLowerCase().trim(), studentData.mobile);
 
         if (!loggedIn) {
-          // Hydrate local store from backend data
           await addStudent({
             name: studentData.name,
             fatherName: studentData.father_name,
@@ -93,12 +91,7 @@ export function LoginPage() {
             referredByStudent: studentData.referred_by_student || undefined
           }, data.user.id);
 
-          // Try login again
           loggedIn = await loginStudent(studentData.email, studentData.mobile);
-        }
-
-        if (!loggedIn) {
-          console.warn('Student not found in local store even after hydration.');
         }
 
         toast({
@@ -122,92 +115,104 @@ export function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="text-center">
-        <Link to="/" className="inline-flex items-center justify-center gap-2 text-primary mb-4">
-          <GraduationCap className="size-8" />
-          <span className="font-serif text-xl font-bold">{APP_CONFIG.shortName}</span>
-        </Link>
-        <CardTitle className="font-serif text-2xl">Student Login</CardTitle>
-        <CardDescription>
-          Enter your registered email and mobile number
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
-              }}
-              placeholder="your.email@example.com"
-              className={errors.email ? 'border-destructive' : ''}
-            />
-            {errors.email && (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="size-3" /> {errors.email}
-              </p>
-            )}
-          </div>
+    <div className="min-h-[80vh] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-md"
+      >
+        <div className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-[60px] -z-10" />
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                to="/forgot-password"
-                className="text-xs text-primary hover:underline font-medium"
-              >
-                Forgot Password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-              }}
-              placeholder="Enter your password"
-              className={errors.password ? 'border-destructive' : ''}
-            />
-            {errors.password && (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="size-3" /> {errors.password}
-              </p>
-            )}
-          </div>
-
-          <Button type="submit" className="w-full institutional-gradient" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                Logging in...
-              </>
-            ) : (
-              <>
-                <LogIn className="size-4 mr-2" />
-                Login
-              </>
-            )}
-          </Button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-muted-foreground">
-          <p>
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary font-medium hover:underline">
-              Register now
+          <div className="text-center mb-10">
+            <Link to="/" className="inline-flex items-center justify-center gap-3 text-primary mb-6 group">
+              <div className="p-3 bg-primary/10 rounded-2xl group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,165,0,0.2)]">
+                <GraduationCap className="size-8" />
+              </div>
+              <span className="text-2xl font-black text-white tracking-tighter">{APP_CONFIG.shortName}</span>
             </Link>
-          </p>
-        </div>
+            <h1 className="text-3xl font-black text-white mb-2">Student Access</h1>
+            <p className="text-white/40 font-bold italic">Enter your credentials to continue.</p>
+          </div>
 
-      </CardContent>
-    </Card>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white/80 font-black ml-1 uppercase tracking-widest text-[10px]">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
+                placeholder="your@email.com"
+                className={`h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20 ${errors.email ? 'border-destructive' : ''}`}
+              />
+              {errors.email && (
+                <p className="text-xs text-red-500 font-bold flex items-center gap-1 ml-1">
+                  <AlertCircle className="size-3" /> {errors.email}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between ml-1">
+                <Label htmlFor="password" title="Password" className="text-white/80 font-black uppercase tracking-widest text-[10px]">Password</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-[10px] text-primary hover:text-primary-light font-black uppercase tracking-widest"
+                >
+                  Forgot?
+                </Link>
+              </div>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                placeholder="••••••••"
+                className={`h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20 ${errors.password ? 'border-destructive' : ''}`}
+              />
+              {errors.password && (
+                <p className="text-xs text-red-500 font-bold flex items-center gap-1 ml-1">
+                  <AlertCircle className="size-3" /> {errors.password}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full h-16 rounded-2xl institutional-gradient text-white font-black text-lg shadow-[0_0_20px_rgba(255,165,0,0.3)] hover:scale-[1.02] transition-transform"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="animate-spin size-5" />
+                  Verifying...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <LogIn className="size-5" />
+                  Enter Account
+                </span>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">
+              No account?{' '}
+              <Link to="/register" className="text-primary hover:text-primary-light transition-colors">
+                Register Securely
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   );
 }

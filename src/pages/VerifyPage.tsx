@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useCertificateStore, useExamStore } from '@/stores';
 import { APP_CONFIG } from '@/constants/config';
 import { formatDate, getOrdinal } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 export function VerifyPage() {
   const { certificateId: urlCertificateId } = useParams();
@@ -21,7 +22,7 @@ export function VerifyPage() {
   } | null>(null);
 
   const { verifyCertificate, loadCertificates } = useCertificateStore();
-  const { results, loadExamData } = useExamStore();
+  const { loadExamData } = useExamStore();
 
   useEffect(() => {
     if (urlCertificateId) {
@@ -33,23 +34,15 @@ export function VerifyPage() {
     if (!term.trim()) return;
 
     setIsSearching(true);
-    // ... rest of logic uses 'term' instead of 'certificateId' state directly or updates it
-    // But since verifyCertificate is async, we should just use the passed term.
-
-    // Ensure data is loaded
     await Promise.all([loadCertificates(), loadExamData()]);
-
-    // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     const searchTerm = term.trim().toUpperCase();
     let result = await verifyCertificate(searchTerm);
 
-    // If not found by Certificate ID, try searching by Student ID
     if (!result.isValid) {
       const certStore = useCertificateStore.getState();
       const certificate = certStore.getCertificateByStudent(searchTerm);
-
       if (certificate) {
         result = await verifyCertificate(certificate.certificateId);
       }
@@ -76,185 +69,215 @@ export function VerifyPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-200px)] py-12">
-      <div className="max-w-2xl mx-auto px-4">
+    <div className="min-h-screen py-20 lg:py-32">
+      <div className="max-w-3xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center size-16 rounded-full bg-primary/10 mb-4">
-            <QrCode className="size-8 text-primary" />
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center size-24 rounded-[2rem] bg-primary/10 border border-primary/20 mb-8 shadow-[0_0_30px_rgba(255,165,0,0.2)]">
+            <QrCode className="size-12 text-primary animate-pulse" />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-foreground mb-2">
-            Certificate Verification
+          <h1 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter">
+            Verify <span className="premium-text-gradient">Certificate</span>
           </h1>
-          <p className="text-muted-foreground">
-            Enter the Certificate ID or Student ID to verify details
+          <p className="text-xl text-white/50 max-w-xl mx-auto font-medium italic">
+            Enter the Certificate ID or Student ID to verify authenticity.
           </p>
         </div>
 
         {/* Search Form */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
+        <div className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-2xl mb-12">
+          <div className="space-y-8">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="certificateId">Certificate ID or Student ID</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="certificateId"
-                    value={certificateId}
-                    onChange={(e) => {
-                      setCertificateId(e.target.value.toUpperCase());
-                      setSearchResult(null);
-                    }}
-                    placeholder="Enter Certificate ID or Student ID"
-                    className="font-mono uppercase"
-                  />
-                  <Button onClick={handleSearch} disabled={isSearching || !certificateId.trim()}>
-                    {isSearching ? (
-                      <span className="animate-spin">⏳</span>
-                    ) : (
-                      <Search className="size-5" />
-                    )}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  You can find these details on your certificate or dashboard
-                </p>
+              <Label htmlFor="certificateId" className="text-white/80 font-black ml-1 uppercase tracking-widest text-xs">Certificate ID or Student ID</Label>
+              <div className="flex gap-4">
+                <Input
+                  id="certificateId"
+                  value={certificateId}
+                  onChange={(e) => {
+                    setCertificateId(e.target.value.toUpperCase());
+                    setSearchResult(null);
+                  }}
+                  placeholder="EX: STITCH-CERT-000001"
+                  className="h-16 bg-white/5 border-white/10 rounded-2xl text-white text-xl font-mono uppercase focus:border-primary/50 transition-all placeholder:text-white/10"
+                />
+                <Button
+                  size="icon"
+                  onClick={() => handleSearch()}
+                  disabled={isSearching || !certificateId.trim()}
+                  className="size-16 rounded-2xl bg-gradient-to-r from-primary to-accent hover:scale-105 transition-transform shadow-[0_0_20px_rgba(255,165,0,0.3)] shrink-0"
+                >
+                  {isSearching ? (
+                    <div className="size-6 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Search className="size-8 text-white" />
+                  )}
+                </Button>
               </div>
+              <p className="text-sm text-white/30 italic font-bold">
+                Verification ensures the legitimacy of the issued scholarship award.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Search Result */}
         {searchResult && (
-          <Card className={searchResult.found ? 'border-green-500 border-2' : 'border-red-500 border-2'}>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                {searchResult.found ? (
-                  <div className="size-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="size-6 text-green-600" />
-                  </div>
-                ) : (
-                  <div className="size-12 rounded-full bg-red-100 flex items-center justify-center">
-                    <XCircle className="size-6 text-red-600" />
-                  </div>
-                )}
-                <div>
-                  <CardTitle className={searchResult.found ? 'text-green-700' : 'text-red-700'}>
-                    {searchResult.found ? 'Certificate Verified' : 'Certificate Not Found'}
-                  </CardTitle>
-                  <CardDescription>
-                    {searchResult.found
-                      ? 'This certificate is authentic and valid'
-                      : 'No certificate found with this ID'}
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className={`glass-card-heavy rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative`}>
+              {searchResult.found ? (
+                <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] -z-10" />
+              ) : (
+                <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/10 rounded-full blur-[80px] -z-10" />
+              )}
 
-            {searchResult.found && searchResult.certificate && searchResult.student && (
-              <CardContent className="space-y-6">
-                {/* Certificate Details */}
-                <div className="bg-muted rounded-lg p-4 space-y-3">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <Award className="size-4 text-primary" />
-                    Certificate Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <span className="text-muted-foreground">Certificate ID:</span>
-                    <span className="font-mono">{searchResult.certificate.certificateId}</span>
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="capitalize">{searchResult.certificate.certificateType.toLowerCase()}</span>
-                    <span className="text-muted-foreground">Issue Date:</span>
-                    <span>{formatDate(searchResult.certificate.issuedAt)}</span>
+              <div className="p-10 lg:p-12">
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-12">
+                  {searchResult.found ? (
+                    <div className="size-24 rounded-3xl bg-green-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+                      <CheckCircle className="size-12 text-green-500" />
+                    </div>
+                  ) : (
+                    <div className="size-24 rounded-3xl bg-red-500/20 flex items-center justify-center shadow-[0_0_40px_rgba(239,68,68,0.3)]">
+                      <XCircle className="size-12 text-red-500" />
+                    </div>
+                  )}
+                  <div className="text-center md:text-left">
+                    <h2 className={`text-4xl font-black mb-3 ${searchResult.found ? 'text-green-500' : 'text-red-500'}`}>
+                      {searchResult.found ? 'Authentication Success' : 'Authentication Failed'}
+                    </h2>
+                    <p className="text-xl text-white/50 font-bold italic">
+                      {searchResult.found
+                        ? 'This digital record is authentic and verified by NSEP.'
+                        : 'No matching record was found in our database.'}
+                    </p>
                   </div>
                 </div>
 
-                {/* Student Details */}
-                <div className="bg-muted rounded-lg p-4 space-y-3">
-                  <h3 className="font-semibold flex items-center gap-2">
-                    <User className="size-4 text-primary" />
-                    Student Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <span className="text-muted-foreground">Name:</span>
-                    <span className="font-medium">{searchResult.student.name}</span>
-                    <span className="text-muted-foreground">Father's Name / Guardian:</span>
-                    <span>{searchResult.student.fatherName}</span>
-                    <span className="text-muted-foreground">Class:</span>
-                    <span>Class {searchResult.student.class}</span>
-                    <span className="text-muted-foreground">Center Code:</span>
-                    <span className="font-mono">{searchResult.student.centerCode || 'N/A'}</span>
-                  </div>
-                </div>
-
-                {/* Exam Result */}
-                {searchResult.examResult && (
-                  <div className="bg-primary/10 rounded-lg p-4 space-y-3">
-                    <h3 className="font-semibold flex items-center gap-2">
-                      <Calendar className="size-4 text-primary" />
-                      Examination Results
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <p className="text-sm text-muted-foreground">Total Score</p>
-                        <p className="text-2xl font-bold text-primary">{searchResult.examResult.totalScore}</p>
+                {searchResult.found && searchResult.certificate && searchResult.student && (
+                  <div className="space-y-8">
+                    {/* Details Grid */}
+                    <div className="grid md:grid-cols-2 gap-8">
+                      {/* Certificate Info */}
+                      <div className="glass-card rounded-[2rem] p-8 border-white/5">
+                        <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                          <Award className="size-4" />
+                          Certificate Record
+                        </h3>
+                        <div className="space-y-4">
+                          {[
+                            { label: 'ID', value: searchResult.certificate.certificateId, mono: true },
+                            { label: 'Tier', value: searchResult.certificate.certificateType.toLowerCase(), capitalize: true },
+                            { label: 'Issue Date', value: formatDate(searchResult.certificate.issuedAt) }
+                          ].map((item, i) => (
+                            <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3">
+                              <span className="text-white/40 font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
+                              <span className={`text-white font-bold ${item.mono ? 'font-mono text-primary' : ''} ${item.capitalize ? 'capitalize' : ''}`}>
+                                {item.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="text-center p-3 bg-white rounded-lg">
-                        <p className="text-sm text-muted-foreground">Class Rank</p>
-                        <p className="text-2xl font-bold text-primary">
-                          {searchResult.examResult.rank ? getOrdinal(searchResult.examResult.rank) : '—'}
-                        </p>
+
+                      {/* Student Info */}
+                      <div className="glass-card rounded-[2rem] p-8 border-white/5">
+                        <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
+                          <User className="size-4" />
+                          Recipient Details
+                        </h3>
+                        <div className="space-y-4">
+                          {[
+                            { label: 'FullName', value: searchResult.student.name },
+                            { label: 'Guardian', value: searchResult.student.fatherName },
+                            { label: 'Academic', value: `Class ${searchResult.student.class}` },
+                            { label: 'Institution', value: searchResult.student.centerCode || 'Independent', mono: true }
+                          ].map((item, i) => (
+                            <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3">
+                              <span className="text-white/40 font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
+                              <span className={`text-white font-bold ${item.mono ? 'font-mono text-primary' : ''}`}>
+                                {item.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Performance Metrics */}
+                    {searchResult.examResult && (
+                      <div className="glass-card rounded-[2.5rem] p-10 border-white/5 relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+                          <Calendar className="size-4" />
+                          Performance Metrics
+                        </h3>
+                        <div className="grid grid-cols-2 gap-8">
+                          <div className="text-center p-8 bg-white/5 rounded-[2rem] border border-white/5">
+                            <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-black mb-2">Aggregate Score</p>
+                            <p className="text-5xl font-black text-white premium-text-glow">{searchResult.examResult.totalScore}</p>
+                          </div>
+                          <div className="text-center p-8 bg-white/5 rounded-[2rem] border border-white/5">
+                            <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-black mb-2">Merit Standing</p>
+                            <p className="text-5xl font-black text-primary premium-text-glow">
+                              {searchResult.examResult.rank ? getOrdinal(searchResult.examResult.rank) : '—'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Official Stamp */}
+                    <div className="flex flex-col items-center justify-center gap-4 py-8 border-t border-white/5">
+                      <div className="flex items-center gap-3 px-6 py-3 bg-green-500/10 rounded-full border border-green-500/20 shadow-[0_0_20px_rgba(34,197,94,0.1)]">
+                        <CheckCircle className="size-5 text-green-500" />
+                        <span className="text-sm font-black text-green-500 uppercase tracking-widest leading-none">
+                          Verified Authenticity • NSEP Digital Trust
+                        </span>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Verification Badge */}
-                <div className="flex items-center justify-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg p-3">
-                  <CheckCircle className="size-4" />
-                  <span>Verified by {APP_CONFIG.organization}</span>
-                </div>
-              </CardContent>
-            )}
-
-            {!searchResult.found && (
-              <CardContent>
-                <div className="text-center py-4">
-                  <p className="text-muted-foreground mb-4">
-                    Please check the Certificate ID and try again. If you believe this is an error,
-                    contact our support team.
-                  </p>
-                  <Button variant="outline" onClick={() => setCertificateId('')}>
-                    Try Again
-                  </Button>
-                </div>
-              </CardContent>
-            )}
-          </Card>
+                {!searchResult.found && (
+                  <div className="text-center py-8">
+                    <p className="text-xl text-white/40 font-bold italic mb-10 max-w-md mx-auto">
+                      Please verify the ID provided on the certificate. Errors may occur due to incorrect entry or expired records.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCertificateId('')}
+                      className="h-16 px-12 rounded-full border-white/10 text-white font-black hover:bg-white/5 transition-all text-lg"
+                    >
+                      Try Again
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {/* Info Section */}
-        <div className="mt-12 text-center">
-          <h2 className="font-semibold mb-4">How to Find Your Certificate ID</h2>
-          <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <Card>
-              <CardContent className="p-4">
-                <QrCode className="size-8 text-primary mx-auto mb-2" />
-                <p className="font-medium">Scan QR Code</p>
-                <p className="text-muted-foreground text-xs">
-                  Scan the QR code on your certificate
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <Search className="size-8 text-primary mx-auto mb-2" />
-                <p className="font-medium">Manual Entry</p>
-                <p className="text-muted-foreground text-xs">
-                  Enter the ID from the bottom of certificate
-                </p>
-              </CardContent>
-            </Card>
+        <div className="mt-24">
+          <h2 className="text-xs font-black text-white/30 uppercase tracking-[0.5em] text-center mb-10">Where to find your credentials</h2>
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div className="glass-card rounded-[2.5rem] p-10 border-white/5 text-center group hover:border-primary/30 transition-all">
+              <QrCode className="size-16 text-primary mx-auto mb-8 group-hover:scale-110 transition-transform" />
+              <p className="text-2xl font-black text-white mb-2">Visual Scan</p>
+              <p className="text-white/40 font-bold italic">
+                Focus your camera on the QR code located in the center of your physical certificate.
+              </p>
+            </div>
+            <div className="glass-card rounded-[2.5rem] p-10 border-white/5 text-center group hover:border-primary/30 transition-all">
+              <Search className="size-16 text-primary mx-auto mb-8 group-hover:scale-110 transition-transform" />
+              <p className="text-2xl font-black text-white mb-2">Manual Audit</p>
+              <p className="text-white/40 font-bold italic">
+                Input the unique alphanumeric sequence printed on the lower margin of the certificate.
+              </p>
+            </div>
           </div>
         </div>
       </div>

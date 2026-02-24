@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Filter, Download, CheckCircle, XCircle, Clock, Search } from 'lucide-react';
+import { CreditCard, Filter, Download, CheckCircle, XCircle, Clock, Search, Image as ImageIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,8 +45,7 @@ export function AdminPaymentsPage() {
       return (
         student?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student?.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.razorpayOrderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.razorpayPaymentId?.toLowerCase().includes(searchQuery.toLowerCase())
+        p.transactionId?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -219,11 +218,11 @@ export function AdminPaymentsPage() {
                   <TableRow>
                     <TableHead>Student</TableHead>
                     <TableHead className="bg-green-50 text-green-800 font-black">APPROVAL ACTION</TableHead>
+                    <TableHead>Transaction ID</TableHead>
+                    <TableHead>Proof</TableHead>
                     <TableHead>Class</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Order ID</TableHead>
-                    <TableHead>Payment ID</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -256,13 +255,31 @@ export function AdminPaymentsPage() {
                             </div>
                           )}
                         </TableCell>
+                        <TableCell>
+                          {payment.transactionId ? (
+                            <span className="font-mono text-sm font-bold text-blue-600">{payment.transactionId}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {payment.proofUrl ? (
+                            <a
+                              href={payment.proofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-tighter bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors shadow-sm"
+                            >
+                              <ImageIcon className="size-3" />
+                              View Screenshot
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground text-xs italic">No Proof</span>
+                          )}
+                        </TableCell>
                         <TableCell>Class {student?.class || 'N/A'}</TableCell>
                         <TableCell className="font-semibold">{formatCurrency(payment.amount)}</TableCell>
                         <TableCell>{getStatusBadge(payment.status)}</TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">{payment.razorpayOrderId}</TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {payment.razorpayPaymentId || '-'}
-                        </TableCell>
                         <TableCell className="text-sm">
                           {formatDateTime(payment.paidAt || payment.createdAt)}
                         </TableCell>

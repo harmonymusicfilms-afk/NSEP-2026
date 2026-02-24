@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Mail,
   Phone,
@@ -115,7 +116,6 @@ export function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simple validation
     if (!formData.name || !formData.email || !formData.message) {
       toast({
         title: 'Validation Error',
@@ -127,12 +127,10 @@ export function ContactPage() {
 
     setIsSubmitting(true);
 
-    // Construct WhatsApp message
     const waMessage = `*New GPHDM Inquiry*%0A%0A*Name:* ${formData.name}%0A*Email:* ${formData.email}%0A*Phone:* ${formData.phone || 'N/A'}%0A*Subject:* ${formData.subject}%0A*Message:* ${formData.message}`;
     const waNumber = APP_CONFIG.supportPhone.replace(/\D/g, '');
     const waUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
 
-    // Save to localStorage (in real app, this would be an API call)
     const submissions = JSON.parse(localStorage.getItem('gphdm_contact_submissions') || '[]');
     submissions.push({
       id: generateId(),
@@ -150,7 +148,6 @@ export function ContactPage() {
       description: 'Opening WhatsApp to send your inquiry...',
     });
 
-    // Open WhatsApp
     setTimeout(() => {
       window.open(waUrl, '_blank');
     }, 1000);
@@ -163,261 +160,288 @@ export function ContactPage() {
   const faqCategories = ['all', ...new Set(faqData.map(faq => faq.category))];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary/80 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6">
-            <ArrowLeft className="size-4" />
-            Back to Home
-          </Link>
-          <h1 className="font-serif text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-xl text-white/80 max-w-2xl">
-            संपर्क करें - We're here to help. Reach out to us for any queries, feedback, or support.
-          </p>
+      <section className="relative py-20 lg:py-24">
+        <div className="max-w-7xl mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <Link to="/" className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all mb-8 bg-primary/10 px-4 py-2 rounded-full border border-primary/20">
+              <ArrowLeft className="size-4" />
+              Back to Home
+            </Link>
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 premium-text-gradient">Contact Us</h1>
+            <p className="text-xl text-white/70 max-w-2xl leading-relaxed italic">
+              संपर्क करें - We're here to help. Reach out to us for any queries, feedback, or support.
+            </p>
+          </motion.div>
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 relative z-10">
+        <div className="grid lg:grid-cols-3 gap-12">
           {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="size-5 text-primary" />
-                  Send Us a Message
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isSubmitted ? (
-                  <div className="text-center py-12">
-                    <div className="size-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                      <CheckCircle className="size-8 text-green-600" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Message Sent Successfully!</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Thank you for contacting us. We will respond within 24-48 working hours.
-                    </p>
-                    <Button onClick={() => {
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-2"
+          >
+            <div className="glass-card-heavy rounded-[2.5rem] p-8 lg:p-12 border border-white/10">
+              <div className="flex items-center gap-4 mb-10">
+                <div className="p-4 bg-primary/20 rounded-2xl">
+                  <MessageSquare className="size-8 text-primary" />
+                </div>
+                <h2 className="text-3xl font-bold text-white">Send Us a Message</h2>
+              </div>
+
+              {isSubmitted ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-16"
+                >
+                  <div className="size-24 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
+                    <CheckCircle className="size-12 text-green-500" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-white mb-4">Message Sent Successfully!</h3>
+                  <p className="text-white/60 mb-10 text-lg">
+                    Thank you for contacting us. We will respond within 24-48 working hours.
+                  </p>
+                  <Button
+                    size="lg"
+                    className="rounded-full px-10 h-14 font-bold institutional-gradient shadow-xl"
+                    onClick={() => {
                       setIsSubmitted(false);
                       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-                    }}>
-                      Send Another Message
-                    </Button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input
-                          id="name"
-                          value={formData.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
-                          placeholder="Enter your name"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address *</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
-                          placeholder="your.email@example.com"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
-                          placeholder="10-digit mobile number"
-                          maxLength={10}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="subject">Subject</Label>
-                        <Select
-                          value={formData.subject}
-                          onValueChange={(value) => handleInputChange('subject', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a subject" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="registration">Registration Query</SelectItem>
-                            <SelectItem value="examination">Examination Related</SelectItem>
-                            <SelectItem value="results">Results & Rankings</SelectItem>
-                            <SelectItem value="certificate">Certificate Verification</SelectItem>
-                            <SelectItem value="refund">Refund Request</SelectItem>
-                            <SelectItem value="center">Center Registration</SelectItem>
-                            <SelectItem value="technical">Technical Issue</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Message *</Label>
-                      <Textarea
-                        id="message"
-                        value={formData.message}
-                        onChange={(e) => handleInputChange('message', e.target.value)}
-                        placeholder="Describe your query or concern in detail..."
-                        rows={5}
+                    }}
+                  >
+                    Send Another Message
+                  </Button>
+                </motion.div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="name" className="text-white/80 font-bold ml-1">Full Name *</Label>
+                      <Input
+                        id="name"
+                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        value={formData.name}
+                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        placeholder="Enter your name"
                         required
                       />
                     </div>
-
-                    {/* Simple Math CAPTCHA */}
-                    <div className="bg-muted rounded-lg p-4">
-                      <p className="text-sm text-muted-foreground mb-2">
-                        By submitting this form, you agree to our Privacy Policy and Terms of Service.
-                      </p>
+                    <div className="space-y-3">
+                      <Label htmlFor="email" className="text-white/80 font-bold ml-1">Email Address *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="your.email@example.com"
+                        required
+                      />
                     </div>
+                  </div>
 
-                    <Button type="submit" className="w-full" disabled={isSubmitting}>
-                      {isSubmitting ? (
-                        <>
-                          <span className="animate-spin mr-2">⏳</span>
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="size-4 mr-2" />
-                          Send Message
-                        </>
-                      )}
-                    </Button>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label htmlFor="phone" className="text-white/80 font-bold ml-1">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
+                        placeholder="10-digit mobile number"
+                        maxLength={10}
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="subject" className="text-white/80 font-bold ml-1">Subject</Label>
+                      <Select
+                        value={formData.subject}
+                        onValueChange={(value) => handleInputChange('subject', value)}
+                      >
+                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-2xl text-white">
+                          <SelectValue placeholder="Select a subject" />
+                        </SelectTrigger>
+                        <SelectContent className="glass-card-heavy border-white/10 text-white">
+                          <SelectItem value="registration">Registration Query</SelectItem>
+                          <SelectItem value="examination">Examination Related</SelectItem>
+                          <SelectItem value="results">Results & Rankings</SelectItem>
+                          <SelectItem value="certificate">Certificate Verification</SelectItem>
+                          <SelectItem value="refund">Refund Request</SelectItem>
+                          <SelectItem value="center">Center Registration</SelectItem>
+                          <SelectItem value="technical">Technical Issue</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="message" className="text-white/80 font-bold ml-1">Message *</Label>
+                    <Textarea
+                      id="message"
+                      className="bg-white/5 border-white/10 rounded-[2rem] text-white focus:border-primary/50 transition-all placeholder:text-white/20 p-6"
+                      value={formData.message}
+                      onChange={(e) => handleInputChange('message', e.target.value)}
+                      placeholder="Describe your query or concern in detail..."
+                      rows={6}
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary to-accent text-white font-bold text-lg shadow-[0_0_20px_rgba(255,165,0,0.3)] hover:scale-[1.02] transition-transform"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <div className="size-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                        Sending...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Send className="size-5" />
+                        Send via WhatsApp
+                      </span>
+                    )}
+                  </Button>
+                </form>
+              )}
+            </div>
+          </motion.div>
 
           {/* Contact Information */}
-          <div className="space-y-6">
-            {/* Office Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="size-5 text-primary" />
-                  Office Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <Mail className="size-5 text-blue-600" />
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="space-y-6"
+            >
+              {[
+                { icon: Mail, title: 'Email', value: APP_CONFIG.supportEmail, href: `mailto:${APP_CONFIG.supportEmail}`, color: 'bg-blue-500/20 text-blue-400' },
+                { icon: Phone, title: 'Phone', value: APP_CONFIG.supportPhone, href: `tel:${APP_CONFIG.supportPhone}`, color: 'bg-green-500/20 text-green-400' },
+                { icon: MapPin, title: 'Address', value: 'Uttar Pradesh, India', href: '#', color: 'bg-purple-500/20 text-purple-400' }
+              ].map((item, idx) => (
+                <div key={idx} className="glass-card p-6 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group">
+                  <div className={`size-16 rounded-2xl flex items-center justify-center shrink-0 ${item.color} group-hover:scale-110 transition-transform`}>
+                    <item.icon className="size-8" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-sm">Email</h4>
-                    <a href={`mailto:${APP_CONFIG.supportEmail}`} className="text-primary hover:underline">
-                      {APP_CONFIG.supportEmail}
+                    <h4 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">{item.title}</h4>
+                    <a href={item.href} className="text-white text-lg font-bold break-all hover:text-primary transition-colors italic">
+                      {item.value}
                     </a>
                   </div>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <Phone className="size-5 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Phone</h4>
-                    <a href={`tel:${APP_CONFIG.supportPhone}`} className="text-primary hover:underline">
-                      {APP_CONFIG.supportPhone}
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="size-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm">Address</h4>
-                    <p className="text-muted-foreground text-sm">
-                      {APP_CONFIG.organization}<br />
-                      Uttar Pradesh, India - 201301
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              ))}
+            </motion.div>
 
             {/* Working Hours */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="size-5 text-orange-600" />
-                  Working Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-medium">10:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Saturday</span>
-                    <span className="font-medium">10:00 AM - 2:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sunday</span>
-                    <span className="font-medium text-red-600">Closed</span>
-                  </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="glass-card rounded-3xl p-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <Clock className="size-6 text-accent" />
+                  <h3 className="text-xl font-bold text-white">Working Hours</h3>
                 </div>
-                <div className="mt-4 pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    * Response time: 24-48 working hours<br />
-                    * Emergency support available during examination periods
-                  </p>
+                <div className="space-y-4">
+                  {[
+                    { days: 'Monday - Friday', hours: '10:00 AM - 6:00 PM', variant: 'text-white/80' },
+                    { days: 'Saturday', hours: '10:00 AM - 2:00 PM', variant: 'text-white/80' },
+                    { days: 'Sunday', hours: 'Closed', variant: 'text-red-400 font-bold' }
+                  ].map((row, i) => (
+                    <div key={i} className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
+                      <span className="text-white/50">{row.days}</span>
+                      <span className={row.variant}>{row.hours}</span>
+                    </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Links */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <Link to="/verify" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                    <CheckCircle className="size-4" />
-                    Verify Certificate
-                  </Link>
-                  <Link to="/terms" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                    <AlertCircle className="size-4" />
-                    Terms of Service
-                  </Link>
-                  <Link to="/privacy" className="flex items-center gap-2 text-sm text-primary hover:underline">
-                    <AlertCircle className="size-4" />
-                    Privacy Policy
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                <p className="mt-6 text-[10px] text-white/30 uppercase tracking-widest font-bold">
+                  * 24-48 Working Hours response time
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
 
-        {/* Google Maps Embed */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="size-5 text-red-600" />
-              Our Location
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+        {/* Location & FAQ */}
+        <div className="mt-20 grid lg:grid-cols-2 gap-12">
+          {/* FAQ */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 overflow-hidden"
+          >
+            <div className="flex items-center gap-4 mb-10">
+              <HelpCircle className="size-8 text-primary" />
+              <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-8">
+              {faqCategories.map((category) => (
+                <button
+                  key={category}
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${faqCategory === category
+                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,165,0,0.3)]'
+                    : 'bg-white/5 text-white/40 hover:bg-white/10'
+                    }`}
+                  onClick={() => setFaqCategory(category)}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-4 h-[500px] overflow-y-auto custom-scrollbar pr-4">
+              {filteredFAQs.map((faq, index) => (
+                <div key={index} className="glass-card rounded-2xl overflow-hidden border-white/5">
+                  <button
+                    className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
+                    onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="size-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0 text-primary font-bold">
+                        {index + 1}
+                      </div>
+                      <span className="font-bold text-white/80 leading-tight">{faq.question}</span>
+                    </div>
+                    {expandedFAQ === index ? <ChevronUp className="text-primary" /> : <ChevronDown className="text-white/20" />}
+                  </button>
+                  {expandedFAQ === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      className="px-6 pb-6 pt-0 ml-14"
+                    >
+                      <p className="text-white/50 text-sm leading-relaxed">{faq.answer}</p>
+                    </motion.div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Map */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="glass-card rounded-[3rem] p-4 group"
+          >
+            <div className="relative h-full min-h-[500px] rounded-[2.5rem] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
+              <div className="absolute inset-0 bg-primary/10 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity" />
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d227748.3825624747!2d80.77769943260427!3d26.8486230!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399bfd991f32b16b%3A0x93ccba8909978be7!2sLucknow%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
                 width="100%"
@@ -425,63 +449,11 @@ export function ContactPage() {
                 style={{ border: 0 }}
                 allowFullScreen
                 loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
                 title="GPHDM Office Location"
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* FAQ Section */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <HelpCircle className="size-5 text-primary" />
-              Frequently Asked Questions (FAQ)
-            </CardTitle>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {faqCategories.map((category) => (
-                <Button
-                  key={category}
-                  size="sm"
-                  variant={faqCategory === category ? 'default' : 'outline'}
-                  onClick={() => setFaqCategory(category)}
-                >
-                  {category === 'all' ? 'All' : category}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {filteredFAQs.map((faq, index) => (
-                <div key={index} className="border rounded-lg overflow-hidden">
-                  <button
-                    className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
-                    onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-xs px-2 py-1 rounded bg-primary/10 text-primary font-medium">
-                        {faq.category}
-                      </span>
-                      <span className="font-medium text-sm">{faq.question}</span>
-                    </div>
-                    {expandedFAQ === index ? (
-                      <ChevronUp className="size-5 text-muted-foreground flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="size-5 text-muted-foreground flex-shrink-0" />
-                    )}
-                  </button>
-                  {expandedFAQ === index && (
-                    <div className="px-4 pb-4 pt-0">
-                      <p className="text-muted-foreground text-sm pl-[76px]">{faq.answer}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

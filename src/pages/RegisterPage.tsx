@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User } from 'lucide-react';
+import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User, QrCode, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -93,8 +93,11 @@ export function RegisterPage() {
   const [registeredStudent, setRegisteredStudent] = useState<any>(null);
   const [searchParams] = useSearchParams();
   const [showReferralGate, setShowReferralGate] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [manualTransactionId, setManualTransactionId] = useState('');
+  const [manualProofUrl, setManualProofUrl] = useState('');
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const proofInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -370,11 +373,11 @@ export function RegisterPage() {
         },
       });
 
-      let userId = authData.user?.id;
+      let userId = authData?.user?.id;
 
       if (authError) {
         // If user already exists, try to sign in instead to resume
-        if (authError.message.includes('already registered')) {
+        if (authError.message?.toLowerCase().includes('already registered')) {
           const { data: signInData, error: signInError } = await backend.auth.signInWithPassword({
             email: formData.email,
             password: formData.password || 'password123',
@@ -384,7 +387,7 @@ export function RegisterPage() {
             // If sign in fails, it might be a wrong password or truly a different person
             throw new Error('This email is already registered. Please login with your password to continue.');
           }
-          userId = signInData.user?.id;
+          userId = signInData?.user?.id;
         } else {
           throw authError;
         }
@@ -442,105 +445,95 @@ export function RegisterPage() {
     }
   };
 
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingStudentId) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      toast({ title: "Invalid File", description: "Only JPG, PNG and WebP are allowed.", variant: "destructive" });
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: "File Too Large", description: "Image size must be less than 2MB.", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingProof(true);
+    try {
+      const compressedBase64 = await compressImage(file, 1000);
+      const res = await fetch(compressedBase64);
+      const blob = await res.blob();
+      const fileExt = file.name.split('.').pop() || 'jpg';
+      const compressedFile = new File([blob], file.name, { type: blob.type || 'image/jpeg' });
+
+      const fileName = `proof_${pendingStudentId}_${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+      const { error: uploadError } = await backend.storage
+        .from('payment-proofs')
+        .upload(filePath, compressedFile, { contentType: compressedFile.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = backend.storage
+        .from('payment-proofs')
+        .getPublicUrl(filePath);
+
+      setManualProofUrl(publicUrl);
+      toast({ title: "Success", description: "Payment screenshot uploaded successfully." });
+    } catch (error) {
+      console.error("Upload error", error);
+      toast({ title: "Upload Failed", description: "Could not upload screenshot.", variant: "destructive" });
+    } finally {
+      setIsUploadingProof(false);
+      if (proofInputRef.current) proofInputRef.current.value = '';
+    }
+  };
+
   const handlePayment = async () => {
     if (!pendingStudentId || isProcessingPayment) return;
+    if (!manualTransactionId.trim()) {
+      toast({ title: "Transaction ID Required", description: "Please enter your payment Transaction ID.", variant: "destructive" });
+      return;
+    }
+    if (!manualProofUrl) {
+      toast({ title: "Screenshot Required", description: "Please upload your payment success screenshot.", variant: "destructive" });
+      return;
+    }
 
     setIsProcessingPayment(true);
     try {
       const amount = getExamFee(formData.class);
-      const payment = await createPayment(pendingStudentId, amount);
+      // Create a pending payment record if it doesn't already exist or update current one
+      let payment = usePaymentStore.getState().getPaymentsByStudent(pendingStudentId).find(p => p.status === 'PENDING');
 
-      if (!payment) throw new Error('Payment initiation failed.');
-
-      const options = {
-        key: RAZORPAY_CONFIG.key_id,
-        amount: amount * 100,
-        currency: 'INR',
-        name: APP_CONFIG.name,
-        description: `Exam Donation for Class ${formData.class}`,
-        order_id: payment.razorpayOrderId,
-        handler: async function (response: any) {
-          try {
-            const verified = await verifyPayment(
-              payment.id,
-              response.razorpay_payment_id,
-              response.razorpay_signature
-            );
-
-            if (verified) {
-              setPaymentVerified(true);
-              // Apply referral rewards
-              if (formData.referredByCenter) {
-                const studentStore = useStudentStore.getState();
-                let referrer = null;
-                let rewardAmount = 0;
-
-                if (referralType === 'CENTER') {
-                  referrer = await studentStore.getStudentByCenterCode(formData.referredByCenter);
-                  rewardAmount = REFERRAL_CONFIG.centerCodeReward;
-                } else if (referralType === 'STUDENT') {
-                  referrer = await studentStore.getStudentByReferralCode(formData.referredByCenter);
-                  rewardAmount = REFERRAL_CONFIG.studentReferralReward;
-                }
-
-                if (referrer && referrer.id !== pendingStudentId) {
-                  await createReward(referrer.id, pendingStudentId, payment.id, rewardAmount);
-                }
-              }
-              toast({ title: 'Payment Verified! ✅', description: 'Proceed with finishing your profile.' });
-              setStep('address');
-            }
-          } catch (err) {
-            console.error('Verification error:', err);
-            toast({ variant: 'destructive', title: 'Payment Verification Failed' });
-          } finally {
-            setIsProcessingPayment(false);
-          }
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.mobile,
-        },
-        theme: { color: '#0F172A' },
-        modal: {
-          ondismiss: function () { setIsProcessingPayment(false); }
-        }
-      };
-
-      if (!(window as any).Razorpay) {
-        throw new Error('Razorpay SDK failed to load. Please check your internet connection or disable ad-blockers.');
+      if (!payment) {
+        payment = await createPayment(pendingStudentId, amount);
       }
 
-      const rzp = new (window as any).Razorpay(options);
+      if (!payment) throw new Error('Payment record creation failed.');
 
-      rzp.on('payment.failed', function (response: any) {
-        console.error('Payment failed event:', response.error);
+      const updated = await usePaymentStore.getState().submitManualPayment(
+        payment.id,
+        manualTransactionId.trim(),
+        manualProofUrl
+      );
+
+      if (updated) {
         toast({
-          variant: 'destructive',
-          title: 'Payment Failed',
-          description: response.error.description || 'Payment was unsuccessful.',
+          title: 'Payment Submitted! ⏳',
+          description: 'Our admin will verify your payment within 24 hours. You can continue with your profile details now.'
         });
-        setIsProcessingPayment(false);
-      });
-
-      rzp.open();
-
-    } catch (error: any) {
-      console.error('Detailed Payment Error:', error);
-
-      let errorMsg = error.message || 'Payment initiation failed.';
-      if (errorMsg.includes('Razorpay')) {
-        errorMsg = 'Razorpay script failed to load. Please disable ad-blockers and check your internet connection.';
-      } else if (errorMsg.includes('initiation')) {
-        errorMsg = 'Could not create payment order. This might be a server issue. Please try again in a moment.';
+        setPaymentVerified(true);
+        setStep('address');
       }
-
+    } catch (error: any) {
+      console.error('Manual Payment Error:', error);
       toast({
         variant: 'destructive',
-        title: 'Payment System Error',
-        description: errorMsg,
+        title: 'Submission Error',
+        description: error.message || 'Failed to submit payment details.',
       });
+    } finally {
       setIsProcessingPayment(false);
     }
   };
@@ -660,106 +653,113 @@ export function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-muted py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-primary mb-4">
+        <div className="text-center mb-16">
+          <Link to="/" className="inline-flex items-center gap-3 text-primary mb-10 group bg-primary/10 px-6 py-3 rounded-full border border-primary/20 backdrop-blur-md shadow-[0_0_20px_rgba(255,165,0,0.1)] hover:scale-105 transition-all">
             <GraduationCap className="size-8" />
-            <span className="font-serif text-xl font-bold">{APP_CONFIG.shortName}</span>
+            <span className="text-2xl font-black text-white tracking-tighter">{APP_CONFIG.shortName}</span>
           </Link>
-          <h1 className="font-serif text-2xl font-bold text-foreground">
-            Student Registration
+          <h1 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tight">
+            Student <span className="premium-text-gradient">Registration</span>
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Create your account to access the scholarship examination
+          <p className="text-xl text-white/50 max-w-xl mx-auto font-bold italic">
+            Begin your journey towards academic excellence and scholarship rewards.
           </p>
         </div>
 
         {/* Progress */}
         {showReferralGate ? (
-          <Card className="text-center py-12 px-6 border-2 border-primary/20 shadow-xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-4 opacity-5">
-              <Gift className="size-32" />
-            </div>
-            <CardHeader className="relative z-10">
-              <div className="mx-auto size-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                <Users className="size-10 text-primary" />
-              </div>
-              <CardTitle className="font-serif text-3xl mb-2">Registration by Referral Only</CardTitle>
-              <CardDescription className="text-lg leading-relaxed max-w-md mx-auto">
-                To maintain the integrity of our scholarship mission, registration is currently restricted to referrals from authorized centers or fellow students.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8 relative z-10">
-              <div className="p-4 bg-muted rounded-xl space-y-2">
-                <p className="text-sm font-semibold text-foreground">How to register?</p>
-                <p className="text-sm text-muted-foreground">
-                  Ask your teacher, center head, or a friend who is already registered to share their unique registration link with you.
-                </p>
-              </div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="glass-card-heavy rounded-[3.5rem] p-10 lg:p-16 border border-white/10 shadow-2xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] -z-10 group-hover:bg-primary/20 transition-colors" />
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/10 rounded-full blur-[80px] -z-10" />
 
-              <div className="space-y-4 pt-4">
-                <p className="text-sm font-medium">Already have a referral code?</p>
-                <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
-                  <Input
-                    placeholder="Enter 12-digit code"
-                    id="manual-ref"
-                    className="uppercase text-center text-lg font-mono tracking-widest h-12"
-                    maxLength={16}
-                  />
-                  <Button
-                    variant="default"
-                    className="h-12 px-8 institutional-gradient"
-                    onClick={() => {
-                      const code = (document.getElementById('manual-ref') as HTMLInputElement).value;
-                      if (code) {
-                        navigate(`/register?ref=${code.trim().toUpperCase()}`);
-                      }
-                    }}
-                  >
-                    Proceed
-                  </Button>
+              <div className="text-center relative z-10">
+                <div className="mx-auto size-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(255,165,0,0.2)] border border-primary/20">
+                  <Users className="size-14 text-primary animate-pulse" />
+                </div>
+                <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tighter">Referral Required</h2>
+                <p className="text-xl text-white/40 font-bold italic leading-relaxed max-w-xl mx-auto mb-12">
+                  To ensure the integrity of the NSEP mission, registration is exclusively via trusted referrals.
+                </p>
+
+                <div className="space-y-10">
+                  <div className="glass-card rounded-[2rem] p-8 border-white/5 bg-white/5">
+                    <p className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-3">Entrance Protocol</p>
+                    <p className="text-white/60 font-bold italic">
+                      Obtain a unique access link or code from an authorized center or fellow scholar.
+                    </p>
+                  </div>
+
+                  <div className="space-y-6 pt-4 max-w-md mx-auto">
+                    <div className="flex flex-col gap-4">
+                      <Label htmlFor="manual-ref" className="text-white/40 font-black uppercase tracking-widest text-[10px] ml-1">Access Authorization Code</Label>
+                      <div className="flex gap-4">
+                        <Input
+                          placeholder="EX: ADM-XXXX-XXXX"
+                          id="manual-ref"
+                          className="h-16 bg-white/5 border-white/10 rounded-2xl text-center text-xl font-mono tracking-[0.2em] text-white focus:border-primary/50 transition-all placeholder:text-white/10"
+                          maxLength={16}
+                        />
+                        <Button
+                          onClick={() => {
+                            const code = (document.getElementById('manual-ref') as HTMLInputElement).value;
+                            if (code) {
+                              navigate(`/register?ref=${code.trim().toUpperCase()}`);
+                            }
+                          }}
+                          className="h-16 px-10 rounded-2xl bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_20px_rgba(255,165,0,0.3)] hover:scale-105 transition-transform shrink-0"
+                        >
+                          Verify
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-10">
+                    <Button variant="ghost" asChild className="text-white/20 hover:text-white transition-colors group">
+                      <Link to="/" className="text-sm font-black uppercase tracking-widest">
+                        <ArrowLeft className="size-4 mr-3 group-hover:-translate-x-1 transition-transform" />
+                        Cancel Registration
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
-
-              <div className="pt-8 flex flex-col items-center gap-4">
-                <Button variant="ghost" asChild>
-                  <Link to="/" className="text-muted-foreground">
-                    <ArrowLeft className="size-4 mr-2" />
-                    Back to Homepage
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </motion.div>
         ) : (
           <>
             {/* Progress Steps */}
-            <div className="mb-8">
+            <div className="mb-12">
               <div className="flex items-center justify-between">
                 {steps.map((s, index) => (
                   <div key={s.key} className="flex-1 flex items-center">
                     <div className="flex flex-col items-center flex-1">
                       <div
-                        className={`size-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${index < currentStepIndex
-                          ? 'bg-accent text-white'
+                        className={`size-12 rounded-2xl flex items-center justify-center text-sm font-black transition-all duration-500 shadow-xl ${index < currentStepIndex
+                          ? 'bg-accent text-white scale-90'
                           : index === currentStepIndex
-                            ? 'bg-primary text-white'
-                            : 'bg-muted-foreground/20 text-muted-foreground'
+                            ? 'bg-primary text-white scale-110 shadow-[0_0_20px_rgba(255,165,0,0.4)]'
+                            : 'bg-white/5 text-white/20 border border-white/10'
                           }`}
                       >
-                        {index < currentStepIndex ? <CheckCircle className="size-5" /> : index + 1}
+                        {index < currentStepIndex ? <CheckCircle className="size-6" /> : index + 1}
                       </div>
-                      <div className="mt-2 text-center hidden sm:block">
-                        <div className={`text-xs font-medium ${index <= currentStepIndex ? 'text-foreground' : 'text-muted-foreground'
+                      <div className="mt-4 text-center hidden sm:block">
+                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${index <= currentStepIndex ? 'text-primary' : 'text-white/20'
                           }`}>
                           {s.label}
                         </div>
-                        <div className="text-xs text-muted-foreground">{s.description}</div>
+                        <div className="text-[10px] text-white/40 font-bold italic">{s.description}</div>
                       </div>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className={`h-0.5 w-full mx-2 ${index < currentStepIndex ? 'bg-accent' : 'bg-border'
+                      <div className={`h-[2px] w-full mx-4 rounded-full transition-all duration-1000 ${index < currentStepIndex ? 'bg-gradient-to-r from-accent to-primary' : 'bg-white/5'
                         }`} />
                     )}
                   </div>
@@ -767,12 +767,19 @@ export function RegisterPage() {
               </div>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>{steps[currentStepIndex].label} Details</CardTitle>
-                <CardDescription>{steps[currentStepIndex].description}</CardDescription>
-              </CardHeader>
-              <CardContent className="max-h-[70vh] sm:max-h-[75vh] md:max-h-[80vh] overflow-y-auto custom-scrollbar pr-2">
+            <div className="glass-card-heavy rounded-[3.5rem] border border-white/10 shadow-3xl overflow-hidden mb-20">
+              <div className="p-10 lg:p-14 border-b border-white/5 bg-white/5">
+                <div className="flex items-center gap-6">
+                  <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
+                    <FileText className="size-8 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-white tracking-tight">{steps[currentStepIndex].label} Profile</h2>
+                    <p className="text-white/40 font-bold italic">{steps[currentStepIndex].description}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-10 lg:p-14 max-h-[70vh] sm:max-h-[75vh] md:max-h-[80vh] overflow-y-auto custom-scrollbar">
                 {/* Identity Step */}
                 {step === 'identity' && (
                   <div className="space-y-4">
@@ -1081,73 +1088,124 @@ export function RegisterPage() {
 
                 {/* Payment Step */}
                 {step === 'payment' && (
-                  <div className="space-y-6 text-center py-4">
-                    <div className="size-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                      <Shield className="size-8 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">Exam Fee Payment</h3>
-                      <p className="text-sm text-muted-foreground">To register for {APP_CONFIG.shortName}, you must pay the exam fee.</p>
-                    </div>
-
-                    <div className="bg-muted p-4 rounded-lg inline-block">
-                      <p className="text-sm text-muted-foreground">Total Payable Amount</p>
-                      <p className="text-3xl font-bold text-primary">{formatCurrency(getExamFee(formData.class))}</p>
-                    </div>
-
-                    {paymentVerified ? (
-                      <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg flex items-center justify-center gap-2">
-                        <CheckCircle className="size-5" />
-                        <p className="font-semibold">Payment Successful!</p>
+                  <div className="space-y-8 py-4">
+                    <div className="text-center space-y-2">
+                      <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                        <QrCode className="size-8 text-primary shadow-[0_0_15px_rgba(255,165,0,0.3)]" />
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Button
-                            className="w-full h-12 text-lg institutional-gradient"
-                            onClick={handlePayment}
-                            disabled={isProcessingPayment}
+                      <h3 className="text-3xl font-black text-white tracking-tight">Exam Fee <span className="premium-text-gradient">Payment</span></h3>
+                      <p className="text-sm text-white/40 font-bold italic">Scan the QR code below to pay the examination donation fee.</p>
+                    </div>
+
+                    <div className="flex flex-col lg:flex-row gap-10 items-center justify-center">
+                      {/* QR Code Section */}
+                      <div className="glass-card p-6 rounded-[2.5rem] border-white/10 bg-white shadow-2xl transition-transform hover:scale-[1.02]">
+                        <div className="bg-white p-4 rounded-2xl shadow-inner border-4 border-muted">
+                          {/* Placeholder for the user's QR code */}
+                          <img
+                            src="/src/assets/payment-qr.png"
+                            alt="Payment QR Code"
+                            className="size-56 object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=Vyapar.175692887286@hdfcbank&pn=GRAM%20PANCHAYAT%20HELP%20DESK%20MISSION&tr=82062838&am=" + getExamFee(formData.class);
+                            }}
+                          />
+                        </div>
+                        <div className="mt-6 text-center">
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Payable Amount</p>
+                          <p className="text-3xl font-black premium-text-gradient">{formatCurrency(getExamFee(formData.class))}</p>
+                        </div>
+                      </div>
+
+                      <ArrowRight className="size-10 text-white/20 hidden lg:block" />
+                      <ArrowRight className="size-10 text-white/20 rotate-90 lg:rotate-0 block lg:hidden" />
+
+                      {/* Form Section */}
+                      <div className="flex-1 w-full max-w-sm space-y-6">
+                        <div className="space-y-3">
+                          <Label htmlFor="transactionId" className="text-white/60 font-black uppercase tracking-widest text-[10px] ml-1">Transaction ID / UTR *</Label>
+                          <Input
+                            id="transactionId"
+                            value={manualTransactionId}
+                            onChange={(e) => setManualTransactionId(e.target.value)}
+                            placeholder="Enter 12-digit transaction ID"
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl text-white font-mono placeholder:text-white/20 focus:border-primary/50"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label className="text-white/60 font-black uppercase tracking-widest text-[10px] ml-1">Payment Proof Screenshot *</Label>
+                          <div
+                            onClick={() => proofInputRef.current?.click()}
+                            className={`h-36 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden relative group ${manualProofUrl
+                                ? 'border-primary/50 bg-primary/5'
+                                : 'border-white/10 hover:border-primary/30 bg-white/5'
+                              }`}
                           >
-                            {isProcessingPayment ? (
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              ref={proofInputRef}
+                              onChange={handleProofUpload}
+                              disabled={isUploadingProof}
+                            />
+
+                            {isUploadingProof ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <Loader2 className="size-8 text-primary animate-spin" />
+                                <span className="text-[10px] font-black text-primary uppercase">Uploading...</span>
+                              </div>
+                            ) : manualProofUrl ? (
                               <>
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                                Processing...
+                                <img src={manualProofUrl} alt="Proof" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                                <div className="z-10 bg-primary/20 p-3 rounded-xl border border-primary/30">
+                                  <ImageIcon className="size-6 text-primary" />
+                                </div>
+                                <span className="z-10 text-[10px] font-black text-primary uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full backdrop-blur-md">Screenshot Locked</span>
                               </>
                             ) : (
-                              'Pay with Razorpay'
+                              <>
+                                <div className="p-3 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
+                                  <Upload className="size-6 text-white/40" />
+                                </div>
+                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Click to Upload Screenshot</span>
+                              </>
                             )}
-                          </Button>
-
-                          {isProcessingPayment && (
-                            <p className="text-[10px] text-muted-foreground animate-pulse">
-                              If the payment window doesn't open within 5 seconds, please click "Retry Payment" below or refresh the page.
-                            </p>
-                          )}
+                          </div>
                         </div>
 
                         <Button
-                          variant="outline"
-                          className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
-                          onClick={async () => {
-                            if (!pendingStudentId) return;
-                            setIsProcessingPayment(true);
-                            try {
-                              setPaymentVerified(true);
-                              toast({ title: 'Confirmation Success! ✅', description: 'Proceeding to registration.' });
-                              setStep('address');
-                            } finally {
-                              setIsProcessingPayment(false);
-                            }
-                          }}
+                          className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_30px_rgba(255,165,0,0.2)] hover:scale-[1.02] transition-transform flex items-center gap-3"
+                          onClick={handlePayment}
+                          disabled={isProcessingPayment || isUploadingProof}
                         >
-                          Confirm Offline/Direct Payment
+                          {isProcessingPayment ? (
+                            <>
+                              <Loader2 className="size-6 animate-spin" />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              Submit Payment Details
+                              <ArrowRight className="size-6" />
+                            </>
+                          )}
                         </Button>
                       </div>
-                    )}
+                    </div>
 
-                    <p className="text-xs text-muted-foreground">
-                      Your registration status is currently PENDING until payment is confirmed.
-                    </p>
+                    <div className="glass-card-heavy p-6 rounded-[2rem] border-white/5 bg-white/5 flex gap-5 items-start">
+                      <div className="size-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0 border border-orange-500/20">
+                        <Clock className="size-6 text-orange-500 animate-pulse" />
+                      </div>
+                      <div className="text-left">
+                        <h4 className="text-white font-black text-sm uppercase tracking-wider mb-1">Verification Protocol</h4>
+                        <p className="text-white/40 text-xs font-bold italic leading-relaxed">
+                          Your registration will be finalized once our finance team verifies your transaction. This process typically takes <span className="text-primary font-black">2-4 business hours</span>, with a maximum window of 24 hours.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -1618,8 +1676,8 @@ export function RegisterPage() {
                     </Button>
                   ) : null}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </>
         )}
 

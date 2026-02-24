@@ -12,6 +12,7 @@ import {
   BarChart3,
   PieChart,
   Share2,
+  Building2,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -235,6 +236,14 @@ export function AdminDashboard() {
       icon: Share2,
       color: 'text-orange-600',
       bg: 'bg-orange-100',
+    },
+    {
+      title: 'Pending Centers',
+      value: (centers || []).filter(c => c.status === 'PENDING').length,
+      subtitle: 'for review',
+      icon: Building2,
+      color: 'text-rose-600',
+      bg: 'bg-rose-100',
     },
     {
       title: 'Certificates Issued',
