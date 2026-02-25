@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User, QrCode, Image as ImageIcon } from 'lucide-react';
+import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User, QrCode, Image as ImageIcon, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -1091,57 +1091,77 @@ export function RegisterPage() {
                 {/* Payment Step */}
                 {step === 'payment' && (
                   <div className="space-y-8 py-4">
-                    <div className="text-center space-y-2">
-                      <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20">
-                        <QrCode className="size-8 text-primary shadow-[0_0_15px_rgba(255,165,0,0.3)]" />
+                    <div className="text-center space-y-3">
+                      <div className="inline-flex items-center justify-center">
+                        <div className="size-20 rounded-2xl bg-primary/10 flex items-center justify-center border-2 border-primary/20 shadow-[0_0_30px_rgba(33,150,243,0.1)]">
+                          <QrCode className="size-10 text-primary" />
+                        </div>
                       </div>
-                      <h3 className="text-3xl font-black text-foreground tracking-tight">Exam Fee <span className="premium-text-gradient">Payment</span></h3>
-                      <p className="text-sm text-muted-foreground font-bold italic">Scan the QR code below to pay the examination donation fee.</p>
+                      <h3 className="text-4xl font-black text-foreground tracking-tight">Complete Your Payment</h3>
+                      <p className="text-base text-muted-foreground font-semibold">
+                        Pay <span className="text-primary font-black">{formatCurrency(getExamFee(formData.class))}</span> to activate your exam access
+                      </p>
+                      <div className="pt-2 inline-flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full border border-green-200/50">
+                        <div className="size-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-xs font-black text-green-700 uppercase tracking-wider">Secure & Verified Payment</span>
+                      </div>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-10 items-center justify-center">
                       {/* QR Code Section */}
-                      <div className="bg-background p-6 rounded-[2.5rem] border border-border bg-white shadow-2xl transition-transform hover:scale-[1.02]">
-                        <div className="bg-white p-4 rounded-2xl shadow-inner border-4 border-muted">
+                      <div className="bg-background p-8 rounded-[2.5rem] border-2 border-primary/20 shadow-[0_0_40px_rgba(33,150,243,0.05)] transition-all hover:shadow-[0_0_50px_rgba(33,150,243,0.1)]">
+                        <div className="bg-white p-6 rounded-2xl shadow-inner border-4 border-muted">
                           {/* Placeholder for the user's QR code */}
                           <img
                             src="/src/assets/payment-qr.png"
                             alt="Payment QR Code"
-                            className="size-56 object-contain"
+                            className="size-64 object-contain"
                             onError={(e) => {
                               (e.target as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=Vyapar.175692887286@hdfcbank&pn=GRAM%20PANCHAYAT%20HELP%20DESK%20MISSION&tr=82062838&am=" + getExamFee(formData.class);
                             }}
                           />
                         </div>
-                        <div className="mt-6 text-center">
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">Payable Amount</p>
-                          <p className="text-3xl font-black premium-text-gradient">{formatCurrency(getExamFee(formData.class))}</p>
+                        <div className="mt-8 text-center space-y-2">
+                          <p className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">Exam Fee</p>
+                          <p className="text-4xl font-black premium-text-gradient">{formatCurrency(getExamFee(formData.class))}</p>
+                          <p className="text-[10px] text-muted-foreground font-semibold italic">Class {formData.class} | UPI or Bank Transfer</p>
                         </div>
                       </div>
 
-                      <ArrowRight className="size-10 text-muted-foreground hidden lg:block" />
-                      <ArrowRight className="size-10 text-muted-foreground rotate-90 lg:rotate-0 block lg:hidden" />
+                      <div className="hidden lg:flex items-center">
+                        <ArrowRight className="size-12 text-primary/30" />
+                      </div>
+                      <div className="lg:hidden flex items-center">
+                        <ArrowRight className="size-12 text-primary/30 rotate-90" />
+                      </div>
 
                       {/* Form Section */}
-                      <div className="flex-1 w-full max-w-sm space-y-6">
+                      <div className="flex-1 w-full max-w-md space-y-6">
                         <div className="space-y-3">
-                          <Label htmlFor="transactionId" className="text-muted-foreground font-black uppercase tracking-widest text-[10px] ml-1">Transaction ID / UTR *</Label>
+                          <Label htmlFor="transactionId" className="text-muted-foreground font-black uppercase tracking-widest text-[11px] ml-1 flex items-center gap-2">
+                            <span className="size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
+                            Transaction ID / UTR
+                          </Label>
                           <Input
                             id="transactionId"
                             value={manualTransactionId}
                             onChange={(e) => setManualTransactionId(e.target.value)}
-                            placeholder="Enter 12-digit transaction ID"
-                            className="h-14 bg-input border-border rounded-2xl text-foreground font-mono placeholder:text-muted-foreground focus:border-primary/50"
+                            placeholder="Enter 12-digit transaction ID from receipt"
+                            className="h-14 bg-input border-border rounded-2xl text-foreground font-mono placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-primary/20 text-sm"
                           />
+                          <p className="text-[10px] text-muted-foreground">You'll find this in your payment confirmation email/SMS</p>
                         </div>
 
                         <div className="space-y-3">
-                          <Label className="text-muted-foreground font-black uppercase tracking-widest text-[10px] ml-1">Payment Proof Screenshot *</Label>
+                          <Label className="text-muted-foreground font-black uppercase tracking-widest text-[11px] ml-1 flex items-center gap-2">
+                            <span className="size-5 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
+                            Payment Proof Screenshot
+                          </Label>
                           <div
                             onClick={() => proofInputRef.current?.click()}
-                            className={`h-36 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden relative group ${manualProofUrl
+                            className={`h-40 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden relative group ${manualProofUrl
                               ? 'border-primary/50 bg-primary/5'
-                              : 'border-border hover:border-primary/30 bg-secondary/20'
+                              : 'border-primary/30 hover:border-primary/50 bg-primary/5 hover:bg-primary/10'
                               }`}
                           >
                             <input
@@ -1156,56 +1176,144 @@ export function RegisterPage() {
                             {isUploadingProof ? (
                               <div className="flex flex-col items-center gap-2">
                                 <Loader2 className="size-8 text-primary animate-spin" />
-                                <span className="text-[10px] font-black text-primary uppercase">Uploading...</span>
+                                <span className="text-[10px] font-black text-primary uppercase">Compressing & Uploading...</span>
                               </div>
                             ) : manualProofUrl ? (
                               <>
-                                <img src={manualProofUrl} alt="Proof" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                                <div className="z-10 bg-primary/20 p-3 rounded-xl border border-primary/30">
-                                  <ImageIcon className="size-6 text-primary" />
+                                <img src={manualProofUrl} alt="Proof" className="absolute inset-0 w-full h-full object-cover opacity-25" />
+                                <div className="z-10 bg-gradient-to-b from-transparent to-background/50 absolute inset-0 flex items-center justify-center">
+                                  <div className="bg-primary/20 p-4 rounded-2xl border border-primary/30 backdrop-blur-sm">
+                                    <CheckCircle className="size-8 text-primary" />
+                                  </div>
                                 </div>
-                                <span className="z-10 text-[10px] font-black text-primary uppercase tracking-widest bg-black/50 px-3 py-1 rounded-full backdrop-blur-md">Screenshot Locked</span>
+                                <span className="z-10 text-[10px] font-black text-primary uppercase tracking-widest bg-primary/20 px-4 py-2 rounded-full backdrop-blur-md border border-primary/30">✓ Screenshot Added</span>
                               </>
                             ) : (
                               <>
-                                <div className="p-3 bg-secondary/20 rounded-xl border border-border group-hover:scale-110 transition-transform">
-                                  <Upload className="size-6 text-muted-foreground" />
+                                <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 group-hover:scale-110 transition-transform">
+                                  <Upload className="size-7 text-primary" />
                                 </div>
-                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Click to Upload Screenshot</span>
+                                <div className="text-center">
+                                  <span className="text-[10px] font-black text-foreground uppercase tracking-widest block">Click to Upload Screenshot</span>
+                                  <span className="text-[9px] text-muted-foreground mt-1">JPG, PNG or WebP • Max 2MB</span>
+                                </div>
                               </>
                             )}
                           </div>
+                          <p className="text-[10px] text-muted-foreground">Take a screenshot of your "Payment Successful" message</p>
                         </div>
 
                         <Button
-                          className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_30px_rgba(33,150,243,0.2)] hover:scale-[1.02] transition-transform flex items-center gap-3"
+                          className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-primary to-accent text-white font-black text-base shadow-[0_0_30px_rgba(33,150,243,0.3)] hover:shadow-[0_0_40px_rgba(33,150,243,0.4)] hover:scale-[1.02] transition-all flex items-center gap-3"
                           onClick={handlePayment}
-                          disabled={isProcessingPayment || isUploadingProof}
+                          disabled={isProcessingPayment || isUploadingProof || !manualTransactionId.trim() || !manualProofUrl}
                         >
                           {isProcessingPayment ? (
                             <>
                               <Loader2 className="size-6 animate-spin" />
-                              Submitting...
+                              Verifying Payment...
                             </>
                           ) : (
                             <>
-                              Submit Payment Details
+                              🔒 Confirm & Continue
                               <ArrowRight className="size-6" />
                             </>
                           )}
                         </Button>
+
+                        <div className="space-y-2 text-[10px] text-muted-foreground p-3 bg-secondary/20 rounded-xl border border-border">
+                          <p className="font-bold flex items-center gap-2">
+                            <span className="size-4 rounded-full bg-primary/20 text-primary flex items-center justify-center">?</span>
+                            Need Help?
+                          </p>
+                          <ul className="space-y-1 ml-6 list-disc">
+                            <li>No confirmation email? Check spam folder</li>
+                            <li>Can't find ID? Look in your payment app's transaction history</li>
+                            <li>Still stuck? Contact support@gphdm.com</li>
+                          </ul>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="bg-background p-6 rounded-[2rem] border border-border bg-background flex gap-5 items-start">
-                      <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20">
-                        <Clock className="size-6 text-primary animate-pulse" />
+                    {/* Approval Timeline */}
+                    <div className="space-y-4">
+                      <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-6 rounded-[2rem] border border-primary/20">
+                        <h4 className="text-foreground font-black text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
+                          <Clock className="size-5 text-primary animate-pulse" />
+                          Payment Approval Timeline
+                        </h4>
+                        
+                        <div className="space-y-4">
+                          {/* Timeline Steps */}
+                          <div className="space-y-3">
+                            <div className="flex gap-4">
+                              <div className="flex flex-col items-center">
+                                <div className="size-10 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center text-primary font-bold text-sm">✓</div>
+                                <div className="w-0.5 h-8 bg-primary/30 mt-1"></div>
+                              </div>
+                              <div className="pt-2">
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">Now: Payment Submitted</p>
+                                <p className="text-muted-foreground text-xs mt-1">Your transaction details have been recorded</p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                              <div className="flex flex-col items-center">
+                                <div className="size-10 rounded-full bg-accent/20 border-2 border-accent/50 flex items-center justify-center text-accent font-bold text-sm">⏳</div>
+                                <div className="w-0.5 h-8 bg-accent/30 mt-1"></div>
+                              </div>
+                              <div className="pt-2">
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">2-4 Hours: Initial Verification</p>
+                                <p className="text-muted-foreground text-xs mt-1">Our finance team will verify your transaction ID and screenshot</p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                              <div className="flex flex-col items-center">
+                                <div className="size-10 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center text-green-500 font-bold text-sm">🎯</div>
+                              </div>
+                              <div className="pt-2">
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">24-48 Hours: Approval & Activation</p>
+                                <p className="text-muted-foreground text-xs mt-1">Your exam access will be activated once payment is confirmed</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Key Points */}
+                          <div className="mt-6 p-4 bg-background rounded-xl border border-border">
+                            <p className="font-black text-foreground text-[11px] uppercase tracking-wider mb-3 flex items-center gap-2">
+                              <span className="size-1.5 rounded-full bg-primary"></span>
+                              What Happens Next
+                            </p>
+                            <ul className="space-y-2 text-[11px] text-muted-foreground">
+                              <li className="flex gap-2">
+                                <span className="text-primary font-black">•</span>
+                                <span>You can continue filling your profile details while we verify your payment</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="text-primary font-black">•</span>
+                                <span>Check your email & SMS for payment confirmation updates</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="text-primary font-black">•</span>
+                                <span>Your exam will be activated automatically once payment is verified</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="text-primary font-black">•</span>
+                                <span>You can login to your dashboard to check payment status anytime</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
-                      <div className="text-left">
-                        <h4 className="text-foreground font-black text-sm uppercase tracking-wider mb-1">Verification Protocol</h4>
-                        <p className="text-muted-foreground text-xs font-bold italic leading-relaxed">
-                          Your registration will be finalized once our finance team verifies your transaction. This process typically takes <span className="text-primary font-black">2-4 business hours</span>, with a maximum window of 24 hours.
-                        </p>
+
+                      {/* Important Notice */}
+                      <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200/50 flex gap-3">
+                        <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-amber-800">
+                          <p className="font-black mb-1">⚠️ Please Keep Safe:</p>
+                          <p>Save your transaction ID and screenshot. You may need these for follow-up inquiries.</p>
+                        </div>
                       </div>
                     </div>
                   </div>
