@@ -1211,11 +1211,11 @@ export function RegisterPage() {
                           {isProcessingPayment ? (
                             <>
                               <Loader2 className="size-6 animate-spin" />
-                              Verifying Payment...
+                              Processing Payment...
                             </>
                           ) : (
                             <>
-                              🔒 Confirm & Continue
+                              💳 Pay & Continue Filling Form
                               <ArrowRight className="size-6" />
                             </>
                           )}
@@ -1237,10 +1237,21 @@ export function RegisterPage() {
 
                     {/* Approval Timeline */}
                     <div className="space-y-4">
+                      {/* Quick Action Card */}
+                      <div className="bg-green-50 border-2 border-green-200 p-6 rounded-[2rem] flex gap-4 items-start">
+                        <div className="size-12 rounded-full bg-green-200 flex items-center justify-center shrink-0 text-green-700 text-xl font-black">✓</div>
+                        <div>
+                          <h4 className="text-green-900 font-black uppercase text-sm tracking-wider mb-1">No Need to Wait!</h4>
+                          <p className="text-green-800 text-sm font-semibold">
+                            After paying & confirming, you can <span className="underline">immediately continue filling your personal details, address, and photo</span>. Your payment will be verified in the background while you complete registration.
+                          </p>
+                        </div>
+                      </div>
+
                       <div className="bg-gradient-to-r from-primary/10 to-accent/10 p-6 rounded-[2rem] border border-primary/20">
                         <h4 className="text-foreground font-black text-sm uppercase tracking-wider mb-4 flex items-center gap-2">
                           <Clock className="size-5 text-primary animate-pulse" />
-                          Payment Approval Timeline
+                          What Happens After Payment
                         </h4>
                         
                         <div className="space-y-4">
@@ -1252,29 +1263,40 @@ export function RegisterPage() {
                                 <div className="w-0.5 h-8 bg-primary/30 mt-1"></div>
                               </div>
                               <div className="pt-2">
-                                <p className="font-black text-foreground text-xs uppercase tracking-wider">Now: Payment Submitted</p>
-                                <p className="text-muted-foreground text-xs mt-1">Your transaction details have been recorded</p>
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">STEP 1: Submit Payment Details</p>
+                                <p className="text-muted-foreground text-xs mt-1">After clicking "Pay & Continue", your transaction ID and screenshot are recorded</p>
                               </div>
                             </div>
 
                             <div className="flex gap-4">
                               <div className="flex flex-col items-center">
-                                <div className="size-10 rounded-full bg-accent/20 border-2 border-accent/50 flex items-center justify-center text-accent font-bold text-sm">⏳</div>
+                                <div className="size-10 rounded-full bg-accent/20 border-2 border-accent/50 flex items-center justify-center text-accent font-bold text-sm">👤</div>
                                 <div className="w-0.5 h-8 bg-accent/30 mt-1"></div>
                               </div>
                               <div className="pt-2">
-                                <p className="font-black text-foreground text-xs uppercase tracking-wider">2-4 Hours: Initial Verification</p>
-                                <p className="text-muted-foreground text-xs mt-1">Our finance team will verify your transaction ID and screenshot</p>
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">STEP 2: Complete Your Profile</p>
+                                <p className="text-muted-foreground text-xs mt-1">Immediately continue to fill your address, photo, and other details (Don't wait for payment approval!)</p>
                               </div>
                             </div>
 
                             <div className="flex gap-4">
                               <div className="flex flex-col items-center">
                                 <div className="size-10 rounded-full bg-green-500/20 border-2 border-green-500/50 flex items-center justify-center text-green-500 font-bold text-sm">🎯</div>
+                                <div className="w-0.5 h-8 bg-green-500/30 mt-1"></div>
                               </div>
                               <div className="pt-2">
-                                <p className="font-black text-foreground text-xs uppercase tracking-wider">24-48 Hours: Approval & Activation</p>
-                                <p className="text-muted-foreground text-xs mt-1">Your exam access will be activated once payment is confirmed</p>
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">STEP 3: Admin Verification (Background)</p>
+                                <p className="text-muted-foreground text-xs mt-1">Our finance team verifies your payment within 2-4 hours (max 24-48 hours). You'll get email/SMS notification.</p>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                              <div className="flex flex-col items-center">
+                                <div className="size-10 rounded-full bg-blue-500/20 border-2 border-blue-500/50 flex items-center justify-center text-blue-500 font-bold text-sm">🚀</div>
+                              </div>
+                              <div className="pt-2">
+                                <p className="font-black text-foreground text-xs uppercase tracking-wider">FINAL: Exam Access Activated</p>
+                                <p className="text-muted-foreground text-xs mt-1">Once payment is verified, your exam access is automatically activated. No further action needed!</p>
                               </div>
                             </div>
                           </div>
@@ -1283,24 +1305,28 @@ export function RegisterPage() {
                           <div className="mt-6 p-4 bg-background rounded-xl border border-border">
                             <p className="font-black text-foreground text-[11px] uppercase tracking-wider mb-3 flex items-center gap-2">
                               <span className="size-1.5 rounded-full bg-primary"></span>
-                              What Happens Next
+                              Quick Registration Flow
                             </p>
                             <ul className="space-y-2 text-[11px] text-muted-foreground">
                               <li className="flex gap-2">
-                                <span className="text-primary font-black">•</span>
-                                <span>You can continue filling your profile details while we verify your payment</span>
+                                <span className="text-primary font-black">1.</span>
+                                <span><span className="font-bold text-foreground">Submit Payment Details</span> - Enter transaction ID & upload screenshot</span>
                               </li>
                               <li className="flex gap-2">
-                                <span className="text-primary font-black">•</span>
-                                <span>Check your email & SMS for payment confirmation updates</span>
+                                <span className="text-primary font-black">2.</span>
+                                <span><span className="font-bold text-foreground">Move to Step 3</span> - Immediately fill your personal details, address & photo</span>
                               </li>
                               <li className="flex gap-2">
-                                <span className="text-primary font-black">•</span>
-                                <span>Your exam will be activated automatically once payment is verified</span>
+                                <span className="text-primary font-black">3.</span>
+                                <span><span className="font-bold text-foreground">Finish Registration</span> - Review and submit your complete profile</span>
                               </li>
                               <li className="flex gap-2">
-                                <span className="text-primary font-black">•</span>
-                                <span>You can login to your dashboard to check payment status anytime</span>
+                                <span className="text-primary font-black">4.</span>
+                                <span><span className="font-bold text-foreground">Background Verification</span> - Admin verifies payment (24-48 hours max)</span>
+                              </li>
+                              <li className="flex gap-2">
+                                <span className="text-primary font-black">5.</span>
+                                <span><span className="font-bold text-foreground">Auto-Activation</span> - Exam access activated automatically once verified</span>
                               </li>
                             </ul>
                           </div>
@@ -1308,11 +1334,12 @@ export function RegisterPage() {
                       </div>
 
                       {/* Important Notice */}
-                      <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200/50 flex gap-3">
-                        <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
-                        <div className="text-xs text-amber-800">
-                          <p className="font-black mb-1">⚠️ Please Keep Safe:</p>
-                          <p>Save your transaction ID and screenshot. You may need these for follow-up inquiries.</p>
+                      <div className="bg-blue-50 p-4 rounded-xl border border-blue-200/50 flex gap-3">
+                        <AlertCircle className="size-5 text-blue-600 shrink-0 mt-0.5" />
+                        <div className="text-xs text-blue-800">
+                          <p className="font-black mb-2">ℹ️ Payment & Continue Process:</p>
+                          <p className="mb-2">After confirming your payment details, you'll move to the next step to fill your personal information, address, and profile photo. <span className="font-bold underline">Don't wait for admin approval</span> - continue with your registration right away!</p>
+                          <p className="font-bold">✓ Save your transaction ID - you may need it for support queries</p>
                         </div>
                       </div>
                     </div>
