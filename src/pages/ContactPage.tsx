@@ -173,7 +173,7 @@ export function ContactPage() {
               Back to Home
             </Link>
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 premium-text-gradient">Contact Us</h1>
-            <p className="text-xl text-white/70 max-w-2xl leading-relaxed italic">
+            <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed italic">
               संपर्क करें - We're here to help. Reach out to us for any queries, feedback, or support.
             </p>
           </motion.div>
@@ -188,12 +188,12 @@ export function ContactPage() {
             animate={{ opacity: 1, y: 0 }}
             className="lg:col-span-2"
           >
-            <div className="glass-card-heavy rounded-[2.5rem] p-8 lg:p-12 border border-white/10">
+            <div className="bg-background rounded-[2.5rem] p-8 lg:p-12 border border-border">
               <div className="flex items-center gap-4 mb-10">
                 <div className="p-4 bg-primary/20 rounded-2xl">
                   <MessageSquare className="size-8 text-primary" />
                 </div>
-                <h2 className="text-3xl font-bold text-white">Send Us a Message</h2>
+                <h2 className="text-3xl font-bold text-foreground">Send Us a Message</h2>
               </div>
 
               {isSubmitted ? (
@@ -205,8 +205,8 @@ export function ContactPage() {
                   <div className="size-24 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(34,197,94,0.3)]">
                     <CheckCircle className="size-12 text-green-500" />
                   </div>
-                  <h3 className="text-3xl font-bold text-white mb-4">Message Sent Successfully!</h3>
-                  <p className="text-white/60 mb-10 text-lg">
+                  <h3 className="text-3xl font-bold text-foreground mb-4">Message Sent Successfully!</h3>
+                  <p className="text-muted-foreground mb-10 text-lg">
                     Thank you for contacting us. We will respond within 24-48 working hours.
                   </p>
                   <Button
@@ -224,10 +224,10 @@ export function ContactPage() {
                 <form onSubmit={handleSubmit} className="space-y-8">
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="name" className="text-white/80 font-bold ml-1">Full Name *</Label>
+                      <Label htmlFor="name" className="text-muted-foreground font-bold ml-1">Full Name *</Label>
                       <Input
                         id="name"
-                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        className="h-14 bg-input border-border rounded-2xl text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground"
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
                         placeholder="Enter your name"
@@ -235,11 +235,11 @@ export function ContactPage() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label htmlFor="email" className="text-white/80 font-bold ml-1">Email Address *</Label>
+                      <Label htmlFor="email" className="text-muted-foreground font-bold ml-1">Email Address *</Label>
                       <Input
                         id="email"
                         type="email"
-                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        className="h-14 bg-input border-border rounded-2xl text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         placeholder="your.email@example.com"
@@ -250,10 +250,10 @@ export function ContactPage() {
 
                   <div className="grid sm:grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <Label htmlFor="phone" className="text-white/80 font-bold ml-1">Phone Number</Label>
+                      <Label htmlFor="phone" className="text-muted-foreground font-bold ml-1">Phone Number</Label>
                       <Input
                         id="phone"
-                        className="h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20"
+                        className="h-14 bg-input border-border rounded-2xl text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value.replace(/\D/g, ''))}
                         placeholder="10-digit mobile number"
@@ -261,15 +261,15 @@ export function ContactPage() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label htmlFor="subject" className="text-white/80 font-bold ml-1">Subject</Label>
+                      <Label htmlFor="subject" className="text-muted-foreground font-bold ml-1">Subject</Label>
                       <Select
                         value={formData.subject}
                         onValueChange={(value) => handleInputChange('subject', value)}
                       >
-                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-2xl text-white">
+                        <SelectTrigger className="h-14 bg-input border-border rounded-2xl text-foreground">
                           <SelectValue placeholder="Select a subject" />
                         </SelectTrigger>
-                        <SelectContent className="glass-card-heavy border-white/10 text-white">
+                        <SelectContent className="bg-background border-border text-foreground">
                           <SelectItem value="registration">Registration Query</SelectItem>
                           <SelectItem value="examination">Examination Related</SelectItem>
                           <SelectItem value="results">Results & Rankings</SelectItem>
@@ -284,10 +284,10 @@ export function ContactPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <Label htmlFor="message" className="text-white/80 font-bold ml-1">Message *</Label>
+                    <Label htmlFor="message" className="text-muted-foreground font-bold ml-1">Message *</Label>
                     <Textarea
                       id="message"
-                      className="bg-white/5 border-white/10 rounded-[2rem] text-white focus:border-primary/50 transition-all placeholder:text-white/20 p-6"
+                      className="bg-input border-border rounded-[2rem] text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground p-6"
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
                       placeholder="Describe your query or concern in detail..."
@@ -330,13 +330,13 @@ export function ContactPage() {
                 { icon: Phone, title: 'Phone', value: APP_CONFIG.supportPhone, href: `tel:${APP_CONFIG.supportPhone}`, color: 'bg-green-500/20 text-green-400' },
                 { icon: MapPin, title: 'Address', value: 'Uttar Pradesh, India', href: '#', color: 'bg-purple-500/20 text-purple-400' }
               ].map((item, idx) => (
-                <div key={idx} className="glass-card p-6 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group">
+                <div key={idx} className="bg-background p-6 rounded-3xl flex items-center gap-6 hover:bg-secondary/20 transition-all group border border-border">
                   <div className={`size-16 rounded-2xl flex items-center justify-center shrink-0 ${item.color} group-hover:scale-110 transition-transform`}>
                     <item.icon className="size-8" />
                   </div>
                   <div>
-                    <h4 className="text-white/40 text-xs font-bold uppercase tracking-widest mb-1">{item.title}</h4>
-                    <a href={item.href} className="text-white text-lg font-bold break-all hover:text-primary transition-colors italic">
+                    <h4 className="text-muted-foreground text-xs font-bold uppercase tracking-widest mb-1">{item.title}</h4>
+                    <a href={item.href} className="text-foreground text-lg font-bold break-all hover:text-primary transition-colors italic">
                       {item.value}
                     </a>
                   </div>
@@ -350,24 +350,24 @@ export function ContactPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="glass-card rounded-3xl p-8">
+              <div className="bg-background rounded-3xl p-8 border border-border">
                 <div className="flex items-center gap-3 mb-6">
                   <Clock className="size-6 text-accent" />
-                  <h3 className="text-xl font-bold text-white">Working Hours</h3>
+                  <h3 className="text-xl font-bold text-foreground">Working Hours</h3>
                 </div>
                 <div className="space-y-4">
                   {[
-                    { days: 'Monday - Friday', hours: '10:00 AM - 6:00 PM', variant: 'text-white/80' },
-                    { days: 'Saturday', hours: '10:00 AM - 2:00 PM', variant: 'text-white/80' },
+                    { days: 'Monday - Friday', hours: '10:00 AM - 6:00 PM', variant: 'text-foreground' },
+                    { days: 'Saturday', hours: '10:00 AM - 2:00 PM', variant: 'text-foreground' },
                     { days: 'Sunday', hours: 'Closed', variant: 'text-red-400 font-bold' }
                   ].map((row, i) => (
-                    <div key={i} className="flex justify-between items-center text-sm border-b border-white/5 pb-3">
-                      <span className="text-white/50">{row.days}</span>
+                    <div key={i} className="flex justify-between items-center text-sm border-b border-border pb-3">
+                      <span className="text-muted-foreground">{row.days}</span>
                       <span className={row.variant}>{row.hours}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-6 text-[10px] text-white/30 uppercase tracking-widest font-bold">
+                <p className="mt-6 text-[10px] text-muted-foreground/60 uppercase tracking-widest font-bold">
                   * 24-48 Working Hours response time
                 </p>
               </div>
@@ -382,11 +382,11 @@ export function ContactPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 overflow-hidden"
+            className="bg-background rounded-[3rem] p-8 lg:p-12 overflow-hidden border border-border"
           >
             <div className="flex items-center gap-4 mb-10">
               <HelpCircle className="size-8 text-primary" />
-              <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
+              <h2 className="text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-8">
@@ -394,8 +394,8 @@ export function ContactPage() {
                 <button
                   key={category}
                   className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${faqCategory === category
-                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,165,0,0.3)]'
-                    : 'bg-white/5 text-white/40 hover:bg-white/10'
+                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(33,150,243,0.3)]'
+                    : 'bg-secondary/20 text-muted-foreground hover:bg-secondary/30'
                     }`}
                   onClick={() => setFaqCategory(category)}
                 >
@@ -406,18 +406,18 @@ export function ContactPage() {
 
             <div className="space-y-4 h-[500px] overflow-y-auto custom-scrollbar pr-4">
               {filteredFAQs.map((faq, index) => (
-                <div key={index} className="glass-card rounded-2xl overflow-hidden border-white/5">
+                <div key={index} className="bg-background rounded-2xl overflow-hidden border border-border">
                   <button
-                    className="w-full flex items-center justify-between p-6 text-left hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between p-6 text-left hover:bg-secondary/20 transition-colors"
                     onClick={() => setExpandedFAQ(expandedFAQ === index ? null : index)}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="size-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0 text-primary font-bold">
+                      <div className="size-10 bg-secondary/20 rounded-xl flex items-center justify-center shrink-0 text-primary font-bold">
                         {index + 1}
                       </div>
-                      <span className="font-bold text-white/80 leading-tight">{faq.question}</span>
+                      <span className="font-bold text-foreground leading-tight">{faq.question}</span>
                     </div>
-                    {expandedFAQ === index ? <ChevronUp className="text-primary" /> : <ChevronDown className="text-white/20" />}
+                    {expandedFAQ === index ? <ChevronUp className="text-primary" /> : <ChevronDown className="text-muted-foreground/40" />}
                   </button>
                   {expandedFAQ === index && (
                     <motion.div
@@ -425,7 +425,7 @@ export function ContactPage() {
                       animate={{ height: 'auto', opacity: 1 }}
                       className="px-6 pb-6 pt-0 ml-14"
                     >
-                      <p className="text-white/50 text-sm leading-relaxed">{faq.answer}</p>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
                     </motion.div>
                   )}
                 </div>
@@ -438,7 +438,7 @@ export function ContactPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="glass-card rounded-[3rem] p-4 group"
+            className="bg-background rounded-[3rem] p-4 group border border-border"
           >
             <div className="relative h-full min-h-[500px] rounded-[2.5rem] overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700">
               <div className="absolute inset-0 bg-primary/10 mix-blend-overlay z-10 pointer-events-none group-hover:opacity-0 transition-opacity" />

@@ -97,27 +97,22 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
   };
 
   const renderSidebarContent = (idSuffix: string) => (
-    <aside className="w-[280px] bg-[#030712]/80 backdrop-blur-3xl border-r border-white/10 flex flex-col h-full overflow-hidden shadow-2xl relative">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-
+    <aside className="w-[280px] bg-background border-r border-border flex flex-col h-full overflow-hidden shadow-lg relative">
       {/* Header */}
-      <div className="p-6 border-b border-white/5 flex items-center justify-between relative z-10">
+      <div className="p-6 border-b border-border flex items-center justify-between">
         <Link to="/" className="flex items-center gap-4 group">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-md group-hover:bg-primary/40 transition-colors" />
-            <img src={logoImg} alt="GPHDM Logo" className="h-12 w-auto relative z-10 drop-shadow-[0_0_10px_rgba(255,165,0,0.3)] transition-transform group-hover:scale-105" />
-          </div>
+          <img src={logoImg} alt="GPHDM Logo" className="h-12 w-auto" />
           <div>
-            <h1 className="text-lg font-black text-white tracking-tighter leading-none">
+            <h1 className="text-lg font-bold text-foreground leading-none">
               {APP_CONFIG.shortName}
             </h1>
-            <p className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mt-1.5 opacity-80">
+            <p className="text-[9px] text-primary font-bold uppercase tracking-[0.2em] mt-1.5">
               {variant === 'admin' ? 'Admin Node' : variant === 'center' ? 'Center Hub' : 'Scholar Portal'}
             </p>
           </div>
         </Link>
         {onClose && (
-          <Button variant="ghost" size="icon" className="md:hidden text-white/40 hover:text-white" onClick={onClose}>
+          <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground hover:text-foreground" onClick={onClose}>
             <X className="size-6" />
           </Button>
         )}
@@ -125,14 +120,14 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
 
       {/* User Info */}
       {user && (
-        <div className="p-6 border-b border-white/5 bg-white/5 relative z-10">
+        <div className="p-6 border-b border-border bg-secondary/20">
           <div className="flex items-center gap-4">
-            <div className="size-11 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-inner">
+            <div className="size-11 bg-primary/10 rounded-xl flex items-center justify-center">
               <Users className="size-6 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-white truncate tracking-tight">{user.name}</p>
-              <p className="text-[10px] text-white/40 font-bold italic truncate mt-0.5">
+              <p className="text-sm font-bold text-foreground truncate">{user.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                 {(user as any).email || (user as any).ownerEmail || 'Scholar'}
               </p>
             </div>
@@ -141,7 +136,7 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
       )}
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar relative z-10">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         {navItems.map((item) => {
           const isActive = item.exact
             ? location.pathname === item.href
@@ -153,42 +148,28 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
               to={item.href}
               onClick={() => onClose?.()}
               className={cn(
-                "group flex items-center gap-4 px-4 py-4 rounded-2xl text-[13px] font-black uppercase tracking-widest transition-all duration-300 outline-none",
+                "group flex items-center gap-4 px-4 py-3 rounded-lg text-sm font-medium transition-all",
                 isActive
                   ? variant === 'admin'
-                    ? 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.1)]'
+                    ? 'bg-red-50 text-red-600 border-l-4 border-red-500'
                     : variant === 'center'
-                      ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]'
-                      : 'bg-primary text-white border border-primary/20 shadow-[0_0_30px_rgba(251,191,36,0.3)]'
-                  : 'text-white/40 hover:text-white hover:bg-white/5 active:scale-95'
+                      ? 'bg-amber-50 text-amber-600 border-l-4 border-amber-500'
+                      : 'bg-primary/10 text-primary border-l-4 border-primary'
+                  : 'text-muted-foreground hover:bg-secondary/20 hover:text-foreground'
               )}
             >
-              <item.icon className={cn(
-                "size-5 transition-transform duration-300 group-hover:scale-110",
-                isActive ? "text-inherit" : "text-white/30 group-hover:text-white"
-              )} />
+              <item.icon className="size-5" />
               <span>{item.label}</span>
-              {isActive && (
-                <motion.div
-                  layoutId={`active-indicator-${idSuffix}`}
-                  className={cn(
-                    "ml-auto w-1.5 h-6 rounded-full",
-                    variant === 'admin' ? 'bg-red-500' : variant === 'center' ? 'bg-amber-500' : 'bg-white shadow-[0_0_10px_white]'
-                  )}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                />
-              )}
             </NavLink>
           );
         })}
       </nav>
 
       {/* Footer */}
-      <div className="p-6 border-t border-white/5 bg-white/5 relative z-10">
+      <div className="p-4 border-t border-border">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-4 h-14 text-white/40 hover:text-red-400 hover:bg-red-500/10 rounded-2xl transition-all duration-300 font-black uppercase tracking-widest text-xs"
+          className="w-full justify-start gap-4 h-12 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all font-medium"
           onClick={handleLogout}
         >
           <LogOut className="size-5" />
@@ -214,7 +195,7 @@ export function Sidebar({ variant, isOpen = false, onClose }: SidebarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-background/60 backdrop-blur-sm z-[100] md:hidden"
+            className="fixed inset-0 bg-black/30 z-[100] md:hidden"
           />
         )}
         {isOpen && (

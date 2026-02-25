@@ -121,23 +121,23 @@ export function LoginPage() {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md"
       >
-        <div className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="bg-background rounded-[3rem] p-8 lg:p-12 border border-border shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-[60px] -z-10" />
 
           <div className="text-center mb-10">
             <Link to="/" className="inline-flex items-center justify-center gap-3 text-primary mb-6 group">
-              <div className="p-3 bg-primary/10 rounded-2xl group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(255,165,0,0.2)]">
+              <div className="p-3 bg-primary/10 rounded-2xl group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(33,150,243,0.2)]">
                 <GraduationCap className="size-8" />
               </div>
-              <span className="text-2xl font-black text-white tracking-tighter">{APP_CONFIG.shortName}</span>
+              <span className="text-2xl font-black text-foreground tracking-tighter">{APP_CONFIG.shortName}</span>
             </Link>
-            <h1 className="text-3xl font-black text-white mb-2">Student Access</h1>
-            <p className="text-white/40 font-bold italic">Enter your credentials to continue.</p>
+            <h1 className="text-3xl font-black text-foreground mb-2">Student Access</h1>
+            <p className="text-muted-foreground font-bold italic">Enter your credentials to continue.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/80 font-black ml-1 uppercase tracking-widest text-[10px]">Email Address</Label>
+              <Label htmlFor="email" className="text-muted-foreground font-black ml-1 uppercase tracking-widest text-[10px]">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -147,7 +147,7 @@ export function LoginPage() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 placeholder="your@email.com"
-                className={`h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20 ${errors.email ? 'border-destructive' : ''}`}
+                className={`h-14 bg-input border-border rounded-2xl text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground ${errors.email ? 'border-destructive' : ''}`}
               />
               {errors.email && (
                 <p className="text-xs text-red-500 font-bold flex items-center gap-1 ml-1">
@@ -158,7 +158,7 @@ export function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between ml-1">
-                <Label htmlFor="password" title="Password" className="text-white/80 font-black uppercase tracking-widest text-[10px]">Password</Label>
+                <Label htmlFor="password" title="Password" className="text-muted-foreground font-black uppercase tracking-widest text-[10px]">Password</Label>
                 <Link
                   to="/forgot-password"
                   className="text-[10px] text-primary hover:text-primary-light font-black uppercase tracking-widest"
@@ -175,7 +175,7 @@ export function LoginPage() {
                   if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 placeholder="••••••••"
-                className={`h-14 bg-white/5 border-white/10 rounded-2xl text-white focus:border-primary/50 transition-all placeholder:text-white/20 ${errors.password ? 'border-destructive' : ''}`}
+                className={`h-14 bg-input border-border rounded-2xl text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground ${errors.password ? 'border-destructive' : ''}`}
               />
               {errors.password && (
                 <p className="text-xs text-red-500 font-bold flex items-center gap-1 ml-1">
@@ -204,7 +204,7 @@ export function LoginPage() {
           </form>
 
           <div className="mt-10 text-center">
-            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">
+            <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
               No account?{' '}
               <Link to="/register" className="text-primary hover:text-primary-light transition-colors">
                 Register Securely

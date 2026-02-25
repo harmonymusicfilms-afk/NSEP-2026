@@ -34,17 +34,17 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#030712]/60 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.3)] transition-all">
+    <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3">
-            <img src={logoImg} alt="GPHDM Logo" className="h-14 w-auto filter drop-shadow-[0_0_8px_rgba(255,165,0,0.3)]" />
+            <img src={logoImg} alt="GPHDM Logo" className="h-14 w-auto" />
             <div className="hidden sm:block">
-              <h1 className="font-serif text-xl font-bold text-white leading-tight tracking-wide">
+              <h1 className="font-serif text-xl font-bold text-foreground leading-tight tracking-wide">
                 {APP_CONFIG.shortName}
               </h1>
-              <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] leading-tight opacity-80">
+              <p className="text-[10px] text-primary font-bold uppercase tracking-[0.2em] leading-tight">
                 National Scholarship {APP_CONFIG.year}
               </p>
             </div>
@@ -56,10 +56,11 @@ export function Header() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`text-xs font-bold uppercase tracking-widest transition-all hover:text-primary ${location.pathname === link.href
-                  ? 'text-primary premium-text-glow'
-                  : 'text-white/60 hover:text-white'
-                  }`}
+                className={`text-sm font-medium transition-all hover:text-primary ${
+                  location.pathname === link.href
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
                 {link.label}
               </Link>
@@ -91,7 +92,7 @@ export function Header() {
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button size="sm" className="institutional-gradient">
+                  <Button size="sm" className="bg-primary text-white hover:bg-primary/90">
                     {t('nav.register')}
                   </Button>
                 </Link>
@@ -130,10 +131,11 @@ export function Header() {
                   key={link.href}
                   to={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${location.pathname === link.href
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted'
-                    }`}
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location.pathname === link.href
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-secondary/20'
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -144,7 +146,7 @@ export function Header() {
                   <Link
                     to="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/20"
                   >
                     Dashboard
                   </Link>
@@ -163,14 +165,14 @@ export function Header() {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-muted"
+                    className="px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary/20"
                   >
                     Student Login
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="px-3 py-2 rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="px-3 py-2 rounded-md text-sm font-medium bg-primary text-white hover:bg-primary/90"
                   >
                     Register Now
                   </Link>

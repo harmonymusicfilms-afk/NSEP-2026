@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { GraduationCap, ArrowRight, ArrowLeft, CheckCircle, AlertCircle, FileText, Shield, Users, Gift, Loader2, Copy, Share2, Camera, Upload, X, User, QrCode, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -96,6 +97,7 @@ export function RegisterPage() {
   const [manualTransactionId, setManualTransactionId] = useState('');
   const [manualProofUrl, setManualProofUrl] = useState('');
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const proofInputRef = useRef<HTMLInputElement>(null);
 
@@ -652,18 +654,18 @@ export function RegisterPage() {
   const examFee = formData.class ? getExamFee(formData.class) : 0;
 
   return (
-    <div className="min-h-screen bg-muted py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
-          <Link to="/" className="inline-flex items-center gap-3 text-primary mb-10 group bg-primary/10 px-6 py-3 rounded-full border border-primary/20 backdrop-blur-md shadow-[0_0_20px_rgba(255,165,0,0.1)] hover:scale-105 transition-all">
+          <Link to="/" className="inline-flex items-center gap-3 text-primary mb-10 group bg-primary/10 px-6 py-3 rounded-full border border-primary/20 backdrop-blur-md shadow-[0_0_20px_rgba(33,150,243,0.1)] hover:scale-105 transition-all">
             <GraduationCap className="size-8" />
-            <span className="text-2xl font-black text-white tracking-tighter">{APP_CONFIG.shortName}</span>
+            <span className="text-2xl font-black text-foreground tracking-tighter">{APP_CONFIG.shortName}</span>
           </Link>
-          <h1 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tight">
-            Student <span className="premium-text-gradient">Registration</span>
+          <h1 className="text-5xl lg:text-7xl font-black text-foreground mb-6 tracking-tight">
+            Student <span className="text-primary">Registration</span>
           </h1>
-          <p className="text-xl text-white/50 max-w-xl mx-auto font-bold italic">
+          <p className="text-xl text-muted-foreground max-w-xl mx-auto font-bold italic">
             Begin your journey towards academic excellence and scholarship rewards.
           </p>
         </div>
@@ -674,35 +676,35 @@ export function RegisterPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="glass-card-heavy rounded-[3.5rem] p-10 lg:p-16 border border-white/10 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/10 rounded-full blur-[100px] -z-10 group-hover:bg-primary/20 transition-colors" />
-              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/10 rounded-full blur-[80px] -z-10" />
+            <div className="bg-background rounded-[3.5rem] p-10 lg:p-16 border border-border shadow-lg hover:shadow-xl transition-all relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 rounded-full blur-[100px] -z-10 group-hover:bg-primary/10 transition-colors" />
+              <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-accent/5 rounded-full blur-[80px] -z-10" />
 
               <div className="text-center relative z-10">
-                <div className="mx-auto size-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(255,165,0,0.2)] border border-primary/20">
+                <div className="mx-auto size-28 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mb-10 shadow-[0_0_40px_rgba(33,150,243,0.1)] border border-primary/20">
                   <Users className="size-14 text-primary animate-pulse" />
                 </div>
-                <h2 className="text-4xl lg:text-5xl font-black text-white mb-6 tracking-tighter">Referral Required</h2>
-                <p className="text-xl text-white/40 font-bold italic leading-relaxed max-w-xl mx-auto mb-12">
+                <h2 className="text-4xl lg:text-5xl font-black text-foreground mb-6 tracking-tighter">Referral Required</h2>
+                <p className="text-xl text-muted-foreground font-bold italic leading-relaxed max-w-xl mx-auto mb-12">
                   To ensure the integrity of the NSEP mission, registration is exclusively via trusted referrals.
                 </p>
 
                 <div className="space-y-10">
-                  <div className="glass-card rounded-[2rem] p-8 border-white/5 bg-white/5">
+                  <div className="bg-secondary/10 rounded-[2rem] p-8 border border-border">
                     <p className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-3">Entrance Protocol</p>
-                    <p className="text-white/60 font-bold italic">
+                    <p className="text-muted-foreground font-bold italic">
                       Obtain a unique access link or code from an authorized center or fellow scholar.
                     </p>
                   </div>
 
                   <div className="space-y-6 pt-4 max-w-md mx-auto">
                     <div className="flex flex-col gap-4">
-                      <Label htmlFor="manual-ref" className="text-white/40 font-black uppercase tracking-widest text-[10px] ml-1">Access Authorization Code</Label>
+                      <Label htmlFor="manual-ref" className="text-muted-foreground font-black uppercase tracking-widest text-[10px] ml-1">Access Authorization Code</Label>
                       <div className="flex gap-4">
                         <Input
                           placeholder="EX: ADM-XXXX-XXXX"
                           id="manual-ref"
-                          className="h-16 bg-white/5 border-white/10 rounded-2xl text-center text-xl font-mono tracking-[0.2em] text-white focus:border-primary/50 transition-all placeholder:text-white/10"
+                          className="h-16 bg-background border border-border rounded-2xl text-center text-xl font-mono tracking-[0.2em] text-foreground focus:border-primary/50 transition-all placeholder:text-muted-foreground/30"
                           maxLength={16}
                         />
                         <Button
@@ -712,7 +714,7 @@ export function RegisterPage() {
                               navigate(`/register?ref=${code.trim().toUpperCase()}`);
                             }
                           }}
-                          className="h-16 px-10 rounded-2xl bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_20px_rgba(255,165,0,0.3)] hover:scale-105 transition-transform shrink-0"
+                          className="h-16 px-10 rounded-2xl bg-primary text-white font-black text-lg shadow-[0_0_20px_rgba(33,150,243,0.3)] hover:bg-primary/90 transition-all shrink-0"
                         >
                           Verify
                         </Button>
@@ -721,7 +723,7 @@ export function RegisterPage() {
                   </div>
 
                   <div className="pt-10">
-                    <Button variant="ghost" asChild className="text-white/20 hover:text-white transition-colors group">
+                    <Button variant="ghost" asChild className="text-muted-foreground hover:text-foreground transition-colors group">
                       <Link to="/" className="text-sm font-black uppercase tracking-widest">
                         <ArrowLeft className="size-4 mr-3 group-hover:-translate-x-1 transition-transform" />
                         Cancel Registration
@@ -744,22 +746,22 @@ export function RegisterPage() {
                         className={`size-12 rounded-2xl flex items-center justify-center text-sm font-black transition-all duration-500 shadow-xl ${index < currentStepIndex
                           ? 'bg-accent text-white scale-90'
                           : index === currentStepIndex
-                            ? 'bg-primary text-white scale-110 shadow-[0_0_20px_rgba(255,165,0,0.4)]'
-                            : 'bg-white/5 text-white/20 border border-white/10'
+                            ? 'bg-primary text-white scale-110 shadow-[0_0_20px_rgba(33,150,243,0.4)]'
+                            : 'bg-primary/10 text-muted-foreground border border-border'
                           }`}
                       >
                         {index < currentStepIndex ? <CheckCircle className="size-6" /> : index + 1}
                       </div>
                       <div className="mt-4 text-center hidden sm:block">
-                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${index <= currentStepIndex ? 'text-primary' : 'text-white/20'
+                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${index <= currentStepIndex ? 'text-primary' : 'text-muted-foreground'
                           }`}>
                           {s.label}
                         </div>
-                        <div className="text-[10px] text-white/40 font-bold italic">{s.description}</div>
+                        <div className="text-[10px] text-muted-foreground font-bold italic">{s.description}</div>
                       </div>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className={`h-[2px] w-full mx-4 rounded-full transition-all duration-1000 ${index < currentStepIndex ? 'bg-gradient-to-r from-accent to-primary' : 'bg-white/5'
+                      <div className={`h-[2px] w-full mx-4 rounded-full transition-all duration-1000 ${index < currentStepIndex ? 'bg-gradient-to-r from-accent to-primary' : 'bg-primary/10'
                         }`} />
                     )}
                   </div>
@@ -767,15 +769,15 @@ export function RegisterPage() {
               </div>
             </div>
 
-            <div className="glass-card-heavy rounded-[3.5rem] border border-white/10 shadow-3xl overflow-hidden mb-20">
-              <div className="p-10 lg:p-14 border-b border-white/5 bg-white/5">
+            <div className="bg-background rounded-[3.5rem] border border-border shadow-3xl overflow-hidden mb-20">
+              <div className="p-10 lg:p-14 border-b border-border bg-secondary/20">
                 <div className="flex items-center gap-6">
                   <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
                     <FileText className="size-8 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-3xl font-black text-white tracking-tight">{steps[currentStepIndex].label} Profile</h2>
-                    <p className="text-white/40 font-bold italic">{steps[currentStepIndex].description}</p>
+                    <h2 className="text-3xl font-black text-foreground tracking-tight">{steps[currentStepIndex].label} Profile</h2>
+                    <p className="text-muted-foreground font-bold italic">{steps[currentStepIndex].description}</p>
                   </div>
                 </div>
               </div>
@@ -1093,13 +1095,13 @@ export function RegisterPage() {
                       <div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20">
                         <QrCode className="size-8 text-primary shadow-[0_0_15px_rgba(255,165,0,0.3)]" />
                       </div>
-                      <h3 className="text-3xl font-black text-white tracking-tight">Exam Fee <span className="premium-text-gradient">Payment</span></h3>
-                      <p className="text-sm text-white/40 font-bold italic">Scan the QR code below to pay the examination donation fee.</p>
+                      <h3 className="text-3xl font-black text-foreground tracking-tight">Exam Fee <span className="premium-text-gradient">Payment</span></h3>
+                      <p className="text-sm text-muted-foreground font-bold italic">Scan the QR code below to pay the examination donation fee.</p>
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-10 items-center justify-center">
                       {/* QR Code Section */}
-                      <div className="glass-card p-6 rounded-[2.5rem] border-white/10 bg-white shadow-2xl transition-transform hover:scale-[1.02]">
+                      <div className="bg-background p-6 rounded-[2.5rem] border border-border bg-white shadow-2xl transition-transform hover:scale-[1.02]">
                         <div className="bg-white p-4 rounded-2xl shadow-inner border-4 border-muted">
                           {/* Placeholder for the user's QR code */}
                           <img
@@ -1117,29 +1119,29 @@ export function RegisterPage() {
                         </div>
                       </div>
 
-                      <ArrowRight className="size-10 text-white/20 hidden lg:block" />
-                      <ArrowRight className="size-10 text-white/20 rotate-90 lg:rotate-0 block lg:hidden" />
+                      <ArrowRight className="size-10 text-muted-foreground hidden lg:block" />
+                      <ArrowRight className="size-10 text-muted-foreground rotate-90 lg:rotate-0 block lg:hidden" />
 
                       {/* Form Section */}
                       <div className="flex-1 w-full max-w-sm space-y-6">
                         <div className="space-y-3">
-                          <Label htmlFor="transactionId" className="text-white/60 font-black uppercase tracking-widest text-[10px] ml-1">Transaction ID / UTR *</Label>
+                          <Label htmlFor="transactionId" className="text-muted-foreground font-black uppercase tracking-widest text-[10px] ml-1">Transaction ID / UTR *</Label>
                           <Input
                             id="transactionId"
                             value={manualTransactionId}
                             onChange={(e) => setManualTransactionId(e.target.value)}
                             placeholder="Enter 12-digit transaction ID"
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl text-white font-mono placeholder:text-white/20 focus:border-primary/50"
+                            className="h-14 bg-input border-border rounded-2xl text-foreground font-mono placeholder:text-muted-foreground focus:border-primary/50"
                           />
                         </div>
 
                         <div className="space-y-3">
-                          <Label className="text-white/60 font-black uppercase tracking-widest text-[10px] ml-1">Payment Proof Screenshot *</Label>
+                          <Label className="text-muted-foreground font-black uppercase tracking-widest text-[10px] ml-1">Payment Proof Screenshot *</Label>
                           <div
                             onClick={() => proofInputRef.current?.click()}
                             className={`h-36 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 cursor-pointer overflow-hidden relative group ${manualProofUrl
-                                ? 'border-primary/50 bg-primary/5'
-                                : 'border-white/10 hover:border-primary/30 bg-white/5'
+                              ? 'border-primary/50 bg-primary/5'
+                              : 'border-border hover:border-primary/30 bg-secondary/20'
                               }`}
                           >
                             <input
@@ -1166,17 +1168,17 @@ export function RegisterPage() {
                               </>
                             ) : (
                               <>
-                                <div className="p-3 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
-                                  <Upload className="size-6 text-white/40" />
+                                <div className="p-3 bg-secondary/20 rounded-xl border border-border group-hover:scale-110 transition-transform">
+                                  <Upload className="size-6 text-muted-foreground" />
                                 </div>
-                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Click to Upload Screenshot</span>
+                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Click to Upload Screenshot</span>
                               </>
                             )}
                           </div>
                         </div>
 
                         <Button
-                          className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_30px_rgba(255,165,0,0.2)] hover:scale-[1.02] transition-transform flex items-center gap-3"
+                          className="w-full h-16 rounded-[1.5rem] bg-gradient-to-r from-primary to-accent text-white font-black text-lg shadow-[0_0_30px_rgba(33,150,243,0.2)] hover:scale-[1.02] transition-transform flex items-center gap-3"
                           onClick={handlePayment}
                           disabled={isProcessingPayment || isUploadingProof}
                         >
@@ -1195,13 +1197,13 @@ export function RegisterPage() {
                       </div>
                     </div>
 
-                    <div className="glass-card-heavy p-6 rounded-[2rem] border-white/5 bg-white/5 flex gap-5 items-start">
-                      <div className="size-12 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0 border border-orange-500/20">
-                        <Clock className="size-6 text-orange-500 animate-pulse" />
+                    <div className="bg-background p-6 rounded-[2rem] border border-border bg-background flex gap-5 items-start">
+                      <div className="size-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 border border-primary/20">
+                        <Clock className="size-6 text-primary animate-pulse" />
                       </div>
                       <div className="text-left">
-                        <h4 className="text-white font-black text-sm uppercase tracking-wider mb-1">Verification Protocol</h4>
-                        <p className="text-white/40 text-xs font-bold italic leading-relaxed">
+                        <h4 className="text-foreground font-black text-sm uppercase tracking-wider mb-1">Verification Protocol</h4>
+                        <p className="text-muted-foreground text-xs font-bold italic leading-relaxed">
                           Your registration will be finalized once our finance team verifies your transaction. This process typically takes <span className="text-primary font-black">2-4 business hours</span>, with a maximum window of 24 hours.
                         </p>
                       </div>

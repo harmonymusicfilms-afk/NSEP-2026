@@ -69,22 +69,22 @@ export function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-4">
-      <Card className="w-full max-w-md border-red-900/30 bg-gray-900/80 text-white shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <Card className="w-full max-w-md border-gray-200 bg-white shadow-lg">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-2 text-red-500 mb-4">
+          <div className="flex items-center justify-center gap-2 text-red-600 mb-4">
             <Shield className="size-8" />
             <span className="font-serif text-xl font-bold">{APP_CONFIG.shortName}</span>
           </div>
-          <CardTitle className="font-serif text-2xl text-white">Super Admin Portal</CardTitle>
-          <CardDescription className="text-gray-400">
+          <CardTitle className="font-serif text-2xl text-gray-900">Super Admin Portal</CardTitle>
+          <CardDescription className="text-gray-500">
             Authorized personnel only. All login attempts are logged.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-300">Admin Email</Label>
+              <Label htmlFor="email" className="text-gray-700">Admin Email</Label>
               <Input
                 id="email"
                 type="email"
@@ -94,17 +94,17 @@ export function AdminLoginPage() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 placeholder="admin@example.com"
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
               />
               {errors.email && (
-                <p className="text-xs text-red-400 flex items-center gap-1">
+                <p className="text-xs text-red-500 flex items-center gap-1">
                   <AlertCircle className="size-3" /> {errors.email}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-gray-300">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -114,16 +114,16 @@ export function AdminLoginPage() {
                   if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 placeholder="••••••••"
-                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+                className="bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
               />
               {errors.password && (
-                <p className="text-xs text-red-400 flex items-center gap-1">
+                <p className="text-xs text-red-500 flex items-center gap-1">
                   <AlertCircle className="size-3" /> {errors.password}
                 </p>
               )}
             </div>
 
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <span className="animate-spin mr-2">⏳</span>
@@ -138,14 +138,14 @@ export function AdminLoginPage() {
             </Button>
           </form>
 
-          <div className="mt-4 p-3 bg-red-950/30 rounded-lg border border-red-900/30">
-            <p className="text-[10px] text-red-400/80 text-center">
+          <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
+            <p className="text-xs text-red-600 text-center">
               ⚠️ Warning: All login attempts are monitored. Unauthorized access is prohibited and may result in legal action.
             </p>
           </div>
 
           <div className="mt-4 text-center">
-            <Link to="/" className="text-sm text-gray-500 hover:text-gray-300">
+            <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
               ← Back to main site
             </Link>
           </div>

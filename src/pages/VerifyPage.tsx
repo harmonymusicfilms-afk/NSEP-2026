@@ -76,19 +76,19 @@ export function VerifyPage() {
           <div className="inline-flex items-center justify-center size-24 rounded-[2rem] bg-primary/10 border border-primary/20 mb-8 shadow-[0_0_30px_rgba(255,165,0,0.2)]">
             <QrCode className="size-12 text-primary animate-pulse" />
           </div>
-          <h1 className="text-5xl lg:text-7xl font-black text-white mb-6 tracking-tighter">
+          <h1 className="text-5xl lg:text-7xl font-black text-foreground mb-6 tracking-tighter">
             Verify <span className="premium-text-gradient">Certificate</span>
           </h1>
-          <p className="text-xl text-white/50 max-w-xl mx-auto font-medium italic">
+          <p className="text-xl text-muted-foreground max-w-xl mx-auto font-medium italic">
             Enter the Certificate ID or Student ID to verify authenticity.
           </p>
         </div>
 
         {/* Search Form */}
-        <div className="glass-card-heavy rounded-[3rem] p-8 lg:p-12 border border-white/10 shadow-2xl mb-12">
+        <div className="bg-background rounded-[3rem] p-8 lg:p-12 border border-border shadow-2xl mb-12">
           <div className="space-y-8">
             <div className="space-y-4">
-              <Label htmlFor="certificateId" className="text-white/80 font-black ml-1 uppercase tracking-widest text-xs">Certificate ID or Student ID</Label>
+              <Label htmlFor="certificateId" className="text-muted-foreground font-black ml-1 uppercase tracking-widest text-xs">Certificate ID or Student ID</Label>
               <div className="flex gap-4">
                 <Input
                   id="certificateId"
@@ -98,7 +98,7 @@ export function VerifyPage() {
                     setSearchResult(null);
                   }}
                   placeholder="EX: STITCH-CERT-000001"
-                  className="h-16 bg-white/5 border-white/10 rounded-2xl text-white text-xl font-mono uppercase focus:border-primary/50 transition-all placeholder:text-white/10"
+                  className="h-16 bg-input border-border rounded-2xl text-foreground text-xl font-mono uppercase focus:border-primary/50 transition-all placeholder:text-muted-foreground"
                 />
                 <Button
                   size="icon"
@@ -113,7 +113,7 @@ export function VerifyPage() {
                   )}
                 </Button>
               </div>
-              <p className="text-sm text-white/30 italic font-bold">
+              <p className="text-sm text-muted-foreground italic font-bold">
                 Verification ensures the legitimacy of the issued scholarship award.
               </p>
             </div>
@@ -126,7 +126,7 @@ export function VerifyPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className={`glass-card-heavy rounded-[3rem] border border-white/10 overflow-hidden shadow-2xl relative`}>
+            <div className={`bg-background rounded-[3rem] border border-border overflow-hidden shadow-2xl relative`}>
               {searchResult.found ? (
                 <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-[80px] -z-10" />
               ) : (
@@ -148,7 +148,7 @@ export function VerifyPage() {
                     <h2 className={`text-4xl font-black mb-3 ${searchResult.found ? 'text-green-500' : 'text-red-500'}`}>
                       {searchResult.found ? 'Authentication Success' : 'Authentication Failed'}
                     </h2>
-                    <p className="text-xl text-white/50 font-bold italic">
+                    <p className="text-xl text-muted-foreground font-bold italic">
                       {searchResult.found
                         ? 'This digital record is authentic and verified by NSEP.'
                         : 'No matching record was found in our database.'}
@@ -161,7 +161,7 @@ export function VerifyPage() {
                     {/* Details Grid */}
                     <div className="grid md:grid-cols-2 gap-8">
                       {/* Certificate Info */}
-                      <div className="glass-card rounded-[2rem] p-8 border-white/5">
+                      <div className="bg-background rounded-[2rem] p-8 border border-border">
                         <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
                           <Award className="size-4" />
                           Certificate Record
@@ -172,9 +172,9 @@ export function VerifyPage() {
                             { label: 'Tier', value: searchResult.certificate.certificateType.toLowerCase(), capitalize: true },
                             { label: 'Issue Date', value: formatDate(searchResult.certificate.issuedAt) }
                           ].map((item, i) => (
-                            <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3">
-                              <span className="text-white/40 font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
-                              <span className={`text-white font-bold ${item.mono ? 'font-mono text-primary' : ''} ${item.capitalize ? 'capitalize' : ''}`}>
+                            <div key={i} className="flex justify-between items-center border-b border-border pb-3">
+                              <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
+                              <span className={`text-foreground font-bold ${item.mono ? 'font-mono text-primary' : ''} ${item.capitalize ? 'capitalize' : ''}`}>
                                 {item.value}
                               </span>
                             </div>
@@ -183,7 +183,7 @@ export function VerifyPage() {
                       </div>
 
                       {/* Student Info */}
-                      <div className="glass-card rounded-[2rem] p-8 border-white/5">
+                      <div className="bg-background rounded-[2rem] p-8 border border-border">
                         <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
                           <User className="size-4" />
                           Recipient Details
@@ -195,9 +195,9 @@ export function VerifyPage() {
                             { label: 'Academic', value: `Class ${searchResult.student.class}` },
                             { label: 'Institution', value: searchResult.student.centerCode || 'Independent', mono: true }
                           ].map((item, i) => (
-                            <div key={i} className="flex justify-between items-center border-b border-white/5 pb-3">
-                              <span className="text-white/40 font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
-                              <span className={`text-white font-bold ${item.mono ? 'font-mono text-primary' : ''}`}>
+                            <div key={i} className="flex justify-between items-center border-b border-border pb-3">
+                              <span className="text-muted-foreground font-bold uppercase text-[10px] tracking-widest">{item.label}</span>
+                              <span className={`text-foreground font-bold ${item.mono ? 'font-mono text-primary' : ''}`}>
                                 {item.value}
                               </span>
                             </div>
@@ -208,19 +208,19 @@ export function VerifyPage() {
 
                     {/* Performance Metrics */}
                     {searchResult.examResult && (
-                      <div className="glass-card rounded-[2.5rem] p-10 border-white/5 relative overflow-hidden group">
+                      <div className="bg-background rounded-[2.5rem] p-10 border-border relative overflow-hidden group">
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
                           <Calendar className="size-4" />
                           Performance Metrics
                         </h3>
                         <div className="grid grid-cols-2 gap-8">
-                          <div className="text-center p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                            <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-black mb-2">Aggregate Score</p>
-                            <p className="text-5xl font-black text-white premium-text-glow">{searchResult.examResult.totalScore}</p>
+                          <div className="text-center p-8 bg-secondary/20 rounded-[2rem] border border-border">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black mb-2">Aggregate Score</p>
+                            <p className="text-5xl font-black text-foreground premium-text-glow">{searchResult.examResult.totalScore}</p>
                           </div>
-                          <div className="text-center p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                            <p className="text-[10px] text-white/30 uppercase tracking-[0.3em] font-black mb-2">Merit Standing</p>
+                          <div className="text-center p-8 bg-secondary/20 rounded-[2rem] border border-border">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black mb-2">Merit Standing</p>
                             <p className="text-5xl font-black text-primary premium-text-glow">
                               {searchResult.examResult.rank ? getOrdinal(searchResult.examResult.rank) : '—'}
                             </p>
@@ -243,13 +243,13 @@ export function VerifyPage() {
 
                 {!searchResult.found && (
                   <div className="text-center py-8">
-                    <p className="text-xl text-white/40 font-bold italic mb-10 max-w-md mx-auto">
+                    <p className="text-xl text-muted-foreground font-bold italic mb-10 max-w-md mx-auto">
                       Please verify the ID provided on the certificate. Errors may occur due to incorrect entry or expired records.
                     </p>
                     <Button
                       variant="outline"
                       onClick={() => setCertificateId('')}
-                      className="h-16 px-12 rounded-full border-white/10 text-white font-black hover:bg-white/5 transition-all text-lg"
+                      className="h-16 px-12 rounded-full border-border text-foreground font-black hover:bg-secondary/20 transition-all text-lg"
                     >
                       Try Again
                     </Button>
@@ -262,19 +262,19 @@ export function VerifyPage() {
 
         {/* Info Section */}
         <div className="mt-24">
-          <h2 className="text-xs font-black text-white/30 uppercase tracking-[0.5em] text-center mb-10">Where to find your credentials</h2>
+          <h2 className="text-xs font-black text-muted-foreground uppercase tracking-[0.5em] text-center mb-10">Where to find your credentials</h2>
           <div className="grid sm:grid-cols-2 gap-8">
-            <div className="glass-card rounded-[2.5rem] p-10 border-white/5 text-center group hover:border-primary/30 transition-all">
+            <div className="bg-background rounded-[2.5rem] p-10 border border-border text-center group hover:border-primary/30 transition-all">
               <QrCode className="size-16 text-primary mx-auto mb-8 group-hover:scale-110 transition-transform" />
-              <p className="text-2xl font-black text-white mb-2">Visual Scan</p>
-              <p className="text-white/40 font-bold italic">
+              <p className="text-2xl font-black text-foreground mb-2">Visual Scan</p>
+              <p className="text-muted-foreground font-bold italic">
                 Focus your camera on the QR code located in the center of your physical certificate.
               </p>
             </div>
-            <div className="glass-card rounded-[2.5rem] p-10 border-white/5 text-center group hover:border-primary/30 transition-all">
+            <div className="bg-background rounded-[2.5rem] p-10 border border-border text-center group hover:border-primary/30 transition-all">
               <Search className="size-16 text-primary mx-auto mb-8 group-hover:scale-110 transition-transform" />
-              <p className="text-2xl font-black text-white mb-2">Manual Audit</p>
-              <p className="text-white/40 font-bold italic">
+              <p className="text-2xl font-black text-foreground mb-2">Manual Audit</p>
+              <p className="text-muted-foreground font-bold italic">
                 Input the unique alphanumeric sequence printed on the lower margin of the certificate.
               </p>
             </div>

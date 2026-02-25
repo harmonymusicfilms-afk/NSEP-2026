@@ -220,10 +220,10 @@ export function StudentDashboard() {
           </div>
 
           <div>
-            <h1 className="text-4xl lg:text-5xl font-black text-white tracking-tighter mb-2">
+            <h1 className="text-4xl lg:text-5xl font-black text-foreground tracking-tighter mb-2">
               Welcome, <span className="premium-text-gradient">{currentStudent.name}!</span>
             </h1>
-            <p className="text-white/40 font-bold italic text-lg">
+            <p className="text-muted-foreground font-bold italic text-lg">
               Class {currentStudent.class} • {currentStudent.schoolName}
             </p>
           </div>
@@ -236,7 +236,7 @@ export function StudentDashboard() {
           <Link to={nextStep.link}>
             <Button className={cn(
               "h-14 px-8 rounded-2xl font-black text-lg shadow-xl hover:scale-105 transition-transform",
-              nextStep.urgent ? 'institutional-gradient' : 'bg-white/10 text-white backdrop-blur-md border border-white/20'
+              nextStep.urgent ? 'institutional-gradient' : 'bg-secondary/20 text-foreground backdrop-blur-md border border-border'
             )}>
               {nextStep.action}
               <ArrowRight className="size-5 ml-3" />
@@ -248,7 +248,7 @@ export function StudentDashboard() {
       {/* Status Cards */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <div className="glass-card-heavy p-6 rounded-[2rem] border border-white/10 hover:border-primary/30 transition-all group">
+          <div className="bg-background p-6 rounded-[2rem] border border-border hover:border-primary/30 transition-all group">
             <div className="flex items-center gap-5">
               <div className={cn(
                 "size-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-3",
@@ -257,7 +257,7 @@ export function StudentDashboard() {
                 <CreditCard className="size-7" />
               </div>
               <div>
-                <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-1">Payment</p>
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Payment</p>
                 <div className="flex items-center gap-2">
                   <p className={cn("text-xl font-black", hasPaid ? 'text-green-400' : 'text-yellow-400')}>
                     {hasPaid ? 'Verified' : 'Pending'}
@@ -288,17 +288,17 @@ export function StudentDashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="glass-card-heavy p-6 rounded-[2rem] border border-white/10 hover:border-primary/30 transition-all group">
+          <div className="bg-background p-6 rounded-[2rem] border border-border hover:border-primary/30 transition-all group">
             <div className="flex items-center gap-5">
               <div className={cn(
                 "size-14 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 group-hover:-rotate-3",
-                examCompleted ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-white/40'
+                examCompleted ? 'bg-green-500/20 text-green-600' : 'bg-secondary/20 text-muted-foreground'
               )}>
                 <ClipboardList className="size-7" />
               </div>
               <div>
-                <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-1">Examination</p>
-                <p className={cn("text-xl font-black", examCompleted ? 'text-green-400' : 'text-white/60')}>
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Examination</p>
+                <p className={cn("text-xl font-black", examCompleted ? 'text-green-600' : 'text-muted-foreground')}>
                   {examCompleted ? 'Completed' : hasPaid ? 'Ready' : 'Locked'}
                 </p>
               </div>
@@ -307,13 +307,13 @@ export function StudentDashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <div className="glass-card-heavy p-6 rounded-[2rem] border border-white/10 hover:border-primary/30 transition-all group">
+          <div className="bg-background p-6 rounded-[2rem] border border-border hover:border-primary/30 transition-all group">
             <div className="flex items-center gap-5">
               <div className="size-14 rounded-2xl bg-primary/20 text-primary flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
                 <Award className="size-7" />
               </div>
               <div>
-                <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-1">Scholar Rank</p>
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Scholar Rank</p>
                 <p className="text-xl font-black text-primary">
                   {examResult?.rank ? `#${examResult.rank}` : 'Not Ranked'}
                 </p>
@@ -323,13 +323,13 @@ export function StudentDashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <div className="glass-card-heavy p-6 rounded-[2rem] border border-white/10 hover:border-primary/30 transition-all group">
+          <div className="bg-background p-6 rounded-[2rem] border border-border hover:border-primary/30 transition-all group">
             <div className="flex items-center gap-5">
               <div className="size-14 rounded-2xl bg-accent/20 text-accent flex items-center justify-center shadow-lg transition-transform group-hover:scale-110">
                 <Wallet className="size-7" />
               </div>
               <div>
-                <p className="text-xs font-black text-white/40 uppercase tracking-widest mb-1">Wallet Balance</p>
+                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Wallet Balance</p>
                 <p className="text-xl font-black text-accent">
                   {formatCurrency(wallet?.balance || 0)}
                 </p>
@@ -352,11 +352,11 @@ export function StudentDashboard() {
             <div className="p-8 lg:p-10">
               <div className="flex items-center justify-between mb-10">
                 <div>
-                  <h2 className="text-3xl font-black text-white tracking-tighter mb-2 flex items-center gap-3">
+                  <h2 className="text-3xl font-black text-foreground tracking-tighter mb-2 flex items-center gap-3">
                     <Gift className="size-8 text-primary animate-bounce-subtle" />
                     Student Referral Program
                   </h2>
-                  <p className="text-white/40 font-bold italic">
+                  <p className="text-muted-foreground font-bold italic">
                     Help others join the {APP_CONFIG.shortName} mission and earn rewards.
                   </p>
                 </div>
@@ -366,7 +366,7 @@ export function StudentDashboard() {
               </div>
 
               <div className="space-y-8">
-                <div className="glass-card-heavy p-6 rounded-[2rem] border-white/5 bg-white/5 space-y-4">
+                <div className="bg-background p-6 rounded-[2rem] border-border space-y-4">
                   <div className="flex items-center justify-between">
                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Access Protocol Link</p>
                     <div className="text-[10px] bg-green-500/20 text-green-400 px-3 py-1 rounded-full font-black uppercase tracking-wider">
@@ -375,7 +375,7 @@ export function StudentDashboard() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-stretch gap-4">
-                    <div className="flex-1 px-6 py-4 bg-[#030712]/50 rounded-2xl border border-white/10 font-mono text-sm text-primary font-black break-all flex items-center">
+                    <div className="flex-1 px-6 py-4 bg-secondary/20 rounded-2xl border border-border font-mono text-sm text-primary font-black break-all flex items-center">
                       {typeof window !== 'undefined' ? `${window.location.origin}/register?ref=${currentStudent.referralCode || currentStudent.centerCode}` : ''}
                     </div>
                     <Button
@@ -395,19 +395,19 @@ export function StudentDashboard() {
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="glass-card p-6 rounded-[2rem] border-white/5 flex flex-col justify-center">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-2">Unique Identification Code</p>
-                    <p className="text-3xl font-mono font-black text-white tracking-[0.3em]">
+                  <div className="bg-background p-6 rounded-[2rem] border border-border flex flex-col justify-center">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-2">Unique Identification Code</p>
+                    <p className="text-3xl font-mono font-black text-foreground tracking-[0.3em]">
                       {currentStudent.referralCode || currentStudent.centerCode}
                     </p>
                   </div>
-                  <div className="glass-card p-6 rounded-[2rem] border-white/5 flex items-center gap-5">
+                  <div className="bg-background p-6 rounded-[2rem] border border-border flex items-center gap-5">
                     <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center shadow-inner border border-primary/20">
                       <Gift className="size-8 text-primary" />
                     </div>
                     <div>
-                      <p className="text-lg font-black text-white tracking-tight">Earn Rewards</p>
-                      <p className="text-sm text-white/40 font-bold italic leading-tight">Instant wallet credit for every validated scholar registration.</p>
+                      <p className="text-lg font-black text-foreground tracking-tight">Earn Rewards</p>
+                      <p className="text-sm text-muted-foreground font-bold italic leading-tight">Instant wallet credit for every validated scholar registration.</p>
                     </div>
                   </div>
                 </div>
@@ -418,9 +418,9 @@ export function StudentDashboard() {
 
         {/* Quick Actions */}
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-          <div className="glass-card-heavy rounded-[2.5rem] border border-white/10 overflow-hidden h-full flex flex-col">
-            <div className="p-8 border-b border-white/5 bg-white/5">
-              <h3 className="text-2xl font-black text-white tracking-tighter">Quick Actions</h3>
+          <div className="bg-background rounded-[2.5rem] border border-border overflow-hidden h-full flex flex-col">
+            <div className="p-8 border-b border-border bg-secondary/20">
+              <h3 className="text-2xl font-black text-foreground tracking-tighter">Quick Actions</h3>
             </div>
             <div className="p-8 space-y-4 flex-1">
               {currentStudent.status === 'PENDING' && (
@@ -434,7 +434,7 @@ export function StudentDashboard() {
                 </Link>
               )}
               {hasPaid && !examCompleted && (
-                <Link to="/dashboard/exam" className="block text-white">
+                <Link to="/dashboard/exam" className="block text-foreground">
                   <Button className="w-full h-14 rounded-2xl justify-between gap-3 institutional-gradient px-6 font-black uppercase text-xs tracking-widest transition-transform hover:scale-[1.02]">
                     <span className="flex items-center gap-3">
                       <ClipboardList className="size-5" />
@@ -445,7 +445,7 @@ export function StudentDashboard() {
                 </Link>
               )}
               {examCompleted && (
-                <Link to="/dashboard/results" className="block text-white">
+                <Link to="/dashboard/results" className="block text-foreground">
                   <Button className="w-full h-14 rounded-2xl justify-between gap-3 bg-green-500/20 border border-green-500/30 hover:bg-green-500/30 px-6 font-black uppercase text-xs tracking-widest transition-transform hover:scale-[1.02]">
                     <span className="flex items-center gap-3 text-green-400">
                       <Award className="size-5" />
@@ -456,8 +456,8 @@ export function StudentDashboard() {
                 </Link>
               )}
               <Link to="/dashboard/syllabus" className="block">
-                <Button variant="outline" className="w-full h-14 rounded-2xl justify-between gap-3 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/50 px-6 font-black uppercase text-xs tracking-widest transition-all text-white">
-                  <span className="flex items-center gap-3 text-white/60">
+                <Button variant="outline" className="w-full h-14 rounded-2xl justify-between gap-3 bg-input border-border hover:bg-secondary/30 hover:border-primary/50 px-6 font-black uppercase text-xs tracking-widest transition-all text-foreground">
+                  <span className="flex items-center gap-3 text-muted-foreground">
                     <Wallet className="size-5" />
                     Access Wallet
                   </span>
@@ -465,8 +465,8 @@ export function StudentDashboard() {
                 </Button>
               </Link>
               <Link to="/dashboard/certificates" className="block">
-                <Button variant="outline" className="w-full h-14 rounded-2xl justify-between gap-3 bg-white/5 border-white/10 hover:bg-white/10 hover:border-primary/50 px-6 font-black uppercase text-xs tracking-widest transition-all text-white">
-                  <span className="flex items-center gap-3 text-white/60">
+                <Button variant="outline" className="w-full h-14 rounded-2xl justify-between gap-3 bg-input border-border hover:bg-secondary/30 hover:border-primary/50 px-6 font-black uppercase text-xs tracking-widest transition-all text-foreground">
+                  <span className="flex items-center gap-3 text-muted-foreground">
                     <Award className="size-5" />
                     Scholastic Medals
                   </span>
@@ -482,15 +482,15 @@ export function StudentDashboard() {
       <div className="grid lg:grid-cols-2 gap-8">
         {currentStudent.status === 'PENDING' && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="glass-card-heavy rounded-[2.5rem] border border-primary/30 p-8 lg:p-10 relative overflow-hidden h-full">
+            <div className="bg-background rounded-[2.5rem] border border-primary/30 p-8 lg:p-10 relative overflow-hidden h-full">
               <div className="absolute top-0 left-0 w-2 h-full bg-primary" />
               <div className="flex items-start gap-6">
                 <div className="p-4 bg-primary/20 rounded-2xl border border-primary/20 animate-pulse">
                   <Loader2 className="size-8 text-primary animate-spin" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-white tracking-tight mb-3">Entrance Authorization Required</h3>
-                  <p className="text-white/50 font-bold italic leading-relaxed mb-8">
+                  <h3 className="text-2xl font-black text-foreground tracking-tight mb-3">Entrance Authorization Required</h3>
+                  <p className="text-muted-foreground font-bold italic leading-relaxed mb-8">
                     {hasPaid
                       ? "Exam donation validated! Access link established. Finalize your scholar profile (address & school details) to authorize full exam access."
                       : "Authorize your entry. Complete the registration sequence and process the donation to activate your scholastic mission."}
@@ -507,17 +507,17 @@ export function StudentDashboard() {
         )}
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <div className="glass-card-heavy rounded-[2.5rem] border border-white/10 p-8 lg:p-10 h-full">
-            <h3 className="text-2xl font-black text-white tracking-tighter mb-8">Mission Briefing</h3>
+          <div className="bg-background rounded-[2.5rem] border border-border p-8 lg:p-10 h-full">
+            <h3 className="text-2xl font-black text-foreground tracking-tighter mb-8">Mission Briefing</h3>
             <div className="grid grid-cols-2 gap-6">
               {[
-                { label: 'Total Sequence', value: `${EXAM_CONFIG.totalQuestions} Questions`, color: 'text-white' },
-                { label: 'Time Allocation', value: `${EXAM_CONFIG.defaultTimePerQuestion}s / Question`, color: 'text-white' },
-                { label: 'Success Credit', value: `+${EXAM_CONFIG.marksPerCorrect} Marks`, color: 'text-green-400' },
-                { label: 'Penalty Logic', value: `${EXAM_CONFIG.marksPerWrong} Marks`, color: 'text-red-400' },
+                { label: 'Total Sequence', value: `${EXAM_CONFIG.totalQuestions} Questions`, color: 'text-foreground' },
+                { label: 'Time Allocation', value: `${EXAM_CONFIG.defaultTimePerQuestion}s / Question`, color: 'text-foreground' },
+                { label: 'Success Credit', value: `+${EXAM_CONFIG.marksPerCorrect} Marks`, color: 'text-green-600' },
+                { label: 'Penalty Logic', value: `${EXAM_CONFIG.marksPerWrong} Marks`, color: 'text-red-600' },
               ].map((item, i) => (
-                <div key={i} className="p-5 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-colors">
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">{item.label}</p>
+                <div key={i} className="p-5 bg-secondary/20 rounded-2xl border border-border hover:border-primary/20 transition-colors">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{item.label}</p>
                   <p className={cn("text-xl font-black tracking-tight", item.color)}>{item.value}</p>
                 </div>
               ))}
