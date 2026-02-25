@@ -15,6 +15,7 @@ import { isValidEmail, isValidMobile, formatCurrency, generateId, generateCenter
 import { STATE_DISTRICTS } from '@/constants/districts';
 import { client as backend } from '@/lib/backend';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PaymentQRCode } from '@/components/ui/PaymentQRCode';
 
 // MASTER_REFERRAL_CODE moved to config.ts as APP_CONFIG.masterReferralCode
 
@@ -1053,17 +1054,19 @@ export function RegisterPage() {
                       <Label htmlFor="centerCode" className="text-sm font-semibold mb-2 block italic text-primary">
                         Referral Code (Mandatory) *
                       </Label>
-                      <Input
-                        id="centerCode"
-                        value={formData.referredByCenter}
-                        onChange={(e) => {
-                          const val = e.target.value.toUpperCase();
-                          updateField('referredByCenter', val);
-                          validateReferralCode(val);
-                        }}
-                        placeholder="e.g., CC-XXXX or NSEP2026"
-                        className={errors.referredByCenter ? 'border-destructive' : 'bg-white'}
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          id="centerCode"
+                          value={formData.referredByCenter}
+                          onChange={(e) => {
+                            const val = e.target.value.toUpperCase();
+                            updateField('referredByCenter', val);
+                            validateReferralCode(val);
+                          }}
+                          placeholder="e.g., CC-XXXX or NSEP2026"
+                          className={errors.referredByCenter ? 'border-destructive' : 'bg-white'}
+                        />
+                      </div>
                       <Button
                         type="button"
                         variant="link"
@@ -1110,17 +1113,11 @@ export function RegisterPage() {
                     <div className="flex flex-col lg:flex-row gap-10 items-center justify-center">
                       {/* QR Code Section */}
                       <div className="bg-background p-8 rounded-[2.5rem] border-2 border-primary/20 shadow-[0_0_40px_rgba(33,150,243,0.05)] transition-all hover:shadow-[0_0_50px_rgba(33,150,243,0.1)]">
-                        <div className="bg-white p-6 rounded-2xl shadow-inner border-4 border-muted">
-                          {/* Placeholder for the user's QR code */}
-                          <img
-                            src="/src/assets/payment-qr.png"
-                            alt="Payment QR Code"
-                            className="size-64 object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=upi://pay?pa=Vyapar.175692887286@hdfcbank&pn=GRAM%20PANCHAYAT%20HELP%20DESK%20MISSION&tr=82062838&am=" + getExamFee(formData.class);
-                            }}
-                          />
-                        </div>
+                        <PaymentQRCode
+                          amount={getExamFee(formData.class)}
+                          size={256}
+                          className="size-64"
+                        />
                         <div className="mt-8 text-center space-y-2">
                           <p className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">Exam Fee</p>
                           <p className="text-4xl font-black premium-text-gradient">{formatCurrency(getExamFee(formData.class))}</p>
